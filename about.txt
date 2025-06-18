@@ -1,0 +1,89 @@
+1. Sistema Autônomo de Autenticação Contextual com Blockchain e IA
+
+Problema: Autenticação em sistemas críticos (governo, saúde, defesa) ainda depende de login/senha tradicionais, vulneráveis e facilmente exploráveis.
+
+Solução: Criar um sistema de autenticação inteligente que analisa o contexto do usuário (localização, dispositivo, hora, padrão de comportamento) com IA para liberar ou negar o acesso. As transações e eventos de autenticação seriam registradas de forma imutável em blockchain, garantindo confiabilidade e auditoria.
+
+Diferenciais:
+
+Combina IA, cibersegurança e blockchain.
+
+Pode ser testado em ambiente simulado (sem necessidade de grandes parcerias).
+
+Muito relevante para sistemas críticos e bancos.
+
+Estrutura Modular do Projeto
+
+1. Coleta de Contexto (Sensor Virtual)
+📍 Localização (IP, geolocalização)
+⏰ Horário de acesso
+🧠 Comportamento de digitação, tipo de dispositivo, etc.
+______________________________________________________________
+2. Módulo de IA para Perfil de Acesso
+🚀 Algoritmos como Isolation Forest, Random Forest ou Deep Learning (análise de risco comportamental)
+🔎 Classificação se o acesso é "esperado" ou "anômalo"
+______________________________________________________________
+3. Autenticação Tradicional + Score de Confiança Login/senha + resultado IA
+Decisão baseada no risco: permitir, exigir 2FA, ou bloquear
+______________________________________________________________
+4. Registro de Acessos em Blockchain
+Cada evento de autenticação (incluindo o score) vai para um blockchain privado (ex: Hyperledger ou Ethereum testnet)
+Imutabilidade para auditoria
+______________________________________________________________
+🛠️ Tecnologias Sugeridas
+_____________________________________________________________
+
+Módulo - Stack Recomendada
+Backend API	- Spring Boot
+Módulo de IA - Python com FastAPI, scikit-learn
+Blockchain - Hyperledger Fabric, Ganache (Ethereum local)
+Banco de dados - PostgreSQL
+Interface de Admin	- Angular 17
+Integração e Deploy - 	Docker + Docker Compose
+
+______________________________________________________________
+Etapa 1 — Definir Arquitetura:
+Criar o backend com Spring Boot, Será arquitetura microserviços, preciso criar um projeto Spring Boot, com java 17 (packge será: "com.auth", exemplo: com.auth.controller, com.auth.service, com.auth.repository, com.auth.dto, com.auth.mapper)
+
+Solução: Criar um backend (Spring Boot, Será arquitetura microserviços) de autenticação e autorização que analisa o contexto do usuário (localização, dispositivo, hora, padrão de comportamento) garantindo confiabilidade e auditoria.
+Backend API	- Spring Boot 3.x, Java 17
+Módulo de IA - Python com FastAPI, scikit-learn
+Blockchain - Hyperledger Fabric, Ganache (Ethereum local)
+Banco de dados - PostgreSQL
+Interface de Admin	- Angular 17
+Integração e Deploy - 	Docker + Docker Compose
+Documentação - Swagger
+
+Primeira:
+Solução: Criar um backend (Spring Boot, Será arquitetura microserviços) de autenticação e autorização que analisa o contexto do usuário (localização, dispositivo, hora, padrão de comportamento).
+Backend API: Spring Boot, Java 17
+Banco de dados: PostgreSQL
+Dependencias: Lombok, Spring Boot, Spring Data, Spring Security, Spring Validation, postgresql,jwt 
+Documentação: Swagger 3.x
+Gerenciamento de dependências: Maven
+Integração e Deploy: Docker + Docker Compose
+
+______________________________________________________________
+
+Etapa 2 — Criar a API base de autenticação com logs contextuais:
+Registro de usuário (login, senha, nome, data de nascimento)
+Login (passando login, senha)
+Captura de IP, horário, e tipo de dispositivo
+
+Preciso criar os seguintes endpointes: 
+Registro de usuário(login, senha, nome, data de nascimento), 
+login (utilizando autenticação JWT, token), Captura de IP, horário, e tipo de dispositivo
+______________________________________________________________
+Etapa 3 — Módulo de IA isolado
+Consome contexto → retorna score de risco
+API Python para integração
+______________________________________________________________
+Etapa 4 — Blockchain Logging
+Registra a tentativa e o resultado da IA no blockchain
+______________________________________________________________
+
+Criar a estrutura do backend (Spring Boot com endpoints de login/registro/contexto)
+
+Implementar IA (em Python, com modelo de risco comportamental)
+
+Estruturar a integração com blockchain (inicialmente local/testnet)

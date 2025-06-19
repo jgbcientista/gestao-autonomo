@@ -2,15 +2,26 @@ server:
   port: ${SERVER_PORT:8081}
   servlet:
     context-path: /api/v1
+  tomcat:
+    connection-timeout: 5s
+    max-connections: 200
+    threads:
+      max: 100
+      min-spare: 10
 
 spring:
   application:
     name: auth-service
+  main:
+    allow-bean-definition-overriding: true
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/auth_db}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
   jpa:
     hibernate:
       ddl-auto: update
@@ -19,6 +30,14 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 25
+          fetch_size: 25
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: false
+    open-in-view: false
 
 springdoc:
   api-docs:
@@ -28,10 +47,105 @@ springdoc:
     operationsSorter: method
 
 jwt:
-  secret: ***REMOVIDO***
-  expiration: 86400000 # 24 horas em milissegundos
+  secret: ${JWT_SECRET:***REMOVIDO***}
+  expiration: ${JWT_EXPIRATION:86400000}
+
+# Configurações de IA e Análise de Contexto
+ai:
+  service:
+    url: ${AI_SERVICE_URL:}
+    enabled: ${AI_SERVICE_ENABLED:false}
+
+# Configurações de Thresholds de Risco
+risk:
+  threshold:
+    low: ${RISK_THRESHOLD_LOW:0.3}
+    medium: ${RISK_THRESHOLD_MEDIUM:0.6}
+    high: ${RISK_THRESHOLD_HIGH:0.8}
+
+# Configurações de Blockchain
+blockchain:
+  enabled: ${BLOCKCHAIN_ENABLED:false}
+  network:
+    name: ${BLOCKCHAIN_NETWORK_NAME:localhost}
+    url: ${BLOCKCHAIN_NETWORK_URL:http://localhost:8545}
+  private:
+    key: ${BLOCKCHAIN_PRIVATE_KEY:}
+  contract:
+    address: ${BLOCKCHAIN_CONTRACT_ADDRESS:}
+
+# Configurações Redis (apenas para produção)
+redis:
+  host: ${REDIS_HOST:localhost}
+  port: ${REDIS_PORT:6379}
+  password: ${REDIS_PASSWORD:}
+  database: 0
+  timeout: 2000ms
+  lettuce:
+    pool:
+      max-active: 8
+      max-idle: 8
+      min-idle: 2
+      max-wait: -1ms
 
 logging:
   level:
     org.springframework.security: DEBUG
-    br.com.auth: DEBUG 
+    br.com.auth: DEBUG
+    org.web3j: INFO
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+---
+# Profile de desenvolvimento com H2
+spring:
+  config:
+    activate:
+      on-profile: dev
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password: 
+    driver-class-name: org.h2.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.H2Dialect
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  # Desabilita Redis no profile dev
+  data:
+    redis:
+      repositories:
+        enabled: false
+  redis:
+    host: 
+    port: 
+    password: 
+    timeout: 0ms
+
+# Configurações específicas do profile dev
+ai:
+  service:
+    enabled: false
+
+blockchain:
+  enabled: false
+
+# Redis desabilitado no profile dev
+
+logging:
+  level:
+    org.springframework.security: INFO
+    br.com.auth: INFO
+    org.web3j: ERROR
+    org.hibernate.SQL: INFO 

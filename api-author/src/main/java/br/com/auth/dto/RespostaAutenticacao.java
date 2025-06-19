@@ -11,14 +11,23 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Schema(description = "Resposta da autenticação contendo token JWT e informações do usuário")
-public class AuthenticationResponse {
+public class RespostaAutenticacao {
     
     @Schema(description = "Token JWT para autenticação", example = "eyJhbGciOiJIUzI1NiJ9...")
     private String token;
     
     @Schema(description = "Nome completo do usuário", example = "João Silva")
-    private String name;
+    private String nome;
     
-    @Schema(description = "Email do usuário", example = "joao.silva@email.com")
-    private String email;
+    @Schema(description = "Login/email do usuário", example = "joao.silva@email.com")
+    private String login;
+
+    // Métodos auxiliares para compatibilidade com código existente
+    public String getName() {
+        return nome;
+    }
+
+    public void setName(String nome) {
+        this.nome = nome;
+    }
 } 

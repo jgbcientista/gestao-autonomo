@@ -1,50 +1,49 @@
 package br.com.auth.service;
 
-import br.com.auth.dto.AuthenticationRequest;
-import br.com.auth.entity.AuditLog;
-import br.com.auth.entity.User;
-import br.com.auth.repository.AuditLogRepository;
-import lombok.RequiredArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.List;
+
+import org.springframework.stereotype.Service;
+
+import br.com.auth.dominio.entidades.LogAuditoria;
+import br.com.auth.dominio.entidades.Usuario;
+import br.com.auth.dto.RequisicaoAutenticacao;
+import br.com.auth.infraestrutura.repositorios.RepositorioLogAuditoria;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
 public class ContextAnalysisService {
 
-    private final AuditLogRepository auditLogRepository;
+    private final RepositorioLogAuditoria repositorioLogAuditoria;
 
-    public void analyzeContext(User user, AuthenticationRequest request) {
+    public void analyzeContext(Usuario usuario, RequisicaoAutenticacao request) {
         // Verifica tentativas de login em horários incomuns
         if (isUnusualLoginTime()) {
-            logSuspiciousActivity(user, "Tentativa de login em horário incomum", request);
+            logSuspiciousActivity(usuario, "Tentativa de login em horário incomum", request);
         }
 
         // Verifica mudança de localização
-        if (user.getLastLoginLocation() != null && 
-            !user.getLastLoginLocation().equals(request.getLocation())) {
-            logSuspiciousActivity(user, "Mudança de localização detectada", request);
+        if (usuario.getUltimoLoginLocalizacao() != null && 
+            !usuario.getUltimoLoginLocalizacao().equals(request.getLocation())) {
+            logSuspiciousActivity(usuario, "Mudança de localização detectada", request);
         }
 
         // Verifica mudança de dispositivo
-        if (user.getLastLoginDevice() != null && 
-            !user.getLastLoginDevice().equals(request.getUserAgent())) {
-            logSuspiciousActivity(user, "Mudança de dispositivo detectada", request);
+        if (usuario.getUltimoLoginDispositivo() != null && 
+            !usuario.getUltimoLoginDispositivo().equals(request.getUserAgent())) {
+            logSuspiciousActivity(usuario, "Mudança de dispositivo detectada", request);
         }
 
         // Verifica múltiplas tentativas de login em um curto período
-        var recentLogins = auditLogRepository.findByUserAndCreatedAtBetween(
-            user,
+        List<LogAuditoria> recentLogins = repositorioLogAuditoria.findByUsuarioAndCriadoEmBetween(
+            usuario,
             LocalDateTime.now().minusMinutes(5),
-            LocalDateTime.now(),
-            PageRequest.of(0, 10)
+            LocalDateTime.now()
         );
 
-        if (recentLogins.getTotalElements() > 3) {
-            logSuspiciousActivity(user, "Múltiplas tentativas de login em curto período", request);
+        if (recentLogins.size() > 3) {
+            logSuspiciousActivity(usuario, "Múltiplas tentativas de login em curto período", request);
         }
     }
 
@@ -54,17 +53,17 @@ public class ContextAnalysisService {
         return currentHour >= 23 || currentHour < 5;
     }
 
-    private void logSuspiciousActivity(User user, String reason, AuthenticationRequest request) {
-        var auditLog = AuditLog.builder()
-                .user(user)
-                .eventType("SUSPICIOUS_ACTIVITY")
-                .description(reason)
-                .ipAddress(request.getIpAddress())
-                .userAgent(request.getUserAgent())
-                .location(request.getLocation())
-                .success(false)
-                .failureReason(reason)
+    private void logSuspiciousActivity(Usuario usuario, String reason, RequisicaoAutenticacao request) {
+        var logAuditoria = LogAuditoria.builder()
+                .usuario(usuario)
+                .tipoEvento("SUSPICIOUS_ACTIVITY")
+                .descricao(reason)
+                .enderecoIp(request.getIpAddress())
+                .agenteUsuario(request.getUserAgent())
+                .localizacao(request.getLocation())
+                .sucesso(false)
+                .motivoFalha(reason)
                 .build();
-        auditLogRepository.save(auditLog);
+        repositorioLogAuditoria.save(logAuditoria);
     }
 } 

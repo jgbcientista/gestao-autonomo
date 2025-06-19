@@ -30,6 +30,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
     ) throws ServletException, IOException {
+        
+        // Pular filtro para endpoints públicos
+        String requestPath = request.getRequestURI();
+        System.out.println("JWT Filter - Request Path: " + requestPath);
+        if (isPublicEndpoint(requestPath)) {
+            System.out.println("JWT Filter - Endpoint público, pulando filtro: " + requestPath);
+            filterChain.doFilter(request, response);
+            return;
+        }
+        
         final String authHeader = request.getHeader("Authorization");
         final String jwt;
         final String userEmail;
@@ -40,21 +50,39 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         jwt = authHeader.substring(7);
-        userEmail = jwtService.extractUsername(jwt);
+        try {
+            userEmail = jwtService.extractUsername(jwt);
 
-        if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
+            if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
+                UserDetails userDetails = this.userDetailsService.loadUserByUsername(userEmail);
 
-            if (jwtService.isTokenValid(jwt, userDetails)) {
-                UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-                authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                SecurityContextHolder.getContext().setAuthentication(authToken);
+                if (jwtService.isTokenValid(jwt, userDetails)) {
+                    UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
+                            userDetails,
+                            null,
+                            userDetails.getAuthorities()
+                    );
+                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    SecurityContextHolder.getContext().setAuthentication(authToken);
+                }
             }
+        } catch (Exception e) {
+            // Log do erro mas não bloquear o request
+            System.err.println("Erro no JWT filter: " + e.getMessage());
         }
+        
         filterChain.doFilter(request, response);
+    }
+    
+    private boolean isPublicEndpoint(String requestPath) {
+        return requestPath.startsWith("/api/v1/test") ||
+               requestPath.startsWith("/api/v1/health") ||
+               requestPath.startsWith("/api/v1/autenticacao/registrar") ||
+               requestPath.startsWith("/api/v1/autenticacao/entrar") ||
+               requestPath.startsWith("/api/v1/autenticacao/status") ||
+               requestPath.startsWith("/api/v1/h2-console") ||
+               requestPath.startsWith("/api/v1/swagger-ui") ||
+               requestPath.startsWith("/api/v1/api-docs") ||
+               requestPath.startsWith("/api/v1/webjars");
     }
 } 

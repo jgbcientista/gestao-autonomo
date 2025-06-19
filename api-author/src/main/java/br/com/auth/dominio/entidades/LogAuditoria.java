@@ -1,0 +1,122 @@
+package br.com.auth.dominio.entidades;
+
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+@Table(name = "logs_auditoria")
+@EntityListeners(AuditingEntityListener.class)
+public class LogAuditoria {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "usuario_id")
+    private Usuario usuario;
+
+    @Column(nullable = false)
+    private String tipoEvento;
+
+    @Column(nullable = false)
+    private String descricao;
+
+    @Column(name = "endereco_ip")
+    private String enderecoIp;
+
+    @Column(name = "agente_usuario")
+    private String agenteUsuario;
+
+    @Column(name = "localizacao")
+    private String localizacao;
+
+    @Column(name = "info_dispositivo")
+    private String infoDispositivo;
+
+    @Column(name = "sucesso")
+    private Boolean sucesso;
+
+    @Column(name = "motivo_falha")
+    private String motivoFalha;
+
+    @CreatedDate
+    @Column(name = "criado_em", nullable = false, updatable = false)
+    private LocalDateTime criadoEm;
+
+    // Métodos auxiliares para compatibilidade com código existente
+    public Usuario getUser() {
+        return usuario;
+    }
+
+    public void setUser(Usuario usuario) {
+        this.usuario = usuario;
+    }
+
+    public String getEventType() {
+        return tipoEvento;
+    }
+
+    public void setEventType(String tipo) {
+        this.tipoEvento = tipo;
+    }
+
+    public String getDescription() {
+        return descricao;
+    }
+
+    public void setDescription(String descricao) {
+        this.descricao = descricao;
+    }
+
+    public String getIpAddress() {
+        return enderecoIp;
+    }
+
+    public void setIpAddress(String ip) {
+        this.enderecoIp = ip;
+    }
+
+    public String getUserAgent() {
+        return agenteUsuario;
+    }
+
+    public void setUserAgent(String agente) {
+        this.agenteUsuario = agente;
+    }
+
+    public String getLocation() {
+        return localizacao;
+    }
+
+    public void setLocation(String localizacao) {
+        this.localizacao = localizacao;
+    }
+
+    public Boolean getSuccess() {
+        return sucesso;
+    }
+
+    public void setSuccess(Boolean sucesso) {
+        this.sucesso = sucesso;
+    }
+
+    public String getFailureReason() {
+        return motivoFalha;
+    }
+
+    public void setFailureReason(String motivo) {
+        this.motivoFalha = motivo;
+    }
+} 

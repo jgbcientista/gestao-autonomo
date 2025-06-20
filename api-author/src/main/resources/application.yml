@@ -84,7 +84,7 @@ blockchain:
   enabled: ${BLOCKCHAIN_ENABLED:true}
   network:
     type: ${BLOCKCHAIN_NETWORK_TYPE:hyperledger} # ethereum ou hyperledger
-    name: ${BLOCKCHAIN_NETWORK_NAME:localhost}
+    name: ${BLOCKCHAIN_NETWORK_NAME:hyperledger-local}
     url: ${BLOCKCHAIN_NETWORK_URL:http://localhost:8545}
   private:
     key: ${BLOCKCHAIN_PRIVATE_KEY:}

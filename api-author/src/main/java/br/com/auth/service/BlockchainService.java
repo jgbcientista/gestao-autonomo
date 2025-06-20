@@ -6,6 +6,7 @@ import br.com.auth.infraestrutura.repositorios.RepositorioTransacaoBlockchain;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -41,6 +42,9 @@ public class BlockchainService {
     @Value("${blockchain.network.name:localhost}")
     private String networkName;
 
+    @Value("${blockchain.network.type:ethereum}")
+    private String networkType;
+
     @Value("${blockchain.private.key:}")
     private String privateKey;
 
@@ -50,6 +54,9 @@ public class BlockchainService {
     @Value("${blockchain.enabled:false}")
     private boolean blockchainEnabled;
 
+    @Autowired(required = false)
+    private HyperledgerFabricService hyperledgerFabricService;
+
     private Web3j web3j;
     private Credentials credentials;
 
@@ -57,11 +64,21 @@ public class BlockchainService {
     public void initialize() {
         if (blockchainEnabled) {
             try {
-                web3j = Web3j.build(new HttpService(networkUrl));
-                if (privateKey != null && !privateKey.isEmpty()) {
-                    credentials = Credentials.create(privateKey);
+                if ("hyperledger".equalsIgnoreCase(networkType)) {
+                    log.info("Blockchain service initialized for Hyperledger Fabric network");
+                    if (hyperledgerFabricService != null) {
+                        log.info("HyperledgerFabricService disponível e integrado");
+                    } else {
+                        log.warn("HyperledgerFabricService não disponível, usando simulação");
+                    }
+                } else {
+                    // Configuração Ethereum/Web3j
+                    web3j = Web3j.build(new HttpService(networkUrl));
+                    if (privateKey != null && !privateKey.isEmpty()) {
+                        credentials = Credentials.create(privateKey);
+                    }
+                    log.info("Blockchain service initialized successfully for Ethereum network");
                 }
-                log.info("Blockchain service initialized successfully");
             } catch (Exception e) {
                 log.error("Failed to initialize blockchain service", e);
             }
@@ -104,29 +121,42 @@ public class BlockchainService {
 
             TransacaoBlockchain transacaoSalva = repositorioTransacaoBlockchain.save(transacao);
 
-            if (blockchainEnabled && web3j != null && credentials != null) {
-                // Envia para a blockchain
-                String txHash = sendToBlockchain(dataHash, eventType);
-                
-                // Atualiza com o hash da transação
-                transacaoSalva.setHashTransacao(txHash);
-                repositorioTransacaoBlockchain.save(transacaoSalva);
+            if (blockchainEnabled) {
+                if ("hyperledger".equalsIgnoreCase(networkType) && hyperledgerFabricService != null) {
+                    // Usa Hyperledger Fabric
+                    try {
+                        String txHash = hyperledgerFabricService.submitAuthenticationTransaction(transacaoSalva).get();
+                        
+                        // Atualiza com o hash da transação
+                        transacaoSalva.setHashTransacao(txHash);
+                        transacaoSalva.setStatusConfirmacao(TransacaoBlockchain.StatusConfirmacao.CONFIRMADO);
+                        transacaoSalva.setVerificado(true);
+                        repositorioTransacaoBlockchain.save(transacaoSalva);
 
-                // Verifica confirmação em background
-                verifyTransactionAsync(transacaoSalva.getId(), txHash);
+                        log.info("Authentication event recorded to Hyperledger Fabric with hash: {}", txHash);
+                        return CompletableFuture.completedFuture(txHash);
+                    } catch (Exception e) {
+                        log.error("Erro ao enviar para Hyperledger Fabric, usando simulação", e);
+                        return simulateBlockchainTransaction(transacaoSalva, dataHash);
+                    }
+                } else if (web3j != null && credentials != null) {
+                    // Usa Ethereum/Web3j
+                    String txHash = sendToBlockchain(dataHash, eventType);
+                    
+                    // Atualiza com o hash da transação
+                    transacaoSalva.setHashTransacao(txHash);
+                    repositorioTransacaoBlockchain.save(transacaoSalva);
 
-                log.info("Authentication event recorded to blockchain with hash: {}", txHash);
-                return CompletableFuture.completedFuture(txHash);
+                    // Verifica confirmação em background
+                    verifyTransactionAsync(transacaoSalva.getId(), txHash);
+
+                    log.info("Authentication event recorded to blockchain with hash: {}", txHash);
+                    return CompletableFuture.completedFuture(txHash);
+                } else {
+                    return simulateBlockchainTransaction(transacaoSalva, dataHash);
+                }
             } else {
-                // Simula hash quando blockchain está desabilitado
-                String simulatedHash = "0x" + Integer.toHexString(dataHash.hashCode());
-                transacaoSalva.setHashTransacao(simulatedHash);
-                transacaoSalva.setStatusConfirmacao(TransacaoBlockchain.StatusConfirmacao.CONFIRMADO);
-                transacaoSalva.setVerificado(true);
-                repositorioTransacaoBlockchain.save(transacaoSalva);
-
-                log.info("Authentication event recorded locally with simulated hash: {}", simulatedHash);
-                return CompletableFuture.completedFuture(simulatedHash);
+                return simulateBlockchainTransaction(transacaoSalva, dataHash);
             }
 
         } catch (Exception e) {
@@ -237,6 +267,18 @@ public class BlockchainService {
         return repositorioTransacaoBlockchain.findByHashTransacao(txHash)
                 .map(TransacaoBlockchain::getVerificado)
                 .orElse(false);
+    }
+
+    private CompletableFuture<String> simulateBlockchainTransaction(TransacaoBlockchain transacaoSalva, String dataHash) {
+        // Simula hash quando blockchain está desabilitado ou falha
+        String simulatedHash = "0x" + Integer.toHexString(dataHash.hashCode());
+        transacaoSalva.setHashTransacao(simulatedHash);
+        transacaoSalva.setStatusConfirmacao(TransacaoBlockchain.StatusConfirmacao.CONFIRMADO);
+        transacaoSalva.setVerificado(true);
+        repositorioTransacaoBlockchain.save(transacaoSalva);
+
+        log.info("Authentication event recorded locally with simulated hash: {}", simulatedHash);
+        return CompletableFuture.completedFuture(simulatedHash);
     }
 
     private String bytesToHex(byte[] bytes) {

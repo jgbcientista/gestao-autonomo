@@ -3,6 +3,8 @@ package br.com.auth.infraestrutura.ia;
 import br.com.auth.dominio.entidades.Usuario;
 import br.com.auth.dominio.entidades.PadraoComportamentoUsuario;
 import br.com.auth.dominio.interfaces.IEstrategiaAnaliseRisco;
+import br.com.auth.service.ServicoGeolocalizacao;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +16,10 @@ import java.util.Map;
  */
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class EstrategiaAnaliseLocalizacao implements IEstrategiaAnaliseRisco {
+    
+    private final ServicoGeolocalizacao servicoGeolocalizacao;
     
     private static final double PESO_ESTRATEGIA = 0.3; // 30% do peso total
     
@@ -47,10 +52,11 @@ public class EstrategiaAnaliseLocalizacao implements IEstrategiaAnaliseRisco {
                 scoreRisco += 0.4; // VPN aumenta significativamente o risco
             }
             
-            // Análise de país de alto risco
-            Boolean paisAltoRisco = (Boolean) contexto.get("paisAltoRisco");
-            if (Boolean.TRUE.equals(paisAltoRisco)) {
+            // Análise de país de alto risco usando serviço de geolocalização
+            String codigoPais = (String) contexto.get("codigoPais");
+            if (codigoPais != null && servicoGeolocalizacao.isPaisAltoRisco(codigoPais)) {
                 scoreRisco += 0.5;
+                log.debug("País de alto risco detectado: {}", codigoPais);
             }
             
             log.debug("Análise de localização - Usuário: {}, Score: {}", usuario.getEmail(), scoreRisco);

@@ -38,6 +38,8 @@ public class AuthenticationService implements IServicoAutenticacao {
     private final BlockchainService blockchainService;
     private final ContextAnalysisService contextAnalysisService;
     private final AiContextAnalysisService aiContextAnalysisService;
+    private final ServicoAnaliseComportamentalIA servicoAnaliseComportamentalIA;
+    private final ServicoGeolocalizacao servicoGeolocalizacao;
 
     @Transactional
     public RespostaAutenticacao register(RequisicaoRegistro request) {
@@ -99,13 +101,23 @@ public class AuthenticationService implements IServicoAutenticacao {
             var contextRequest = createContextAnalysisRequest(usuario, request);
             var aiAnalysis = aiContextAnalysisService.analyzeContext(usuario, contextRequest);
             
+            // Análise comportamental com IA avançada
+            var dadosContextoIA = criarDadosContextoIA(request);
+            var perfilComportamental = servicoAnaliseComportamentalIA.analisarComportamento(usuario, dadosContextoIA);
+            
+            log.info("Análise comportamental IA - Usuário: {}, Score: {}, Classificação: {}", 
+                usuario.getEmail(), perfilComportamental.getScoreAnomalia(), perfilComportamental.getClassificacaoAcesso());
+            
             // Verifica decisão da IA
             String aiDecision = aiAnalysis.getDecision();
-            if ("DENY".equals(aiDecision)) {
+            var classificacaoIA = perfilComportamental.getClassificacaoAcesso();
+            
+            // Combina análises para decisão final
+            if ("DENY".equals(aiDecision) || classificacaoIA == br.com.auth.dominio.entidades.PerfilComportamentalIA.ClassificacaoAcesso.ALTAMENTE_SUSPEITO) {
                 // Registra negação no blockchain
                 blockchainService.recordAuthenticationEvent(
                     usuario, "LOGIN_DENIED_AI", "DENIED", 
-                    aiAnalysis.getOverallRiskScore(),
+                    Math.max(aiAnalysis.getOverallRiskScore(), perfilComportamental.getScoreAnomalia()),
                     request.getIpAddress(), request.getLocation(),
                     contextRequest.getDeviceFingerprint()
                 );
@@ -113,9 +125,10 @@ public class AuthenticationService implements IServicoAutenticacao {
                 throw new RuntimeException("Acesso negado pela análise de IA devido ao alto risco detectado");
             }
             
-            if ("REQUIRE_MFA".equals(aiDecision) || "REQUIRE_ADDITIONAL_VERIFICATION".equals(aiDecision)) {
+            if ("REQUIRE_MFA".equals(aiDecision) || classificacaoIA == br.com.auth.dominio.entidades.PerfilComportamentalIA.ClassificacaoAcesso.ANOMALO) {
                 // Em uma implementação real, aqui seria iniciado o processo de MFA
-                log.warn("Usuário {} requer verificação adicional: {}", usuario.getEmail(), aiDecision);
+                log.warn("Usuário {} requer verificação adicional: {} - Classificação IA: {}", 
+                    usuario.getEmail(), aiDecision, classificacaoIA);
             }
 
             // Atualiza informações de login
@@ -193,18 +206,35 @@ public class AuthenticationService implements IServicoAutenticacao {
         }
     }
 
+    private br.com.auth.dominio.interfaces.IServicoAnaliseComportamentalIA.DadosContextoAcesso criarDadosContextoIA(RequisicaoAutenticacao request) {
+        return new br.com.auth.dominio.interfaces.IServicoAnaliseComportamentalIA.DadosContextoAcesso(
+            request.getIpAddress(),
+            request.getUserAgent(),
+            request.getLocation(),
+            request.getTimezone(),
+            request.getBrowserLanguage(),
+            request.getScreenResolution(),
+            request.getLoginAttempts()
+        );
+    }
+
     private br.com.auth.dto.RequisicaoAnaliseContexto createContextAnalysisRequest(Usuario usuario, RequisicaoAutenticacao request) {
         // Cria fingerprint do dispositivo baseado no User-Agent
         String deviceFingerprint = request.getUserAgent() != null ? 
             Integer.toHexString(request.getUserAgent().hashCode()) : "unknown";
 
-        // Simula dados de geolocalização (em produção viria do frontend)
+        // Obter dados reais de geolocalização via IP
+        ServicoGeolocalizacao.DadosGeolocalizacao geolocalizacao = 
+            servicoGeolocalizacao.obterLocalizacaoPorIp(request.getIpAddress());
+        
         var dadosGeolocalizacao = br.com.auth.dto.RequisicaoAnaliseContexto.DadosGeolocalizacao.builder()
-                .pais("BR")
-                .regiao("SP")
-                .cidade("São Paulo")
-                .fusoHorario("America/Sao_Paulo")
-                .provedor("Unknown ISP")
+                .pais(geolocalizacao.getPais() != null ? geolocalizacao.getPais() : "Brasil")
+                .regiao(geolocalizacao.getEstado() != null ? geolocalizacao.getEstado() : "São Paulo")
+                .cidade(geolocalizacao.getCidade() != null ? geolocalizacao.getCidade() : "São Paulo")
+                .fusoHorario(geolocalizacao.getFusoHorario() != null ? geolocalizacao.getFusoHorario() : "America/Sao_Paulo")
+                .provedor(geolocalizacao.getProvedor() != null ? geolocalizacao.getProvedor() : "Unknown ISP")
+                .latitude(geolocalizacao.getLatitude())
+                .longitude(geolocalizacao.getLongitude())
                 .build();
 
         // Simula informações de rede (em produção viria de análise do IP)

@@ -56,6 +56,14 @@ ai:
     url: ${AI_SERVICE_URL:}
     enabled: ${AI_SERVICE_ENABLED:false}
 
+# Configurações de Geolocalização
+geolocalizacao:
+  opencage:
+    api-key: ${OPENCAGE_API_KEY:}
+  timeout: ${GEO_TIMEOUT:5000}
+  fallback:
+    enabled: ${GEO_FALLBACK_ENABLED:true}
+
 # Configurações de Thresholds de Risco
 risk:
   threshold:

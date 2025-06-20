@@ -1,392 +1,255 @@
-# 🧪 Guia de Testes - API de Autenticação Inteligente
+# 🧪 Guia Completo de Testes - Módulo de IA
 
-## 🚀 Preparação do Ambiente
+Este guia apresenta todas as formas de testar o Módulo de IA implementado no sistema de autenticação.
 
-### 1. **Configuração do Banco de Dados**
+## 📋 Pré-requisitos
 
-```bash
-# PostgreSQL via Docker
-docker run --name auth-postgres -e POSTGRES_DB=auth_db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres -p 5432:5432 -d postgres:13
+1. **Java 17+** instalado
+2. **Maven 3.6+** instalado
+3. **Servidor iniciado**: Execute `mvn spring-boot:run` no diretório `api-author`
+4. **Porta 8080** disponível
 
-# Ou configure suas variáveis de ambiente
-export DB_URL=jdbc:postgresql://localhost:5432/auth_db
-export DB_USERNAME=postgres
-export DB_PASSWORD=postgres
-```
-
-### 2. **Executar a Aplicação**
+## 🚀 Iniciando o Servidor
 
 ```bash
-# Via Maven
 cd api-author
-./mvnw spring-boot:run
-
-# Ou via JAR
-./mvnw clean package
-java -jar target/auth-service-1.0.0.jar
+mvn spring-boot:run
 ```
 
-### 3. **Verificar Inicialização**
+Aguarde a mensagem: `Started AuthServiceApplication in X.XXX seconds`
+
+## 🛠️ Métodos de Teste
+
+### 1. **Script PowerShell Automatizado**
+
+Execute o script de teste automatizado:
+
+```powershell
+cd api-author
+.\test-simples.ps1
+```
+
+**O que o script testa:**
+- ✅ Conectividade com o servidor
+- 🤖 Treinamento dos modelos de IA
+- 📊 Cálculo de scores
+- 🔬 Análise comportamental
+
+### 2. **Requisições HTTP (REST Client)**
+
+Use o arquivo `test-requests.http` com:
+- **VS Code REST Client Extension**
+- **Postman**
+- **Insomnia**
+
+### 3. **Interface Swagger**
+
+Acesse: `http://localhost:8080/swagger-ui.html`
+
+Explore todos os endpoints disponíveis com interface gráfica.
+
+### 4. **Testes via cURL**
 
 ```bash
-# A aplicação estará rodando em:
-http://localhost:8081/api/v1
+# Health Check
+curl -X GET http://localhost:8080/api/v1/health
 
-# Swagger UI disponível em:
-http://localhost:8081/api/v1/swagger-ui.html
+# Treinar Modelos
+curl -X POST http://localhost:8080/api/v1/test/ia/treinar
+
+# Testar Score
+curl -X GET http://localhost:8080/api/v1/test/ia/testar-score
+
+# Análise Comportamental
+curl -X GET http://localhost:8080/api/v1/test/ia/simular-analise/1
 ```
 
-## 📋 Testes Funcionais
+## 🎯 Cenários de Teste Específicos
 
-### **TESTE 1: Registro de Usuário**
-
-```bash
-curl -X POST "http://localhost:8081/api/v1/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "João Silva",
-    "email": "joao@teste.com",
-    "password": "123456",
-    "roles": ["USER_DEFAULT"]
-  }'
-```
-
-**Resultado Esperado:**
+### **Cenário 1: Comportamento Normal**
 ```json
+POST /api/v1/auth/authenticate
 {
-  "token": "eyJhbGciOiJIUzI1NiJ9...",
-  "name": "João Silva",
-  "login": "joao@teste.com"
-}
-```
-
-### **TESTE 2: Login com Análise de IA**
-
-```bash
-curl -X POST "http://localhost:8081/api/v1/auth/authenticate" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "joao@teste.com",
-    "password": "123456",
-    "ipAddress": "192.168.1.100",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
-    "location": "São Paulo, Brasil"
-  }'
-```
-
-**Resultado Esperado:**
-- Login bem-sucedido com token JWT
-- Logs da análise de IA no console
-- Registro automático na blockchain simulada
-
-**Verifique os Logs:**
-```
-[AI Context Analysis] Starting context analysis for user joao@teste.com
-[AI Context Analysis] Overall risk score: 0.25 (LOW)
-[AI Context Analysis] Decision: ALLOW
-[Blockchain] Authentication event recorded with hash: 0x...
-```
-
-### **TESTE 3: Login Suspeito (Simulado)**
-
-```bash
-# Login em horário suspeito (madrugada)
-# Execute este teste entre 23h e 5h da manhã
-curl -X POST "http://localhost:8081/api/v1/auth/authenticate" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "joao@teste.com",
-    "password": "123456",
-    "ipAddress": "203.45.67.89",
-    "userAgent": "Bot/1.0 Crawler",
-    "location": "Unknown Location"
-  }'
-```
-
-**Resultado Esperado:**
-- Score de risco mais alto
-- Possível requisição de MFA
-- Logs de atividade suspeita
-
-## 🤖 Testando APIs de Analytics
-
-### **TESTE 4: Obter Padrão Comportamental**
-
-```bash
-# Primeiro, obtenha um token de admin (registre um usuário admin)
-curl -X POST "http://localhost:8081/api/v1/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Admin",
-    "email": "admin@teste.com",
-    "password": "admin123",
-    "roles": ["ADMIN"]
-  }'
-
-# Faça login para obter o token
-curl -X POST "http://localhost:8081/api/v1/auth/authenticate" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "admin@teste.com",
-    "password": "admin123",
-    "ipAddress": "127.0.0.1",
-    "userAgent": "Admin Console",
-    "location": "Local"
-  }'
-
-# Use o token para acessar analytics (substitua o TOKEN)
-curl -X GET "http://localhost:8081/api/v1/analytics/user/1/behavior-pattern" \
-  -H "Authorization: Bearer SEU_TOKEN_AQUI"
-```
-
-### **TESTE 5: Métricas de Segurança**
-
-```bash
-curl -X GET "http://localhost:8081/api/v1/analytics/security-metrics" \
-  -H "Authorization: Bearer SEU_TOKEN_ADMIN"
-```
-
-**Resultado Esperado:**
-```json
-{
-  "totalUsers": 2,
-  "averageRiskScore": 0.35,
-  "highRiskUsers": 0,
-  "highRiskTransactions": 0,
-  "unverifiedTransactions": 2,
-  "blockchainIntegrity": "GOOD"
-}
-```
-
-### **TESTE 6: Transações Blockchain do Usuário**
-
-```bash
-curl -X GET "http://localhost:8081/api/v1/analytics/user/1/blockchain-transactions" \
-  -H "Authorization: Bearer SEU_TOKEN_ADMIN"
-```
-
-### **TESTE 7: Análise de Contexto Manual**
-
-```bash
-curl -X POST "http://localhost:8081/api/v1/analytics/context-analysis" \
-  -H "Authorization: Bearer SEU_TOKEN_ADMIN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": 1,
+    "email": "usuario@exemplo.com",
+    "password": "senha123",
     "ipAddress": "192.168.1.100",
     "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    "location": "São Paulo, Brasil",
-    "deviceFingerprint": "abc123def456",
-    "geolocation": {
-      "latitude": -23.5505,
-      "longitude": -46.6333,
-      "country": "BR",
-      "region": "SP",
-      "city": "São Paulo",
-      "timezone": "America/Sao_Paulo",
-      "isp": "Telecom Provider"
-    },
-    "networkInfo": {
-      "connectionType": "broadband",
-      "vpnDetected": false,
-      "proxyDetected": false,
-      "torDetected": false,
-      "ipReputation": "GOOD"
-    },
-    "behavioralData": {
-      "screenResolution": "1920x1080",
-      "sessionDuration": 300,
-      "pageInteractions": 15,
-      "typingPatterns": {
-        "avgKeyInterval": 150,
-        "totalKeys": 50
-      }
-    },
-    "timestamp": "2024-12-19T10:30:00"
-  }'
-```
-
-**Resultado Esperado:**
-```json
-{
-  "analysisId": "uuid-analysis-id",
-  "userId": 1,
-  "overallRiskScore": 0.25,
-  "riskLevel": "LOW",
-  "decision": "ALLOW",
-  "confidenceScore": 0.8,
-  "analysisDetails": {
-    "locationAnalysis": {
-      "consistencyScore": 0.8,
-      "distanceFromUsual": 0.0,
-      "isKnownLocation": true,
-      "countryRiskLevel": "LOW",
-      "flags": []
-    },
-    "deviceAnalysis": {
-      "consistencyScore": 0.8,
-      "isKnownDevice": true,
-      "deviceReputation": "UNKNOWN",
-      "browserIntegrity": 0.9,
-      "flags": []
-    }
-  },
-  "recommendations": [],
-  "processedAt": "2024-12-19T10:30:05"
+    "deviceFingerprint": "device-normal",
+    "location": "São Paulo, SP"
 }
 ```
+**Resultado esperado:** Classificação `ESPERADO`, score < 0.5
 
-## 🔍 Cenários de Teste Avançados
+### **Cenário 2: Comportamento Suspeito**
+```json
+POST /api/v1/auth/authenticate
+{
+    "email": "usuario@exemplo.com",
+    "password": "senha123",
+    "ipAddress": "203.0.113.1",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0)",
+    "deviceFingerprint": "device-diferente",
+    "location": "Rio de Janeiro, RJ"
+}
+```
+**Resultado esperado:** Classificação `SUSPEITO`, score 0.5-0.7
 
-### **CENÁRIO 1: Login de Localização Suspeita**
+### **Cenário 3: Comportamento Anômalo**
+```json
+POST /api/v1/auth/authenticate
+{
+    "email": "usuario@exemplo.com",
+    "password": "senha123",
+    "ipAddress": "8.8.8.8",
+    "userAgent": "curl/7.68.0",
+    "deviceFingerprint": "device-desconhecido",
+    "location": "Tokyo, Japan"
+}
+```
+**Resultado esperado:** Classificação `ANOMALO` ou `ALTAMENTE_SUSPEITO`, score > 0.7
 
+## 📊 Endpoints de Teste Disponíveis
+
+### **Endpoints Básicos**
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| GET | `/api/v1/health` | Status do servidor |
+| POST | `/api/v1/test/ia/treinar` | Treinar modelos |
+| GET | `/api/v1/test/ia/testar-score` | Testar com dados simulados |
+| GET | `/api/v1/test/ia/simular-analise/{id}` | Análise para usuário específico |
+| GET | `/api/v1/test/ia/estatisticas` | Estatísticas de anomalias |
+
+### **Endpoints de Produção**
+| Método | Endpoint | Descrição |
+|--------|----------|-----------|
+| POST | `/api/v1/ia/analisar-comportamento` | Análise comportamental |
+| POST | `/api/v1/ia/feedback` | Feedback para melhoria |
+| GET | `/api/v1/ia/historico/{id}` | Histórico de análises |
+| POST | `/api/v1/ia/retreinar-modelo` | Retreinar modelo |
+| GET | `/api/v1/ia/metricas-performance` | Métricas de performance |
+
+## 🔍 Validando os Resultados
+
+### **1. Scores Esperados**
+- **Normal:** 0.0 - 0.5
+- **Suspeito:** 0.5 - 0.7  
+- **Anômalo:** 0.7 - 0.9
+- **Altamente Suspeito:** 0.9 - 1.0
+
+### **2. Classificações**
+- `ESPERADO`: Comportamento normal, acesso permitido
+- `SUSPEITO`: Comportamento questionável, log de auditoria
+- `ANOMALO`: Comportamento anômalo, requer MFA
+- `ALTAMENTE_SUSPEITO`: Comportamento crítico, acesso bloqueado
+
+### **3. Algoritmos**
+- **Isolation Forest**: Detecção não supervisionada de outliers
+- **Random Forest**: Classificação supervisionada
+- **Deep Learning**: Rede neural para padrões complexos
+- **Ensemble**: Combinação ponderada dos 3 algoritmos
+
+## 🐛 Troubleshooting
+
+### **Erro: Servidor não responde**
 ```bash
-# Simula login de outro país
-curl -X POST "http://localhost:8081/api/v1/analytics/context-analysis" \
-  -H "Authorization: Bearer SEU_TOKEN_ADMIN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": 1,
-    "ipAddress": "45.12.34.56",
-    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
-    "location": "Moscow, Russia",
-    "deviceFingerprint": "different123",
-    "geolocation": {
-      "country": "RU",
-      "city": "Moscow"
-    },
-    "networkInfo": {
-      "vpnDetected": true
-    }
-  }'
+# Verificar se o processo está rodando
+netstat -an | findstr :8080
+
+# Reiniciar o servidor
+mvn spring-boot:run
 ```
 
-**Resultado Esperado:**
-- Score de risco alto (>0.6)
-- Decision: "REQUIRE_MFA" ou "DENY"
-- Flags: ["NEW_LOCATION", "HIGH_RISK_COUNTRY", "VPN_DETECTED"]
-
-### **CENÁRIO 2: Atividade de Bot Suspeita**
-
+### **Erro: Dependências não encontradas**
 ```bash
-curl -X POST "http://localhost:8081/api/v1/analytics/context-analysis" \
-  -H "Authorization: Bearer SEU_TOKEN_ADMIN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "userId": 1,
-    "ipAddress": "192.168.1.100",
-    "userAgent": "Bot/1.0 Scraper Tool",
-    "location": "São Paulo, Brasil",
-    "behavioralData": {
-      "sessionDuration": 5,
-      "pageInteractions": 0
-    },
-    "networkInfo": {
-      "proxyDetected": true
-    }
-  }'
+# Limpar e recompilar
+mvn clean compile
+
+# Baixar dependências
+mvn dependency:resolve
 ```
 
-## 📊 Interpretando os Resultados
-
-### **Scores de Risco:**
-- **0.0 - 0.3**: 🟢 Baixo Risco (ALLOW)
-- **0.3 - 0.6**: 🟡 Médio Risco (REQUIRE_MFA)
-- **0.6 - 0.8**: 🟠 Alto Risco (REQUIRE_ADDITIONAL_VERIFICATION)
-- **0.8 - 1.0**: 🔴 Crítico (DENY)
-
-### **Flags Comuns:**
-- `NEW_LOCATION`: Nova localização detectada
-- `NEW_DEVICE`: Novo dispositivo
-- `LATE_NIGHT_ACCESS`: Acesso em horário incomum
-- `VPN_DETECTED`: VPN detectada
-- `HIGH_RISK_COUNTRY`: País de alto risco
-
-### **Status de Blockchain:**
-- `PENDING`: Transação enviada, aguardando confirmação
-- `CONFIRMED`: Transação confirmada na blockchain
-- `FAILED`: Falha na transação
-
-## 🛠️ Testes de Desenvolvimento
-
-### **Verificar Logs da Aplicação:**
+### **Erro: Modelos não treinados**
 ```bash
-# Acompanhar logs em tempo real
+# Treinar modelos via API
+curl -X POST http://localhost:8080/api/v1/test/ia/treinar
+```
+
+### **Erro: Dados insuficientes**
+- Os modelos criam dados sintéticos para treinamento inicial
+- Execute alguns testes de autenticação para gerar dados reais
+- Use o endpoint de feedback para melhorar a precisão
+
+## 📈 Métricas de Performance
+
+### **Tempos Esperados**
+- **Análise individual:** < 500ms
+- **Treinamento inicial:** < 30s
+- **Retreinamento:** < 60s
+
+### **Throughput**
+- **Análises simultâneas:** > 100/segundo
+- **Usuários concorrentes:** > 50
+
+### **Acurácia Esperada**
+- **Isolation Forest:** ~85%
+- **Random Forest:** ~82%
+- **Deep Learning:** ~88%
+- **Ensemble:** ~91%
+
+## 🎯 Casos de Uso Reais
+
+### **1. Detecção de Fraude**
+- Login de localização incomum
+- Dispositivo não reconhecido
+- Horário atípico de acesso
+
+### **2. Análise Comportamental**
+- Padrão de navegação suspeito
+- Velocidade de digitação anormal
+- Sequência de ações incomum
+
+### **3. Prevenção de Ataques**
+- Tentativas de força bruta
+- Ataques automatizados
+- Uso de proxies/VPNs
+
+## 📝 Logs e Monitoramento
+
+### **Logs da Aplicação**
+```bash
+# Verificar logs em tempo real
 tail -f logs/application.log
-
-# Ou via Docker
-docker logs -f nome-do-container
 ```
 
-### **Verificar Banco de Dados:**
-```sql
--- Padrões comportamentais
-SELECT * FROM user_behavior_patterns;
+### **Logs de IA**
+- Análises realizadas
+- Scores calculados
+- Modelos retreinados
+- Feedback recebido
 
--- Transações blockchain
-SELECT * FROM blockchain_transactions ORDER BY created_at DESC;
+### **Métricas de Sistema**
+- CPU e memória utilizadas
+- Tempo de resposta das APIs
+- Taxa de acertos dos modelos
 
--- Logs de auditoria
-SELECT * FROM audit_logs ORDER BY created_at DESC LIMIT 10;
-```
+## 🔄 Ciclo de Vida dos Testes
 
-### **Testar com Postman/Insomnia:**
-
-1. Importe a collection do Swagger: `http://localhost:8081/api/v1/api-docs`
-2. Configure variáveis de ambiente:
-   - `base_url`: `http://localhost:8081/api/v1`
-   - `admin_token`: Token do usuário admin
-3. Execute os testes em sequência
-
-## ✅ Checklist de Testes
-
-### **Funcionalidades Básicas:**
-- [ ] Registro de usuário funciona
-- [ ] Login básico funciona
-- [ ] JWT é gerado corretamente
-- [ ] Logs de auditoria são criados
-
-### **IA e Análise de Contexto:**
-- [ ] Análise de contexto é executada no login
-- [ ] Scores de risco são calculados corretamente
-- [ ] Decisões da IA são aplicadas
-- [ ] Padrões comportamentais são atualizados
-
-### **Blockchain:**
-- [ ] Transações são registradas automaticamente
-- [ ] Hashes são gerados corretamente
-- [ ] Status de confirmação é atualizado
-- [ ] Consultas de transações funcionam
-
-### **APIs de Analytics:**
-- [ ] Todas as APIs retornam dados
-- [ ] Autenticação admin funciona
-- [ ] Métricas são calculadas corretamente
-- [ ] Relatórios de risco são precisos
-
-## 🐛 Resolução de Problemas
-
-### **Erro de Conexão com Banco:**
-```bash
-# Verificar se PostgreSQL está rodando
-docker ps | grep postgres
-
-# Testar conexão
-psql -h localhost -p 5432 -U postgres -d auth_db
-```
-
-### **Erro 403 (Forbidden):**
-- Verificar se o token JWT está correto
-- Confirmar que o usuário tem role ADMIN para analytics
-
-### **Blockchain não funciona:**
-- É normal no modo simulado
-- Para blockchain real, configure as variáveis no application.yml
-
-### **Performance lenta:**
-- Verificar logs de análise de IA
-- Considerar ajustar thresholds de risco
+1. **Inicialização:** Treinar modelos iniciais
+2. **Teste Básico:** Verificar conectividade
+3. **Teste Funcional:** Validar algoritmos
+4. **Teste de Carga:** Verificar performance
+5. **Teste de Integração:** Validar fluxo completo
+6. **Monitoramento:** Acompanhar métricas
 
 ---
 
-**🎯 Com estes testes você pode validar todas as funcionalidades de autenticação inteligente implementadas!** 
+## 🆘 Suporte
+
+Em caso de problemas:
+
+1. Verifique os logs da aplicação
+2. Confirme se todas as dependências estão instaladas
+3. Teste os endpoints básicos primeiro
+4. Consulte a documentação técnica em `MODULO_IA_GUIA.md`
+
+**Contato:** Equipe de Desenvolvimento IA 

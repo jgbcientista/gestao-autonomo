@@ -1,0 +1,138 @@
+### Testes do Módulo de IA - Sistema de Autenticação
+### Use este arquivo com VS Code REST Client, Postman ou Insomnia
+
+@baseUrl = http://localhost:8081/api/v1
+
+### 1. Verificar saúde do servidor
+GET {{baseUrl}}/health
+
+### 2. Treinar modelos de IA
+POST {{baseUrl}}/test/ia/treinar
+
+### 3. Testar score com dados simulados
+GET {{baseUrl}}/test/ia/testar-score
+
+### 4. Simular análise comportamental para usuário ID 1
+GET {{baseUrl}}/test/ia/simular-analise/1
+
+### 5. Obter estatísticas de anomalias
+GET {{baseUrl}}/test/ia/estatisticas
+
+### 6. Registrar usuário para teste
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+    "name": "Usuário Teste IA",
+    "email": "teste.ia@exemplo.com",
+    "password": "senha123"
+}
+
+### 7. Autenticar com análise de IA (comportamento normal)
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+    "email": "teste.ia@exemplo.com",
+    "password": "senha123",
+    "ipAddress": "192.168.1.100",
+    "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+    "deviceFingerprint": "device-normal-123",
+    "location": "São Paulo, SP"
+}
+
+### 8. Autenticar simulando comportamento suspeito (IP diferente)
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+    "email": "teste.ia@exemplo.com",
+    "password": "senha123",
+    "ipAddress": "203.0.113.1",
+    "userAgent": "Mozilla/5.0 (iPhone; CPU iPhone OS 14_0)",
+    "deviceFingerprint": "device-suspeito-456",
+    "location": "Rio de Janeiro, RJ"
+}
+
+### 9. Autenticar simulando comportamento anômalo (localização muito distante)
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+    "email": "teste.ia@exemplo.com",
+    "password": "senha123",
+    "ipAddress": "8.8.8.8",
+    "userAgent": "curl/7.68.0",
+    "deviceFingerprint": "device-anomalo-789",
+    "location": "Tokyo, Japan"
+}
+
+### 10. Analisar comportamento específico via IA
+POST {{baseUrl}}/ia/analisar-comportamento
+Content-Type: application/json
+
+{
+    "usuarioId": 1,
+    "contexto": {
+        "ipAddress": "192.168.1.100",
+        "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)",
+        "deviceFingerprint": "device-test",
+        "location": "São Paulo, SP",
+        "timestamp": "2024-01-15T10:30:00"
+    }
+}
+
+### 11. Fornecer feedback para melhoria do modelo
+POST {{baseUrl}}/ia/feedback
+Content-Type: application/json
+
+{
+    "perfilId": 1,
+    "feedbackCorreto": true,
+    "classificacaoReal": "ESPERADO",
+    "observacoes": "Comportamento normal confirmado pelo usuário"
+}
+
+### 12. Obter histórico de análises de um usuário
+GET {{baseUrl}}/ia/historico/1?pagina=0&tamanho=10
+
+### 13. Retreinar modelo com novos dados
+POST {{baseUrl}}/ia/retreinar-modelo
+Content-Type: application/json
+
+{
+    "algoritmo": "ENSEMBLE",
+    "incluirFeedback": true
+}
+
+### 14. Verificar métricas de performance dos modelos
+GET {{baseUrl}}/ia/metricas-performance
+
+### 15. Teste de carga - múltiplas análises simultâneas
+### (Execute várias vezes rapidamente)
+GET {{baseUrl}}/test/ia/testar-score
+
+### 16. Testes de Geolocalização
+
+### 16.1. Obter geolocalização por IP público
+GET {{baseUrl}}/geo/ip/8.8.8.8
+
+### 16.2. Obter geolocalização por IP privado (retorna padrão)
+GET {{baseUrl}}/geo/ip/192.168.1.1
+
+### 16.3. Obter coordenadas por endereço
+GET {{baseUrl}}/geo/endereco?endereco=São Paulo, Brasil
+
+### 16.4. Calcular distância entre coordenadas
+GET {{baseUrl}}/geo/distancia?lat1=-23.5505&lon1=-46.6333&lat2=-22.9068&lon2=-43.1729
+
+### 16.5. Calcular distância entre endereços
+GET {{baseUrl}}/geo/distancia-enderecos?endereco1=São Paulo, Brasil&endereco2=Rio de Janeiro, Brasil
+
+### 16.6. Verificar se país é de alto risco
+GET {{baseUrl}}/geo/pais-risco/BR
+GET {{baseUrl}}/geo/pais-risco/CN
+GET {{baseUrl}}/geo/pais-risco/RU
+
+### 16.7. Teste completo de geolocalização
+GET {{baseUrl}}/geo/teste-completo 

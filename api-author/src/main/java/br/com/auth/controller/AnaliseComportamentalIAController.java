@@ -23,7 +23,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Análise Comportamental IA", description = "APIs para análise comportamental usando Inteligência Artificial")
-public class ControladorAnaliseComportamentalIA {
+public class AnaliseComportamentalIAController {
 
     private final ServicoAnaliseComportamentalIA servicoIA;
     private final RepositorioUsuario repositorioUsuario;

@@ -135,4 +135,105 @@ GET {{baseUrl}}/geo/pais-risco/CN
 GET {{baseUrl}}/geo/pais-risco/RU
 
 ### 16.7. Teste completo de geolocalização
-GET {{baseUrl}}/geo/teste-completo 
+GET {{baseUrl}}/geo/teste-completo
+
+###############################################
+# TESTES DE SCORE DE CONFIANÇA
+###############################################
+
+### 17. Registrar Usuário para Teste de Score
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Usuario Score Teste",
+  "email": "score.teste@example.com",
+  "password": "senha123"
+}
+
+### 18. Login com Score de Confiança
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+  "email": "score.teste@example.com",
+  "password": "senha123",
+  "ipAddress": "192.168.1.100",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+  "location": "São Paulo, SP, Brasil"
+}
+
+### 19. Consultar Score de Confiança do Usuário
+GET {{baseUrl}}/trust-score/usuario/score.teste@example.com
+Accept: application/json
+
+### 20. Simular Decisão de Autenticação
+GET {{baseUrl}}/trust-score/decisao/score.teste@example.com
+Accept: application/json
+
+### 21. Ajustar Score Manualmente (Diminuir)
+POST {{baseUrl}}/trust-score/ajustar/score.teste@example.com?ajuste=-0.3&motivo=Teste%20de%20ajuste%20negativo
+
+### 22. Ajustar Score Manualmente (Aumentar)
+POST {{baseUrl}}/trust-score/ajustar/score.teste@example.com?ajuste=0.2&motivo=Teste%20de%20ajuste%20positivo
+
+### 23. Estatísticas Gerais dos Scores
+GET {{baseUrl}}/trust-score/estatisticas
+Accept: application/json
+
+### 24. Listar Usuários por Nível - ALTO
+GET {{baseUrl}}/trust-score/nivel/ALTO
+Accept: application/json
+
+### 25. Listar Usuários por Nível - BAIXO
+GET {{baseUrl}}/trust-score/nivel/BAIXO
+Accept: application/json
+
+### 26. Listar Usuários por Nível - MEDIO
+GET {{baseUrl}}/trust-score/nivel/MEDIO
+Accept: application/json
+
+### 27. Limpar Observações Expiradas
+POST {{baseUrl}}/trust-score/limpar-observacoes
+
+### 28. Login com IP Diferente (Teste Comportamental)
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+  "email": "score.teste@example.com",
+  "password": "senha123",
+  "ipAddress": "10.0.0.50",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36",
+  "location": "Rio de Janeiro, RJ, Brasil"
+}
+
+### 29. Login com Dispositivo Suspeito
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+  "email": "score.teste@example.com",
+  "password": "senha123",
+  "ipAddress": "203.0.113.1",
+  "userAgent": "curl/7.68.0",
+  "location": "Localização Desconhecida"
+}
+
+### 30. Forçar Score Muito Baixo (Teste Bloqueio)
+POST {{baseUrl}}/trust-score/ajustar/score.teste@example.com?ajuste=-0.8&motivo=Teste%20de%20bloqueio%20automatico
+
+### 31. Tentar Login com Score Baixo (Deve Bloquear ou Exigir MFA)
+POST {{baseUrl}}/auth/authenticate
+Content-Type: application/json
+
+{
+  "email": "score.teste@example.com",
+  "password": "senha123",
+  "ipAddress": "192.168.1.100",
+  "userAgent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+  "location": "São Paulo, SP, Brasil"
+}
+
+### 32. Restaurar Score para Finalizar
+POST {{baseUrl}}/trust-score/ajustar/score.teste@example.com?ajuste=0.9&motivo=Restaurar%20score%20para%20finalizar%20testes 

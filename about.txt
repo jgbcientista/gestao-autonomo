@@ -72,6 +72,10 @@ Ajustar a api de autenticação inteligente para analisar o contexto do usuário
 Terceira:
 Implementar Módulo de IA para Perfil de Acesso: Algoritmos como Isolation Forest, Random Forest ou Deep Learning (análise de risco comportamental) e Classificação se o acesso é "esperado" ou "anômalo"
 
+Quarta:
+
+Autenticação Tradicional + Score de Confiança Login/senha + resultado IA - Decisão baseada no risco: permitir, exigir 2FA, ou bloquear
+
 ______________________________________________________________
 
 Etapa 2 — Criar a API base de autenticação com logs contextuais:
@@ -96,3 +100,9 @@ Criar a estrutura do backend (Spring Boot com endpoints de login/registro/contex
 Implementar IA (em Python, com modelo de risco comportamental)
 
 Estruturar a integração com blockchain (inicialmente local/testnet)
+
+
+
+
+
+docker-compose up -d postgres

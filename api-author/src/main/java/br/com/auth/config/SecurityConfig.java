@@ -44,9 +44,23 @@ public class SecurityConfig {
                     "/api/v1/autenticacao/**",
                     "/api/v1/h2-console/**",
                     "/api/v1/swagger-ui/**",
+                    "/api/v1/swagger-ui.html",
+                    "/api/v1/swagger-ui/index.html",
+                    "/api/v1/v3/api-docs/**",
                     "/api/v1/api-docs/**",
                     "/api/v1/webjars/**",
-                    "/api/v1/actuator/**"
+                    "/api/v1/swagger-resources/**",
+                    "/api/v1/configuration/ui",
+                    "/api/v1/configuration/security",
+                    "/api/v1/actuator/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html",
+                    "/v3/api-docs/**",
+                    "/api-docs/**",
+                    "/webjars/**",
+                    "/swagger-resources/**",
+                    "/configuration/ui",
+                    "/configuration/security"
                 ).permitAll()
                 .anyRequest().authenticated()
             )

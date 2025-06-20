@@ -398,6 +398,142 @@ Sistema de autenticação avançado com análise comportamental usando Inteligê
    - Score > 0.7: Acesso negado
 5. **Registro no blockchain** com score de risco
 
+---
+
+## 🎯 Sistema de Score de Confiança
+
+### Visão Geral
+Sistema híbrido que combina **autenticação tradicional** (login/senha) com **score de confiança** baseado em IA, permitindo **decisões automáticas** baseadas no nível de risco: **Permitir**, **Exigir MFA** ou **Bloquear**.
+
+### Funcionalidades Implementadas
+
+#### 1. **Entidade ScoreConfianca.java**
+- **Score Dinâmico**: Valor de 0.0 a 1.0 representando confiança do usuário
+- **Níveis de Confiança**: MUITO_BAIXO, BAIXO, MEDIO, ALTO, MUITO_ALTO
+- **Histórico Completo**: Contadores de sucessos, falhas, bloqueios e MFA
+- **Observação Temporária**: Sistema de quarentena para usuários suspeitos
+- **Cálculo Automático**: Atualização baseada em comportamento e IA
+
+#### 2. **ServicoScoreConfianca.java**
+- **Cálculo Ponderado**: 
+  - Histórico de Sucesso (40%)
+  - Análise de IA (30%)
+  - Comportamento Recente (20%)
+  - Fatores Externos (10%)
+- **Decisões Automáticas**: Baseadas em thresholds configuráveis
+- **Ajustes Manuais**: Para casos especiais e correções
+- **Limpeza Automática**: Remoção de observações expiradas
+
+#### 3. **Integração com Autenticação**
+- **AuthenticationService.java**: Integração completa com fluxo de login
+- **RespostaAutenticacao.java**: Retorna score e nível de confiança
+- **Decisões em Tempo Real**: Análise durante cada tentativa de login
+
+#### 4. **Controller de Gerenciamento**
+- **ControladorScoreConfianca.java**: 7 endpoints para administração
+- Consulta de scores individuais
+- Ajustes manuais com auditoria
+- Estatísticas globais do sistema
+- Listagem por níveis de confiança
+
+### Fluxo de Decisão
+
+```
+Login Tradicional → Análise de IA → Cálculo Score Confiança → Decisão:
+├── Score >= 0.7: ✅ PERMITIR (Login direto)
+├── Score >= 0.5: 🔐 EXIGIR MFA (Autenticação adicional)
+└── Score < 0.5:  ❌ BLOQUEAR (Acesso negado)
+```
+
+### Exemplos de Uso
+
+```bash
+# Consultar score de usuário
+GET /api/trust-score/usuario/user@example.com
+
+# Ajustar score manualmente
+POST /api/trust-score/ajustar/user@example.com?ajuste=0.2&motivo=Verificação manual
+
+# Estatísticas gerais
+GET /api/trust-score/estatisticas
+
+# Usuários por nível
+GET /api/trust-score/nivel/ALTO
+
+# Simular decisão
+GET /api/trust-score/decisao/user@example.com
+```
+
+### Thresholds de Decisão
+
+| Score | Nível | Decisão | Ação |
+|-------|-------|---------|------|
+| 0.8-1.0 | MUITO_ALTO | PERMITIR | Login direto |
+| 0.6-0.8 | ALTO | PERMITIR | Login direto |
+| 0.4-0.6 | MEDIO | PERMITIR/MFA | Baseado em contexto |
+| 0.2-0.4 | BAIXO | EXIGIR_MFA | Autenticação adicional |
+| 0.0-0.2 | MUITO_BAIXO | BLOQUEAR | Acesso negado |
+
+### Fatores de Cálculo
+
+#### Histórico de Sucesso (40%)
+- Taxa de logins bem-sucedidos nos últimos 90 dias
+- Penalização por tentativas falhas
+- Consistência de comportamento
+
+#### Análise de IA (30%)
+- Score de anomalia invertido (menos anomalia = mais confiança)
+- Classificação comportamental atual
+- Padrões detectados pelos algoritmos
+
+#### Comportamento Recente (20%)
+- Consistência de IPs nos últimos 7 dias
+- Variação de dispositivos
+- Regularidade de horários
+
+#### Fatores Externos (10%)
+- Tempo desde último login
+- Conta verificada
+- Configurações de segurança
+
+### Recursos Avançados
+
+#### Observação Temporária
+- Usuários bloqueados ficam em observação por 24h
+- Score reduzido durante período de observação
+- Limpeza automática após expiração
+
+#### Ajustes Manuais
+- Administradores podem ajustar scores
+- Auditoria completa de alterações
+- Motivos obrigatórios para rastreabilidade
+
+#### Estatísticas em Tempo Real
+- Distribuição de usuários por nível
+- Score médio do sistema
+- Usuários em observação
+- Tendências de comportamento
+
+### Endpoints do Sistema
+
+```bash
+# Gestão de Scores
+GET    /api/trust-score/usuario/{email}      # Consultar score
+POST   /api/trust-score/ajustar/{email}      # Ajustar manualmente
+GET    /api/trust-score/decisao/{email}      # Simular decisão
+
+# Administração
+GET    /api/trust-score/estatisticas         # Estatísticas gerais
+GET    /api/trust-score/nivel/{nivel}        # Listar por nível
+POST   /api/trust-score/limpar-observacoes   # Limpar observações
+
+# Autenticação Integrada
+POST   /auth/login                           # Login com score
+POST   /auth/register                        # Registro com score inicial
+```
+
+---
+
 ### 4. **🌍 SERVIÇO DE GEOLOCALIZAÇÃO AVANÇADO** ✅ **[NOVO]**
 
 #### 4.1 Funcionalidades Implementadas

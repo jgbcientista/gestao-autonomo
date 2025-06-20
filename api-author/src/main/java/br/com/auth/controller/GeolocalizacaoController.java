@@ -20,7 +20,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Geolocalização", description = "APIs para testes de geolocalização e cálculo de distâncias")
-public class ControladorGeolocalizacao {
+public class GeolocalizacaoController {
 
     private final ServicoGeolocalizacao servicoGeolocalizacao;
 

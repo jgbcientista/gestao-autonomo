@@ -42,9 +42,14 @@ spring:
 springdoc:
   api-docs:
     path: /api-docs
+    enabled: true
   swagger-ui:
     path: /swagger-ui.html
+    enabled: true
     operationsSorter: method
+  show-actuator: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
 
 jwt:
   secret: ${JWT_SECRET:***REMOVIDO***}
@@ -156,4 +161,63 @@ logging:
     org.springframework.security: INFO
     br.com.auth: INFO
     org.web3j: ERROR
+    org.hibernate.SQL: INFO 
+
+---
+# Profile de produção com PostgreSQL
+spring:
+  config:
+    activate:
+      on-profile: prod
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auth_db
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 5
+      maximum-pool-size: 20
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+  # Redis habilitado no profile prod
+  data:
+    redis:
+      repositories:
+        enabled: false
+  redis:
+    host: localhost
+    port: 6379
+    password: 
+    timeout: 2000ms
+
+# Configurações específicas do profile prod
+ai:
+  service:
+    enabled: true
+
+blockchain:
+  enabled: false
+
+# Swagger habilitado no profile prod
+springdoc:
+  api-docs:
+    enabled: true
+    path: /api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operationsSorter: method
+  show-actuator: true
+
+logging:
+  level:
+    org.springframework.security: INFO
+    br.com.auth: INFO
+    org.web3j: INFO
     org.hibernate.SQL: INFO 

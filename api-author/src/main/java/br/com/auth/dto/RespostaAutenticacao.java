@@ -22,6 +22,18 @@ public class RespostaAutenticacao {
     @Schema(description = "Login/email do usuário", example = "joao.silva@email.com")
     private String login;
 
+    @Schema(description = "Score de confiança do usuário (0.0 a 1.0)", example = "0.85")
+    private Double trustScore;
+
+    @Schema(description = "Nível de confiança do usuário", example = "ALTO")
+    private String trustLevel;
+
+    @Schema(description = "Indica se é necessário autenticação de dois fatores", example = "false")
+    private Boolean requiresMfa;
+
+    @Schema(description = "Mensagem relacionada ao MFA", example = "Autenticação de dois fatores necessária")
+    private String mfaMessage;
+
     // Métodos auxiliares para compatibilidade com código existente
     public String getName() {
         return nome;

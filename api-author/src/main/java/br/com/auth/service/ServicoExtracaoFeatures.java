@@ -28,7 +28,7 @@ public class ServicoExtracaoFeatures {
 
         // Obter histórico de logs do usuário (últimos 30 dias)
         LocalDateTime dataInicio = LocalDateTime.now().minus(30, ChronoUnit.DAYS);
-        List<LogAuditoria> historico = repositorioLogAuditoria.findByUsuarioAndDataMaiorQue(usuario, dataInicio);
+        List<LogAuditoria> historico = repositorioLogAuditoria.findByUsuarioAndCriadoEmBetween(usuario, dataInicio, LocalDateTime.now());
 
         return new DadosFeatures(
             extrairHoraAcesso(),
@@ -230,9 +230,9 @@ public class ServicoExtracaoFeatures {
             return 0.5; // Score neutro se não há dados
         }
 
-        // Analisar padrões de navegação baseado em ações
+        // Analisar padrões de navegação baseado em tipos de evento
         long acoesUnicas = historico.stream()
-            .map(LogAuditoria::getAcao)
+            .map(LogAuditoria::getTipoEvento)
             .filter(acao -> acao != null)
             .collect(Collectors.toSet())
             .size();

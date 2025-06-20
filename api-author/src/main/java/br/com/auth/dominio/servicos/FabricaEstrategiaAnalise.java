@@ -6,6 +6,8 @@ import br.com.auth.infraestrutura.ia.EstrategiaAnaliseDispositivo;
 import br.com.auth.infraestrutura.ia.EstrategiaAnaliseTemporal;
 import br.com.auth.infraestrutura.ia.EstrategiaAnaliseComportamental;
 import br.com.auth.infraestrutura.ia.EstrategiaAnaliseRede;
+import br.com.auth.service.ServicoGeolocalizacao;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -19,14 +21,16 @@ import java.util.Map;
 @Component
 public class FabricaEstrategiaAnalise {
     
+    private final ServicoGeolocalizacao servicoGeolocalizacao;
     private final Map<String, IEstrategiaAnaliseRisco> estrategias = new HashMap<>();
     
-    public FabricaEstrategiaAnalise() {
+    public FabricaEstrategiaAnalise(ServicoGeolocalizacao servicoGeolocalizacao) {
+        this.servicoGeolocalizacao = servicoGeolocalizacao;
         inicializarEstrategias();
     }
     
     private void inicializarEstrategias() {
-        estrategias.put("LOCALIZACAO", new EstrategiaAnaliseLocalizacao());
+        estrategias.put("LOCALIZACAO", new EstrategiaAnaliseLocalizacao(servicoGeolocalizacao));
         estrategias.put("DISPOSITIVO", new EstrategiaAnaliseDispositivo());
         estrategias.put("TEMPORAL", new EstrategiaAnaliseTemporal());
         estrategias.put("COMPORTAMENTAL", new EstrategiaAnaliseComportamental());

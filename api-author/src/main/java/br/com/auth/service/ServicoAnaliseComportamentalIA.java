@@ -189,7 +189,7 @@ public class ServicoAnaliseComportamentalIA implements IServicoAnaliseComportame
     @Override
     public EstatisticasAnomalias obterEstatisticasAnomalias() {
         Long totalAnalises = repositorioPerfilIA.count();
-        Long totalAnomalias = repositorioPerfilIA.findAnomalias(THRESHOLD_ANOMALIA).size();
+        Long totalAnomalias = (long) repositorioPerfilIA.findAnomalias(THRESHOLD_ANOMALIA).size();
         
         Double percentualAnomalias = totalAnalises > 0 ? 
             (totalAnomalias.doubleValue() / totalAnalises.doubleValue()) * 100 : 0.0;

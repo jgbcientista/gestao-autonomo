@@ -40,6 +40,7 @@ public class AuthenticationService implements IServicoAutenticacao {
     private final AiContextAnalysisService aiContextAnalysisService;
     private final ServicoAnaliseComportamentalIA servicoAnaliseComportamentalIA;
     private final ServicoGeolocalizacao servicoGeolocalizacao;
+    private final ServicoScoreConfianca servicoScoreConfianca;
 
     @Transactional
     public RespostaAutenticacao register(RequisicaoRegistro request) {
@@ -108,28 +109,63 @@ public class AuthenticationService implements IServicoAutenticacao {
             log.info("Análise comportamental IA - Usuário: {}, Score: {}, Classificação: {}", 
                 usuario.getEmail(), perfilComportamental.getScoreAnomalia(), perfilComportamental.getClassificacaoAcesso());
             
-            // Verifica decisão da IA
-            String aiDecision = aiAnalysis.getDecision();
-            var classificacaoIA = perfilComportamental.getClassificacaoAcesso();
+            // Calcula/atualiza score de confiança
+            var scoreConfianca = servicoScoreConfianca.calcularScore(usuario, perfilComportamental);
+            log.info("Score de confiança calculado - Usuário: {}, Score: {:.3f}, Nível: {}", 
+                usuario.getEmail(), scoreConfianca.getScoreAtual(), scoreConfianca.getNivelConfianca());
             
-            // Combina análises para decisão final
-            if ("DENY".equals(aiDecision) || classificacaoIA == br.com.auth.dominio.entidades.PerfilComportamentalIA.ClassificacaoAcesso.ALTAMENTE_SUSPEITO) {
+            // Determina decisão baseada no score de confiança + IA
+            var decisaoFinal = servicoScoreConfianca.determinarDecisao(scoreConfianca, perfilComportamental);
+            
+            // Processa decisão final
+            if (decisaoFinal == ServicoScoreConfianca.DecisaoAutenticacao.BLOQUEAR) {
+                // Atualiza score após bloqueio
+                servicoScoreConfianca.atualizarAposLogin(usuario, ServicoScoreConfianca.TipoEventoLogin.BLOQUEADO, perfilComportamental);
+                
                 // Registra negação no blockchain
                 blockchainService.recordAuthenticationEvent(
-                    usuario, "LOGIN_DENIED_AI", "DENIED", 
-                    Math.max(aiAnalysis.getOverallRiskScore(), perfilComportamental.getScoreAnomalia()),
+                    usuario, "LOGIN_DENIED_TRUST_SCORE", "DENIED", 
+                    scoreConfianca.getScoreAtual(),
                     request.getIpAddress(), request.getLocation(),
                     contextRequest.getDeviceFingerprint()
                 );
                 
-                throw new RuntimeException("Acesso negado pela análise de IA devido ao alto risco detectado");
+                throw new RuntimeException(String.format("Acesso negado - Score de confiança muito baixo (%.3f). Motivo: %s", 
+                    scoreConfianca.getScoreAtual(), scoreConfianca.getMotivoAlteracao()));
             }
             
-            if ("REQUIRE_MFA".equals(aiDecision) || classificacaoIA == br.com.auth.dominio.entidades.PerfilComportamentalIA.ClassificacaoAcesso.ANOMALO) {
+            if (decisaoFinal == ServicoScoreConfianca.DecisaoAutenticacao.EXIGIR_MFA) {
+                // Atualiza score para MFA exigido
+                servicoScoreConfianca.atualizarAposLogin(usuario, ServicoScoreConfianca.TipoEventoLogin.MFA_EXIGIDO, perfilComportamental);
+                
+                log.warn("Usuário {} requer autenticação de dois fatores - Score: {:.3f}, Classificação IA: {}", 
+                    usuario.getEmail(), scoreConfianca.getScoreAtual(), perfilComportamental.getClassificacaoAcesso());
+                
+                // Registra necessidade de MFA no blockchain
+                blockchainService.recordAuthenticationEvent(
+                    usuario, "LOGIN_REQUIRES_MFA", "PENDING_MFA", 
+                    scoreConfianca.getScoreAtual(),
+                    request.getIpAddress(), request.getLocation(),
+                    contextRequest.getDeviceFingerprint()
+                );
+                
                 // Em uma implementação real, aqui seria iniciado o processo de MFA
-                log.warn("Usuário {} requer verificação adicional: {} - Classificação IA: {}", 
-                    usuario.getEmail(), aiDecision, classificacaoIA);
+                // Por enquanto, retorna uma resposta especial indicando necessidade de MFA
+                return RespostaAutenticacao.builder()
+                    .requiresMfa(true)
+                    .mfaMessage("Autenticação de dois fatores necessária devido ao score de confiança")
+                    .trustScore(scoreConfianca.getScoreAtual())
+                    .trustLevel(scoreConfianca.getNivelConfianca().toString())
+                    .build();
             }
+
+            // Determina tipo de sucesso baseado no score
+            ServicoScoreConfianca.TipoEventoLogin tipoSucesso = scoreConfianca.getScoreAtual() >= 0.7 ? 
+                ServicoScoreConfianca.TipoEventoLogin.SUCESSO_NORMAL : 
+                ServicoScoreConfianca.TipoEventoLogin.SUCESSO_SUSPEITO;
+            
+            // Atualiza score após login bem-sucedido
+            servicoScoreConfianca.atualizarAposLogin(usuario, tipoSucesso, perfilComportamental);
 
             // Atualiza informações de login
             usuario.setLastLoginTime(LocalDateTime.now());
@@ -155,7 +191,7 @@ public class AuthenticationService implements IServicoAutenticacao {
             // Registra sucesso no blockchain
             blockchainService.recordAuthenticationEvent(
                 usuario, "LOGIN_SUCCESS", "ALLOWED", 
-                aiAnalysis.getOverallRiskScore(),
+                scoreConfianca.getScoreAtual(),
                 request.getIpAddress(), request.getLocation(),
                 contextRequest.getDeviceFingerprint()
             );
@@ -165,6 +201,9 @@ public class AuthenticationService implements IServicoAutenticacao {
                     .token(jwtToken)
                     .nome(usuario.getName())
                     .login(usuario.getEmail())
+                    .trustScore(scoreConfianca.getScoreAtual())
+                    .trustLevel(scoreConfianca.getNivelConfianca().toString())
+                    .requiresMfa(false)
                     .build();
 
         } catch (Exception e) {
@@ -211,10 +250,10 @@ public class AuthenticationService implements IServicoAutenticacao {
             request.getIpAddress(),
             request.getUserAgent(),
             request.getLocation(),
-            request.getTimezone(),
-            request.getBrowserLanguage(),
-            request.getScreenResolution(),
-            request.getLoginAttempts()
+            "America/Sao_Paulo", // timezone padrão
+            "pt-BR", // idioma padrão
+            "1920x1080", // resolução padrão
+            1 // tentativas padrão
         );
     }
 

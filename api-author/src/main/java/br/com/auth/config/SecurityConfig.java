@@ -24,7 +24,7 @@ import java.util.Arrays;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Profile("!dev")
+@Profile("!test")
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
@@ -39,9 +39,14 @@ public class SecurityConfig {
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
+                    "/health",
+                    "/auth/register",
+                    "/auth/login",
                     "/api/v1/test/**",
                     "/api/v1/health/**", 
                     "/api/v1/autenticacao/**",
+                    "/api/v1/auth/register",
+                    "/api/v1/auth/login",
                     "/api/v1/h2-console/**",
                     "/api/v1/swagger-ui/**",
                     "/api/v1/swagger-ui.html",

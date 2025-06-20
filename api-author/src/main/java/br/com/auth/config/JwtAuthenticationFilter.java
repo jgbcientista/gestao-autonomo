@@ -22,7 +22,7 @@ import java.util.Arrays;
 
 @Component
 @RequiredArgsConstructor
-@Profile("!dev")
+@Profile("!test")
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;

@@ -32,6 +32,22 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        <repository>
+            <id>hyperledger-releases</id>
+            <name>Hyperledger Releases</name>
+            <url>https://hyperledger.jfrog.io/hyperledger/fabric-maven/</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>jcenter</id>
+            <name>JCenter</name>
+            <url>https://jcenter.bintray.com</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -120,6 +136,37 @@
             <groupId>org.web3j</groupId>
             <artifactId>crypto</artifactId>
             <version>4.10.3</version>
+        </dependency>
+        
+        <!-- Hyperledger Fabric - TEMPORARIAMENTE DESABILITADO -->
+        <!--
+        <dependency>
+            <groupId>org.hyperledger.fabric-sdk-java</groupId>
+            <artifactId>fabric-sdk-java</artifactId>
+            <version>1.4.18</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hyperledger.fabric</groupId>
+            <artifactId>fabric-gateway-java</artifactId>
+            <version>2.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.hyperledger.fabric-ca</groupId>
+            <artifactId>fabric-ca-client</artifactId>
+            <version>1.4.18</version>
+        </dependency>
+        -->
+        
+        <!-- Bouncy Castle for cryptography -->
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcprov-jdk15on</artifactId>
+            <version>1.70</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bouncycastle</groupId>
+            <artifactId>bcpkix-jdk15on</artifactId>
+            <version>1.70</version>
         </dependency>
         
         <!-- HTTP Client -->

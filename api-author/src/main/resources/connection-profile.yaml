@@ -1,0 +1,81 @@
+---
+# Perfil de Conexão para Hyperledger Fabric
+# Este arquivo define a estrutura da rede blockchain
+
+name: "auth-audit-network"
+version: "1.0.0"
+description: "Rede blockchain para auditoria de autenticação"
+
+client:
+  organization: Org1
+  connection:
+    timeout:
+      peer:
+        endorser: '300'
+      orderer: '300'
+      
+channels:
+  mychannel:
+    orderers:
+      - orderer.example.com
+    peers:
+      peer0.org1.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+      - peer0.org1.example.com
+    certificateAuthorities:
+      - ca.org1.example.com
+
+orderers:
+  orderer.example.com:
+    url: grpc://orderer.example.com:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+
+peers:
+  peer0.org1.example.com:
+    url: grpc://peer0.org1.example.com:7051
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+
+certificateAuthorities:
+  ca.org1.example.com:
+    url: https://ca.org1.example.com:7054
+    caName: ca-org1
+    grpcOptions:
+      verify: false
+    registrar:
+      enrollId: admin
+      enrollSecret: adminpw
+
+# Configurações para ambiente de desenvolvimento local
+# Para produção, ajustar URLs e usar certificados TLS apropriados
+dev:
+  orderers:
+    orderer.example.com:
+      url: grpc://localhost:7050
+      
+  peers:
+    peer0.org1.example.com:
+      url: grpc://localhost:7051
+      
+  certificateAuthorities:
+    ca.org1.example.com:
+      url: https://localhost:7054 

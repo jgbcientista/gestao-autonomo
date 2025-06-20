@@ -15,29 +15,24 @@ import org.springframework.security.web.SecurityFilterChain;
 
 @Configuration
 @EnableWebSecurity
-@Profile("dev")
-public class DevSecurityConfig {
+@Profile("test")
+public class TestSecurityConfig {
 
     @Bean
-    @Primary
-    public SecurityFilterChain devSecurityFilterChain(HttpSecurity http) throws Exception {
-        System.out.println("🔧 CARREGANDO DEV SECURITY CONFIG - PERMITINDO TUDO!");
-        
+    public SecurityFilterChain testSecurityFilterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.disable())
+            .csrf(AbstractHttpConfigurer::disable)
+            .cors(AbstractHttpConfigurer::disable)
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.disable())
             )
-            .authorizeHttpRequests(auth -> {
-                System.out.println("🔓 CONFIGURANDO AUTORIZAÇÃO - PERMITIR TUDO!");
-                auth.anyRequest().permitAll();
-            })
+            .authorizeHttpRequests(auth -> auth
+                .anyRequest().permitAll()
+            )
             .sessionManagement(session -> session
                 .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.STATELESS)
             );
 
-        System.out.println("✅ DEV SECURITY CONFIG CONFIGURADO COM SUCESSO!");
         return http.build();
     }
 

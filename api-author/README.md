@@ -163,11 +163,30 @@ mvn clean compile -s settings.xml
 - JWT (JSON Web Token)
 - Swagger/OpenAPI
 - Lombok
+- **Web3j** (para integração Ethereum)
+- **Blockchain** (Ethereum/Hyperledger Fabric)
+- **SHA-3** (para hash criptográfico)
+- **Sistema de Auditoria Imutável**
 
 ## 📍 **Endpoints Principais**
+
+### Autenticação
 - `POST /api/v1/auth/register` - Registro de usuário
 - `POST /api/v1/auth/authenticate` - Autenticação
 - `GET /swagger-ui.html` - Documentação da API
+
+### 🔗 **Blockchain Auditoria (NOVO)**
+- `GET /api/v1/blockchain/auditoria/transacao/{hash}` - Consultar transação por hash
+- `GET /api/v1/blockchain/auditoria/usuario/{usuarioId}` - Transações por usuário
+- `GET /api/v1/blockchain/auditoria/periodo` - Transações por período
+- `GET /api/v1/blockchain/auditoria/alto-risco` - Transações de alto risco
+- `GET /api/v1/blockchain/auditoria/integridade/{hash}` - Verificar integridade
+- `GET /api/v1/blockchain/auditoria/confirmacao/{hash}` - Status de confirmação
+- `GET /api/v1/blockchain/auditoria/relatorio/usuario/{usuarioId}` - Relatório de auditoria
+- `GET /api/v1/blockchain/auditoria/estatisticas` - Estatísticas gerais
+- `GET /api/v1/blockchain/auditoria/nao-confirmadas` - Transações não confirmadas
+- `GET /api/v1/blockchain/auditoria/hyperledger/info` - Informações da rede Hyperledger
+- `POST /api/v1/blockchain/auditoria/hyperledger/test-connectivity` - Teste de conectividade Hyperledger
 
 ### Resposta de Autenticação Atualizada
 Os endpoints de autenticação agora retornam:
@@ -198,6 +217,99 @@ jwt:
 ```
 
 **Nota**: A chave secreta está em Base64 e pode ser substituída por uma variável de ambiente `JWT_SECRET` se necessário.
+
+## 🔗 **Sistema de Blockchain para Auditoria**
+
+### ✨ **Funcionalidades Implementadas**
+
+O sistema agora inclui um **módulo completo de auditoria blockchain** que registra automaticamente todos os eventos de autenticação de forma imutável, garantindo rastreabilidade total e compliance com regulamentações.
+
+#### 🎯 **Características Principais**
+
+- **Registro Automático**: Toda autenticação é registrada na blockchain
+- **Imutabilidade**: Registros não podem ser alterados após confirmação
+- **Verificação de Integridade**: Hash SHA-3 para garantir integridade dos dados
+- **Suporte Multi-Rede**: Ethereum, Hyperledger Fabric e modo simulado
+- **APIs de Auditoria**: Endpoints REST para consultas e relatórios
+- **Score de Confiança**: Integração com sistema de análise de risco
+- **Detecção de Fraudes**: Identificação automática de tentativas suspeitas
+
+#### 📊 **Dados Registrados na Blockchain**
+
+Para cada evento de autenticação, os seguintes dados são registrados:
+- Hash da transação blockchain
+- Tipo de evento (LOGIN_SUCCESS, LOGIN_DENIED, etc.)
+- ID e email do usuário (hasheados)
+- IP de origem e localização
+- Score de confiança calculado
+- Decisão do sistema (ALLOWED, DENIED, REQUIRES_MFA)
+- Timestamp e confirmações da rede
+
+#### ⚙️ **Configuração do Blockchain**
+
+Adicione as seguintes variáveis de ambiente:
+
+```bash
+# Configurações gerais
+BLOCKCHAIN_ENABLED=true
+BLOCKCHAIN_NETWORK_TYPE=ethereum # ou hyperledger
+BLOCKCHAIN_CONFIRMATION_BLOCKS=12
+
+# Para Ethereum
+BLOCKCHAIN_NETWORK_URL=https://sepolia.infura.io/v3/YOUR_PROJECT_ID
+BLOCKCHAIN_PRIVATE_KEY=your_private_key_here
+BLOCKCHAIN_CONTRACT_ADDRESS=0x...
+
+# Configurações Hyperledger Fabric
+HYPERLEDGER_CHANNEL=mychannel
+HYPERLEDGER_CHAINCODE=auth-audit
+HYPERLEDGER_ORG=Org1MSP
+HYPERLEDGER_USER=appUser
+HYPERLEDGER_USER_SECRET=appUserSecret
+
+# Para Hyperledger
+HYPERLEDGER_CHANNEL=mychannel
+HYPERLEDGER_CHAINCODE=auth-audit
+HYPERLEDGER_ORG=Org1MSP
+HYPERLEDGER_PEER=peer0.org1.example.com:7051
+```
+
+#### 🧪 **Testando o Sistema Blockchain**
+
+Execute o script de teste para verificar todas as funcionalidades:
+
+```powershell
+# No diretório api-author
+
+# Teste completo de blockchain (Ethereum + Hyperledger)
+.\test-blockchain-auditoria.ps1
+
+# Teste específico do Hyperledger Fabric
+.\test-hyperledger-fabric.ps1
+```
+
+O script testa:
+- ✅ Registro automático de transações
+- ✅ Consultas por usuário, período e risco
+- ✅ Verificação de integridade
+- ✅ Status de confirmação
+- ✅ Relatórios de auditoria
+- ✅ Estatísticas gerais
+
+#### 📖 **Documentação Completa**
+
+Para documentação detalhada sobre a implementação, consulte:
+- `BLOCKCHAIN_AUDITORIA_IMPLEMENTACAO.md` - Documentação técnica completa
+- Swagger UI - `/swagger-ui.html` para testar APIs
+- Script de teste - `test-blockchain-auditoria.ps1`
+
+#### 🛡️ **Compliance e Segurança**
+
+- **LGPD/GDPR**: Dados pessoais são hasheados
+- **SOX**: Auditoria imutável de todos os acessos
+- **ISO 27001**: Rastreabilidade completa
+- **Detecção de Intrusão**: Monitoramento em tempo real
+- **Alertas Automáticos**: Para transações suspeitas
 
 ## 🔌 **Portas**
 - **8081** - API REST

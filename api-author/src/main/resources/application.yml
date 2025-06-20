@@ -1,7 +1,7 @@
 server:
   port: ${SERVER_PORT:8081}
   servlet:
-    context-path: /api/v1
+    context-path: 
   tomcat:
     connection-timeout: 5s
     max-connections: 200
@@ -12,8 +12,11 @@ server:
 spring:
   application:
     name: auth-service
+  profiles:
+    active: dev
   main:
     allow-bean-definition-overriding: true
+  # Spring Security habilitado para funcionamento completo
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/auth_db}
     username: ${DB_USERNAME:postgres}
@@ -78,14 +81,37 @@ risk:
 
 # Configurações de Blockchain
 blockchain:
-  enabled: ${BLOCKCHAIN_ENABLED:false}
+  enabled: ${BLOCKCHAIN_ENABLED:true}
   network:
+    type: ${BLOCKCHAIN_NETWORK_TYPE:hyperledger} # ethereum ou hyperledger
     name: ${BLOCKCHAIN_NETWORK_NAME:localhost}
     url: ${BLOCKCHAIN_NETWORK_URL:http://localhost:8545}
   private:
     key: ${BLOCKCHAIN_PRIVATE_KEY:}
   contract:
     address: ${BLOCKCHAIN_CONTRACT_ADDRESS:}
+  confirmation:
+    blocks: ${BLOCKCHAIN_CONFIRMATION_BLOCKS:12} # Número mínimo de confirmações
+  hyperledger:
+    channel: ${HYPERLEDGER_CHANNEL:mychannel}
+    chaincode: ${HYPERLEDGER_CHAINCODE:auth-audit}
+    organization: ${HYPERLEDGER_ORG:Org1MSP}
+    peer: ${HYPERLEDGER_PEER:peer0.org1.example.com:7051}
+    ca-url: ${HYPERLEDGER_CA_URL:https://ca.org1.example.com:7054}
+    orderer: ${HYPERLEDGER_ORDERER:orderer.example.com:7050}
+    user: ${HYPERLEDGER_USER:appUser}
+    user-secret: ${HYPERLEDGER_USER_SECRET:appUserSecret}
+    admin-user: ${HYPERLEDGER_ADMIN_USER:admin}
+    admin-secret: ${HYPERLEDGER_ADMIN_SECRET:adminpw}
+    connection-profile-path: ${HYPERLEDGER_CONNECTION_PROFILE:src/main/resources/connection-profile.yaml}
+    wallet-path: ${HYPERLEDGER_WALLET_PATH:wallet}
+    certificate-path: ${HYPERLEDGER_CERT_PATH:}
+    private-key-path: ${HYPERLEDGER_KEY_PATH:}
+    tls-enabled: ${HYPERLEDGER_TLS_ENABLED:true}
+  audit:
+    enabled: ${BLOCKCHAIN_AUDIT_ENABLED:true}
+    retention:
+      days: ${BLOCKCHAIN_RETENTION_DAYS:365} # Retenção de dados em dias
 
 # Configurações Redis (apenas para produção)
 redis:
@@ -152,7 +178,7 @@ ai:
     enabled: false
 
 blockchain:
-  enabled: false
+  enabled: true
 
 # Redis desabilitado no profile dev
 

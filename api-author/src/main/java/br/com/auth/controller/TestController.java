@@ -12,9 +12,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
 import java.util.Optional;
+import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/v1/test")
@@ -244,5 +245,47 @@ public class TestController {
                 "timestamp", java.time.LocalDateTime.now().toString()
             ));
         }
+    }
+
+    @GetMapping("/debug")
+    public ResponseEntity<Map<String, Object>> debug(HttpServletRequest request) {
+        System.out.println("🔍 DEBUG ENDPOINT CHAMADO!");
+        
+        Map<String, Object> debug = new HashMap<>();
+        debug.put("method", request.getMethod());
+        debug.put("requestURI", request.getRequestURI());
+        debug.put("contextPath", request.getContextPath());
+        debug.put("servletPath", request.getServletPath());
+        debug.put("pathInfo", request.getPathInfo());
+        debug.put("queryString", request.getQueryString());
+        debug.put("remoteAddr", request.getRemoteAddr());
+        debug.put("remoteHost", request.getRemoteHost());
+        debug.put("serverName", request.getServerName());
+        debug.put("serverPort", request.getServerPort());
+        debug.put("scheme", request.getScheme());
+        debug.put("protocol", request.getProtocol());
+        
+        // Headers
+        Map<String, String> headers = new HashMap<>();
+        request.getHeaderNames().asIterator().forEachRemaining(name -> 
+            headers.put(name, request.getHeader(name))
+        );
+        debug.put("headers", headers);
+        
+        System.out.println("🎯 DEBUG INFO: " + debug);
+        
+        return ResponseEntity.ok(debug);
+    }
+
+    @GetMapping("/simple")
+    public ResponseEntity<String> simple() {
+        System.out.println("🔍 SIMPLE ENDPOINT CHAMADO!");
+        return ResponseEntity.ok("SUCCESS - ENDPOINT FUNCIONANDO!");
+    }
+
+    @GetMapping("/health-simple")
+    public ResponseEntity<String> healthSimple() {
+        System.out.println("🔍 HEALTH SIMPLE ENDPOINT CHAMADO!");
+        return ResponseEntity.ok("OK");
     }
 } 

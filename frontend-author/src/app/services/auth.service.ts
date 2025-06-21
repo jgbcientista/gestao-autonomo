@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
@@ -14,14 +15,22 @@ export class AuthService {
   private isAuthenticatedSubject = new BehaviorSubject<boolean>(false);
   public isAuthenticated$ = this.isAuthenticatedSubject.asObservable();
 
+  private isBrowser: boolean;
+
   constructor(
     private apiService: ApiService,
-    private router: Router
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {
+    this.isBrowser = isPlatformBrowser(this.platformId);
     this.checkAuthStatus();
   }
 
   private checkAuthStatus(): void {
+    if (!this.isBrowser) {
+      return;
+    }
+
     const token = localStorage.getItem('auth_token');
     const userStr = localStorage.getItem('current_user');
     
@@ -46,8 +55,10 @@ export class AuthService {
             email: response.email || credentials.email
           };
           
-          localStorage.setItem('auth_token', response.token);
-          localStorage.setItem('current_user', JSON.stringify(user));
+          if (this.isBrowser) {
+            localStorage.setItem('auth_token', response.token);
+            localStorage.setItem('current_user', JSON.stringify(user));
+          }
           
           this.currentUserSubject.next(user);
           this.isAuthenticatedSubject.next(true);
@@ -72,8 +83,10 @@ export class AuthService {
             email: response.email || userDetails.email
           };
           
-          localStorage.setItem('auth_token', response.token);
-          localStorage.setItem('current_user', JSON.stringify(user));
+          if (this.isBrowser) {
+            localStorage.setItem('auth_token', response.token);
+            localStorage.setItem('current_user', JSON.stringify(user));
+          }
           
           this.currentUserSubject.next(user);
           this.isAuthenticatedSubject.next(true);
@@ -88,8 +101,10 @@ export class AuthService {
   }
 
   logout(): void {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('current_user');
+    if (this.isBrowser) {
+      localStorage.removeItem('auth_token');
+      localStorage.removeItem('current_user');
+    }
     
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
@@ -106,6 +121,9 @@ export class AuthService {
   }
 
   getToken(): string | null {
+    if (!this.isBrowser) {
+      return null;
+    }
     return localStorage.getItem('auth_token');
   }
 

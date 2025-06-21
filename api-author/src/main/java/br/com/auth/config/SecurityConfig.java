@@ -33,7 +33,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .cors(cors -> cors.disable()) // Desabilitar CORS do Spring Security (usando filtro personalizado)
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.disable()) // Permite H2 console
             )
@@ -90,10 +90,43 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(Arrays.asList("*"));
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
+        
+        // IMPORTANTE: Não usar "*" com setAllowCredentials(true)
+        // Permitir origens específicas apenas
+        configuration.setAllowedOrigins(Arrays.asList(
+            "http://localhost:4200",    // Angular dev server
+            "http://localhost:3000",    // React/Node dev server  
+            "http://127.0.0.1:4200",
+            "http://127.0.0.1:3000"
+        ));
+        
+        // Permitir métodos HTTP específicos
+        configuration.setAllowedMethods(Arrays.asList(
+            "GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD", "PATCH"
+        ));
+        
+        // Permitir headers específicos
+        configuration.setAllowedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type", 
+            "X-Requested-With",
+            "Accept",
+            "Origin",
+            "Access-Control-Request-Method",
+            "Access-Control-Request-Headers"
+        ));
+        
+        // Permitir credenciais (cookies, authorization headers)
+        configuration.setAllowCredentials(true);
+        
+        // Expor headers importantes para o frontend
+        configuration.setExposedHeaders(Arrays.asList(
+            "Authorization", 
+            "Content-Type"
+        ));
+        
+        // Tempo de cache para requisições OPTIONS (preflight)
+        configuration.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);

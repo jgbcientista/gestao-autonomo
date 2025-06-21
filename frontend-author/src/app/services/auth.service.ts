@@ -33,12 +33,17 @@ export class AuthService {
   }
 
   login(credentials: AuthenticationRequest): Observable<AuthenticationResponse> {
-    return this.apiService.login(credentials).pipe(
+    // Enriquecer requisição com informações do cliente
+    const enrichedCredentials = this.enrichAuthRequest(credentials);
+    
+    return this.apiService.login(enrichedCredentials).pipe(
       tap(response => {
-        if (response.token) {
+        console.log('Resposta do login:', response);
+        
+        if (response && response.token && response.token.trim() !== '') {
           const user: User = {
-            name: response.name,
-            email: response.email
+            name: response.name || 'Usuário',
+            email: response.email || credentials.email
           };
           
           localStorage.setItem('auth_token', response.token);
@@ -46,6 +51,11 @@ export class AuthService {
           
           this.currentUserSubject.next(user);
           this.isAuthenticatedSubject.next(true);
+          
+          console.log('Login realizado com sucesso!', user);
+        } else {
+          console.warn('Token vazio recebido do servidor:', response);
+          throw new Error('Token não fornecido pelo servidor');
         }
       })
     );
@@ -54,10 +64,12 @@ export class AuthService {
   register(userDetails: RegisterRequest): Observable<AuthenticationResponse> {
     return this.apiService.register(userDetails).pipe(
       tap(response => {
-        if (response.token) {
+        console.log('Resposta do registro:', response);
+        
+        if (response && response.token && response.token.trim() !== '') {
           const user: User = {
-            name: response.name,
-            email: response.email
+            name: response.name || userDetails.name,
+            email: response.email || userDetails.email
           };
           
           localStorage.setItem('auth_token', response.token);
@@ -65,6 +77,11 @@ export class AuthService {
           
           this.currentUserSubject.next(user);
           this.isAuthenticatedSubject.next(true);
+          
+          console.log('Registro realizado com sucesso!', user);
+        } else {
+          console.warn('Token vazio recebido do servidor no registro:', response);
+          throw new Error('Token não fornecido pelo servidor durante o registro');
         }
       })
     );

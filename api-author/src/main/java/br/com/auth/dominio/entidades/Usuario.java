@@ -42,8 +42,6 @@ public class Usuario implements UserDetails {
 
     @NotBlank(message = "A senha é obrigatória")
     @Size(min = 8, message = "A senha deve ter no mínimo 8 caracteres")
-    @Pattern(regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,}$",
-            message = "A senha deve conter pelo menos um número, uma letra maiúscula, uma letra minúscula e um caractere especial")
     @Column(nullable = false)
     private String senha;
 

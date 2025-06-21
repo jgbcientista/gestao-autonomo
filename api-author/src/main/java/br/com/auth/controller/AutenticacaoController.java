@@ -1,4 +1,4 @@
-package br.com.auth.aplicacao;
+package br.com.auth.controller;
 
 import br.com.auth.dominio.interfaces.IServicoAutenticacao;
 import br.com.auth.dto.AuthenticationRequest;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/autenticacao")
 @RequiredArgsConstructor
 @Tag(name = "Autenticação", description = "Endpoints para autenticação de usuários")
-public class ControladorAutenticacao {
+public class AutenticacaoController {
 
     private final IServicoAutenticacao servicoAutenticacao;
 

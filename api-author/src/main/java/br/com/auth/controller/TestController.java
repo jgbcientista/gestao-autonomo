@@ -91,4 +91,36 @@ public class TestController {
         
         return ResponseEntity.ok(info);
     }
+
+    @PostMapping("/mock-login")
+    public ResponseEntity<Map<String, Object>> mockLogin(@RequestBody Map<String, String> request) {
+        System.out.println("🔍 MOCK LOGIN ENDPOINT CHAMADO!");
+        log.info("Mock login endpoint chamado com dados: {}", request);
+        
+        String email = request.get("email");
+        String password = request.get("password");
+        
+        Map<String, Object> response = new HashMap<>();
+        
+        if ("joaoguedes@gmail.com".equals(email) && "1234567890".equals(password)) {
+            response.put("token", "mock-jwt-token-12345");
+            response.put("name", "João Guedes");
+            response.put("email", "joaoguedes@gmail.com");
+            response.put("success", true);
+            
+            System.out.println("✅ Mock login bem-sucedido para: " + email);
+            log.info("Mock login bem-sucedido para: {}", email);
+        } else {
+            response.put("token", null);
+            response.put("name", null);
+            response.put("email", null);
+            response.put("success", false);
+            response.put("error", "Credenciais inválidas");
+            
+            System.out.println("❌ Mock login falhou para: " + email);
+            log.info("Mock login falhou para: {}", email);
+        }
+        
+        return ResponseEntity.ok(response);
+    }
 } 

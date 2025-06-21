@@ -1,0 +1,197 @@
+<div class="register-container">
+  <!-- Elementos decorativos de fundo -->
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+    <div class="shape shape-5"></div>
+  </div>
+
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+      <div class="col-md-7 col-lg-6">
+        <div class="card card-register fade-in">
+          <!-- Header com logo e título -->
+          <div class="card-header text-center">
+            <div class="register-logo mb-3">
+              <div class="logo-circle">
+                <i class="bi bi-person-plus-fill"></i>
+              </div>
+            </div>
+            <h2 class="register-title">Criar Nova Conta</h2>
+            <p class="register-subtitle">Junte-se ao nosso sistema seguro</p>
+          </div>
+
+          <div class="card-body">
+            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
+              <!-- Nome com ícone -->
+              <div class="form-floating mb-3">
+                <input 
+                  type="text" 
+                  class="form-control form-control-modern"
+                  id="name"
+                  formControlName="name"
+                  [class.is-invalid]="registerForm.get('name')?.invalid && registerForm.get('name')?.touched"
+                  placeholder="Seu nome completo">
+                <label for="name">
+                  <i class="bi bi-person me-2"></i>Nome Completo
+                </label>
+                <div class="invalid-feedback" *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
+                  <div *ngIf="registerForm.get('name')?.errors?.['required']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Nome é obrigatório
+                  </div>
+                  <div *ngIf="registerForm.get('name')?.errors?.['minlength']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Nome deve ter pelo menos 2 caracteres
+                  </div>
+                  <div *ngIf="registerForm.get('name')?.errors?.['maxlength']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Nome deve ter no máximo 100 caracteres
+                  </div>
+                </div>
+              </div>
+
+              <!-- Email com ícone -->
+              <div class="form-floating mb-3">
+                <input 
+                  type="email" 
+                  class="form-control form-control-modern"
+                  id="email"
+                  formControlName="email"
+                  [class.is-invalid]="registerForm.get('email')?.invalid && registerForm.get('email')?.touched"
+                  placeholder="seu@email.com">
+                <label for="email">
+                  <i class="bi bi-envelope me-2"></i>Email
+                </label>
+                <div class="invalid-feedback" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
+                  <div *ngIf="registerForm.get('email')?.errors?.['required']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Email é obrigatório
+                  </div>
+                  <div *ngIf="registerForm.get('email')?.errors?.['email']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Email deve ter um formato válido
+                  </div>
+                </div>
+              </div>
+
+              <!-- Senha com ícone e toggle -->
+              <div class="form-floating mb-3">
+                <input 
+                  [type]="showPassword ? 'text' : 'password'" 
+                  class="form-control form-control-modern"
+                  id="password"
+                  formControlName="password"
+                  [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
+                  placeholder="Senha (mínimo 6 caracteres)">
+                <label for="password">
+                  <i class="bi bi-lock me-2"></i>Senha
+                </label>
+                <button 
+                  type="button" 
+                  class="password-toggle"
+                  (click)="showPassword = !showPassword">
+                  <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+                </button>
+                <div class="invalid-feedback" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
+                  <div *ngIf="registerForm.get('password')?.errors?.['required']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Senha é obrigatória
+                  </div>
+                  <div *ngIf="registerForm.get('password')?.errors?.['minlength']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Senha deve ter pelo menos 6 caracteres
+                  </div>
+                </div>
+              </div>
+
+              <!-- Confirmar Senha com ícone e toggle -->
+              <div class="form-floating mb-4">
+                <input 
+                  [type]="showConfirmPassword ? 'text' : 'password'" 
+                  class="form-control form-control-modern"
+                  id="confirmPassword"
+                  formControlName="confirmPassword"
+                  [class.is-invalid]="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched"
+                  placeholder="Confirme sua senha">
+                <label for="confirmPassword">
+                  <i class="bi bi-shield-lock me-2"></i>Confirmar Senha
+                </label>
+                <button 
+                  type="button" 
+                  class="password-toggle"
+                  (click)="showConfirmPassword = !showConfirmPassword">
+                  <i class="bi" [class.bi-eye]="!showConfirmPassword" [class.bi-eye-slash]="showConfirmPassword"></i>
+                </button>
+                <div class="invalid-feedback" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
+                  <div *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Confirmação de senha é obrigatória
+                  </div>
+                  <div *ngIf="registerForm.errors?.['mismatch']">
+                    <i class="bi bi-exclamation-circle me-1"></i>As senhas não coincidem
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mensagem de erro com animação -->
+              <div class="alert alert-danger slide-down" *ngIf="errorMessage" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {{ errorMessage }}
+              </div>
+
+              <!-- Mensagem de sucesso com animação -->
+              <div class="alert alert-success slide-down" *ngIf="successMessage" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                {{ successMessage }}
+              </div>
+
+              <!-- Indicador de força da senha -->
+              <div class="password-strength mb-4" *ngIf="registerForm.get('password')?.value">
+                <div class="strength-label">
+                  <small>Força da senha:</small>
+                  <span class="strength-text" [class]="getPasswordStrengthClass()">
+                    {{ getPasswordStrengthText() }}
+                  </span>
+                </div>
+                <div class="strength-bar">
+                  <div class="strength-fill" [class]="getPasswordStrengthClass()" [style.width.%]="getPasswordStrengthPercentage()"></div>
+                </div>
+              </div>
+
+              <!-- Botão de registro moderno -->
+              <div class="d-grid mb-4">
+                <button 
+                  type="submit" 
+                  class="btn btn-primary btn-modern btn-lg"
+                  [disabled]="registerForm.invalid || isLoading">
+                  <span *ngIf="isLoading" class="spinner-grow spinner-grow-sm me-2" role="status" aria-hidden="true"></span>
+                  <i *ngIf="!isLoading" class="bi bi-person-plus me-2"></i>
+                  {{ isLoading ? 'Criando conta...' : 'Criar Conta' }}
+                </button>
+              </div>
+
+              <!-- Divider -->
+              <div class="divider">
+                <span>ou</span>
+              </div>
+
+              <!-- Link para login com estilo moderno -->
+              <div class="text-center">
+                <p class="login-text">
+                  Já tem uma conta?
+                </p>
+                <a routerLink="/login" class="btn btn-outline-light btn-login">
+                  <i class="bi bi-box-arrow-in-right me-2"></i>
+                  Fazer Login
+                </a>
+              </div>
+            </form>
+          </div>
+
+          <!-- Footer do card -->
+          <div class="card-footer text-center">
+            <small class="text-muted">
+              <i class="bi bi-shield-check me-1"></i>
+              Ao se registrar, você concorda com nossos termos de uso
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

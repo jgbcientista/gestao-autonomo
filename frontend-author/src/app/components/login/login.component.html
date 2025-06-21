@@ -1,0 +1,127 @@
+<div class="login-container">
+  <!-- Elementos decorativos de fundo -->
+  <div class="floating-shapes">
+    <div class="shape shape-1"></div>
+    <div class="shape shape-2"></div>
+    <div class="shape shape-3"></div>
+    <div class="shape shape-4"></div>
+  </div>
+
+  <div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+      <div class="col-md-6 col-lg-5">
+        <div class="card card-login fade-in">
+          <!-- Header com logo e título -->
+          <div class="card-header text-center">
+            <div class="login-logo mb-3">
+              <div class="logo-circle">
+                <i class="bi bi-shield-lock-fill"></i>
+              </div>
+            </div>
+            <h2 class="login-title">Bem-vindo de volta!</h2>
+            <p class="login-subtitle">Entre em sua conta para continuar</p>
+          </div>
+
+          <div class="card-body">
+            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+              <!-- Email com ícone -->
+              <div class="form-floating mb-3">
+                <input 
+                  type="email" 
+                  class="form-control form-control-modern"
+                  id="email"
+                  formControlName="email"
+                  [class.is-invalid]="loginForm.get('email')?.invalid && loginForm.get('email')?.touched"
+                  placeholder="seu@email.com">
+                <label for="email">
+                  <i class="bi bi-envelope me-2"></i>Email
+                </label>
+                <div class="invalid-feedback" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
+                  <div *ngIf="loginForm.get('email')?.errors?.['required']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Email é obrigatório
+                  </div>
+                  <div *ngIf="loginForm.get('email')?.errors?.['email']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Email deve ter um formato válido
+                  </div>
+                </div>
+              </div>
+
+              <!-- Senha com ícone e toggle -->
+              <div class="form-floating mb-4">
+                <input 
+                  [type]="showPassword ? 'text' : 'password'" 
+                  class="form-control form-control-modern"
+                  id="password"
+                  formControlName="password"
+                  [class.is-invalid]="loginForm.get('password')?.invalid && loginForm.get('password')?.touched"
+                  placeholder="Sua senha">
+                <label for="password">
+                  <i class="bi bi-lock me-2"></i>Senha
+                </label>
+                <button 
+                  type="button" 
+                  class="password-toggle"
+                  (click)="showPassword = !showPassword">
+                  <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+                </button>
+                <div class="invalid-feedback" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
+                  <div *ngIf="loginForm.get('password')?.errors?.['required']">
+                    <i class="bi bi-exclamation-circle me-1"></i>Senha é obrigatória
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mensagem de erro com animação -->
+              <div class="alert alert-danger slide-down" *ngIf="errorMessage" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {{ errorMessage }}
+              </div>
+
+              <!-- Mensagem de sucesso com animação -->
+              <div class="alert alert-success slide-down" *ngIf="successMessage" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                {{ successMessage }}
+              </div>
+
+              <!-- Botão de login moderno -->
+              <div class="d-grid mb-4">
+                <button 
+                  type="submit" 
+                  class="btn btn-primary btn-modern btn-lg"
+                  [disabled]="loginForm.invalid || isLoading">
+                  <span *ngIf="isLoading" class="spinner-grow spinner-grow-sm me-2" role="status" aria-hidden="true"></span>
+                  <i *ngIf="!isLoading" class="bi bi-box-arrow-in-right me-2"></i>
+                  {{ isLoading ? 'Entrando...' : 'Entrar' }}
+                </button>
+              </div>
+
+              <!-- Divider -->
+              <div class="divider">
+                <span>ou</span>
+              </div>
+
+              <!-- Link para registro com estilo moderno -->
+              <div class="text-center">
+                <p class="register-text">
+                  Não tem uma conta?
+                </p>
+                <a routerLink="/register" class="btn btn-outline-light btn-register">
+                  <i class="bi bi-person-plus me-2"></i>
+                  Criar conta gratuita
+                </a>
+              </div>
+            </form>
+          </div>
+
+          <!-- Footer do card -->
+          <div class="card-footer text-center">
+            <small class="text-muted">
+              <i class="bi bi-shield-check me-1"></i>
+              Protegido por autenticação inteligente
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

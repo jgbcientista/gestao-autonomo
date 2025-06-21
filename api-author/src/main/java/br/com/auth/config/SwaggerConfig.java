@@ -54,10 +54,10 @@ public class SwaggerConfig {
                                 .url("https://opensource.org/licenses/MIT")))
                 .servers(List.of(
                         new Server()
-                                .url("http://localhost:8081/api/v1")
+                                .url("http://localhost:8081")
                                 .description("Servidor de Desenvolvimento"),
                         new Server()
-                                .url("https://api.authsystem.com/api/v1")
+                                .url("https://api.authsystem.com")
                                 .description("Servidor de Produção")
                 ))
                 .addSecurityItem(new SecurityRequirement().addList("Bearer Authentication"))

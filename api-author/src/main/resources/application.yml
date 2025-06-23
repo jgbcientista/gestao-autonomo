@@ -88,6 +88,9 @@ risk:
 # Configurações de Blockchain
 blockchain:
   enabled: ${BLOCKCHAIN_ENABLED:true}
+  # Escolher implementação: hyperledger ou java-native
+  native: 
+    enabled: ${BLOCKCHAIN_NATIVE_ENABLED:false}  # true para blockchain Java nativa
   network:
     type: ${BLOCKCHAIN_NETWORK_TYPE:hyperledger} # ethereum ou hyperledger
     name: ${BLOCKCHAIN_NETWORK_NAME:hyperledger-local}
@@ -142,31 +145,41 @@ logging:
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
 
 ---
-# Profile de desenvolvimento com H2
+# Profile de desenvolvimento com PostgreSQL (igual produção)
 spring:
   config:
     activate:
       on-profile: dev
+  # Usando PostgreSQL também em dev para evitar perda de dados do blockchain
   datasource:
-    url: jdbc:h2:mem:testdb
-    username: sa
-    password: 
-    driver-class-name: org.h2.Driver
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/auth_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 5
       maximum-pool-size: 20
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update  # update em vez de create-drop para preservar dados
     show-sql: true
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.H2Dialect
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          batch_size: 25
+          fetch_size: 25
+        order_inserts: true
+        order_updates: true
+        connection:
+          provider_disables_autocommit: false
+    open-in-view: false
+  # CONFIGURAÇÕES H2 COMENTADAS - AGORA USANDO POSTGRESQL
+  # h2:
+  #   console:
+  #     enabled: true
+  #     path: /h2-console
   # Desabilita Redis no profile dev
   data:
     redis:
@@ -183,8 +196,13 @@ ai:
   service:
     enabled: false
 
+# Blockchain EXPLICITAMENTE habilitado em dev
 blockchain:
   enabled: true
+  network:
+    type: hyperledger
+  hyperledger:
+    simulation-mode: true
 
 # Redis desabilitado no profile dev
 

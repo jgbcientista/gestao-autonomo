@@ -1,0 +1,223 @@
+<div class="trust-score-container">
+  <!-- Navigation -->
+  <div class="nav-container">
+    <button class="back-btn" routerLink="/dashboard">
+      ← Voltar ao Dashboard
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h1 class="title">🎯 Score de Confiança</h1>
+    <button class="refresh-btn" (click)="refreshData()" [disabled]="loading">
+      <span class="refresh-icon" [class.spinning]="loading">🔄</span>
+      Atualizar
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading">
+    <div class="spinner"></div>
+    <p>Carregando dados do score...</p>
+  </div>
+
+  <!-- Error -->
+  <div *ngIf="error" class="error-card">
+    <span class="error-icon">⚠️</span>
+    <div>
+      <h3>Erro</h3>
+      <p>{{ error }}</p>
+    </div>
+  </div>
+
+  <!-- Score Details -->
+  <div *ngIf="trustScore" class="score-details">
+    <div class="score-grid">
+      <!-- Score Principal -->
+      <div class="score-card main-score">
+        <h3>Score Atual</h3>
+        <div class="score-circle">
+          <div class="score-text">
+            <span class="score-number">{{ trustScore.scoreAtual | number:'1.2-2' }}</span>
+            <span class="score-max">/1.00</span>
+          </div>
+          <div class="score-bar">
+            <div class="score-fill" [style.width.%]="trustScore.scoreAtual * 100"></div>
+          </div>
+        </div>
+        <div class="score-info">
+          <p><strong>Nível:</strong> {{ trustScore.nivelConfianca }}</p>
+          <p><strong>Score Base:</strong> {{ trustScore.scoreBase | number:'1.2-2' }}</p>
+          <p><strong>Fator Ajuste:</strong> {{ trustScore.fatorAjuste | number:'1.2-2' }}</p>
+          <p *ngIf="trustScore.emObservacao" class="observation">
+            <span class="warning">⚠️ Em Observação</span>
+          </p>
+        </div>
+      </div>
+
+      <!-- Estatísticas -->
+      <div class="score-card statistics">
+        <h3>Estatísticas</h3>
+        <div class="stat-item">
+          <span class="stat-label">Logins Sucesso:</span>
+          <span class="stat-value success">{{ trustScore.estatisticas.totalLoginsSucesso }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Logins Suspeitos:</span>
+          <span class="stat-value warning">{{ trustScore.estatisticas.totalLoginsSuspeitos }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">Bloqueios:</span>
+          <span class="stat-value danger">{{ trustScore.estatisticas.totalBloqueios }}</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-label">MFA Exigido:</span>
+          <span class="stat-value info">{{ trustScore.estatisticas.totalMfaExigido }}</span>
+        </div>
+      </div>
+
+      <!-- Decisões -->
+      <div class="score-card decisions">
+        <h3>Decisões de Segurança</h3>
+        <div class="decision-item">
+          <span class="decision-label">Confiável:</span>
+          <span class="decision-value" [class.active]="trustScore.decisoes.confiavel">
+            {{ trustScore.decisoes.confiavel ? '✅ Sim' : '❌ Não' }}
+          </span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-label">Requer MFA:</span>
+          <span class="decision-value" [class.active]="trustScore.decisoes.requerMfa">
+            {{ trustScore.decisoes.requerMfa ? '🔐 Sim' : '🔓 Não' }}
+          </span>
+        </div>
+        <div class="decision-item">
+          <span class="decision-label">Deve Bloquear:</span>
+          <span class="decision-value danger" [class.active]="trustScore.decisoes.deveBloquear">
+            {{ trustScore.decisoes.deveBloquear ? '🚫 Sim' : '✅ Não' }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Ajuste Manual -->
+      <div class="score-card manual-adjustment">
+        <h3>Ajuste Manual</h3>
+        <form (ngSubmit)="adjustScore()" class="adjustment-form">
+          <div class="form-group">
+            <label for="adjustmentValue">Valor do Ajuste (-1.0 a 1.0):</label>
+            <input 
+              type="number" 
+              id="adjustmentValue"
+              [(ngModel)]="adjustmentValue"
+              name="adjustmentValue"
+              min="-1" 
+              max="1" 
+              step="0.1"
+              class="form-control">
+          </div>
+          <div class="form-group">
+            <label for="adjustmentReason">Motivo do Ajuste:</label>
+            <textarea 
+              id="adjustmentReason"
+              [(ngModel)]="adjustmentReason"
+              name="adjustmentReason"
+              rows="3"
+              placeholder="Descreva o motivo do ajuste..."
+              class="form-control"></textarea>
+          </div>
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="loading || !adjustmentReason">
+            Aplicar Ajuste
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Estatísticas Gerais -->
+  <div *ngIf="statistics" class="general-stats">
+    <h3>📈 Estatísticas Gerais do Sistema</h3>
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon">📊</div>
+        <div class="stat-info">
+          <h4>Score Médio Geral</h4>
+          <p class="stat-number info">{{ statistics.scoreMedioGeral | number:'1.2-2' }}</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">👥</div>
+        <div class="stat-info">
+          <h4>Usuários Confiáveis</h4>
+          <p class="stat-number success">{{ statistics.totalUsuariosConfiaveis }}</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-info">
+          <h4>Score Baixo</h4>
+          <p class="stat-number warning">{{ statistics.usuariosScoreBaixo }}</p>
+        </div>
+      </div>
+      
+      <div class="stat-card">
+        <div class="stat-icon">👁️</div>
+        <div class="stat-info">
+          <h4>Em Observação</h4>
+          <p class="stat-number info">{{ statistics.usuariosEmObservacao }}</p>
+        </div>
+      </div>
+    </div>
+
+        <!-- Distribuição por Níveis -->
+    <div *ngIf="statistics?.distribuicaoNiveis" class="level-distribution">
+      <h4>Distribuição por Níveis</h4>
+      <div class="level-bars">
+        <div class="level-bar">
+          <span class="level-name">Alto</span>
+          <div class="level-progress">
+            <div class="level-fill" style="width: 70%"></div>
+          </div>
+          <span class="level-count">70</span>
+        </div>
+        <div class="level-bar">
+          <span class="level-name">Médio</span>
+          <div class="level-progress">
+            <div class="level-fill" style="width: 20%"></div>
+          </div>
+          <span class="level-count">20</span>
+        </div>
+        <div class="level-bar">
+          <span class="level-name">Baixo</span>
+          <div class="level-progress">
+            <div class="level-fill" style="width: 10%"></div>
+          </div>
+          <span class="level-count">10</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Últimas Atualizações -->
+  <div *ngIf="trustScore" class="recent-updates">
+    <h3>Informações Recentes</h3>
+    <div class="update-item">
+      <span class="update-icon">📅</span>
+      <div class="update-info">
+        <h4>Última Atualização</h4>
+        <p>{{ trustScore.ultimaAtualizacao | date:'medium' }}</p>
+      </div>
+    </div>
+    <div *ngIf="trustScore.motivoAlteracao" class="update-item">
+      <span class="update-icon">📝</span>
+      <div class="update-info">
+        <h4>Motivo da Última Alteração</h4>
+        <p>{{ trustScore.motivoAlteracao }}</p>
+      </div>
+    </div>
+  </div>
+</div>

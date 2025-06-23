@@ -1,0 +1,493 @@
+<div class="session-manager-container">
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1><i class="fas fa-users-cog"></i> Gerenciador de Sessões</h1>
+      <p>Monitoramento e controle de sessões de usuários em tempo real</p>
+    </div>
+    
+    <!-- Controles de monitoramento -->
+    <div class="monitoring-controls">
+      <button 
+        class="btn" 
+        [class.btn-success]="!monitoramentoAtivo"
+        [class.btn-warning]="monitoramentoAtivo"
+        (click)="alternarMonitoramento()"
+        [disabled]="loading">
+        <i class="fas" [class.fa-play]="!monitoramentoAtivo" [class.fa-pause]="monitoramentoAtivo"></i>
+        {{ monitoramentoAtivo ? 'Pausar' : 'Iniciar' }} Monitoramento
+      </button>
+      
+      <button 
+        class="btn btn-primary" 
+        [disabled]="loading" 
+        (click)="carregarDados()">
+        <i class="fas fa-sync-alt" [class.fa-spin]="loading"></i>
+        Atualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Status dos Dados -->
+  <div *ngIf="modoSimulado" class="alert alert-warning d-flex align-items-center mb-4">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <span>Dados simulados - Para ver dados reais, faça login com usuário administrador</span>
+  </div>
+  
+  <div *ngIf="!modoSimulado" class="alert alert-success d-flex align-items-center mb-4">
+    <i class="fas fa-check-circle me-2"></i>
+    <span>Dados reais carregados da API - Sistema conectado e funcionando</span>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Carregando dados de sessão...</p>
+  </div>
+
+  <!-- Navegação -->
+  <div class="navigation-tabs">
+    <button 
+      class="nav-tab" 
+      [class.active]="visualizacaoAtiva === 'overview'"
+      (click)="alternarVisualizacao('overview')">
+      <i class="fas fa-chart-bar"></i> Visão Geral
+    </button>
+    <button 
+      class="nav-tab" 
+      [class.active]="visualizacaoAtiva === 'sessions'"
+      (click)="alternarVisualizacao('sessions')">
+      <i class="fas fa-list"></i> Sessões ({{ sessions.length }})
+    </button>
+    <button 
+      class="nav-tab" 
+      [class.active]="visualizacaoAtiva === 'alerts'"
+      (click)="alternarVisualizacao('alerts')">
+      <i class="fas fa-exclamation-circle"></i> 
+      Alertas 
+      <span class="badge badge-danger" *ngIf="obterAlertasNaoResolvidos() > 0">
+        {{ obterAlertasNaoResolvidos() }}
+      </span>
+    </button>
+    <button 
+      class="nav-tab" 
+      [class.active]="visualizacaoAtiva === 'detalhes'"
+      (click)="alternarVisualizacao('detalhes')"
+      [disabled]="!selectedSession">
+      <i class="fas fa-info-circle"></i> Detalhes
+    </button>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div *ngIf="!loading || sessionMetrics" class="main-content">
+    
+    <!-- Visão Geral -->
+    <div *ngIf="visualizacaoAtiva === 'overview'" class="overview-content">
+      
+      <!-- Métricas principais -->
+      <div class="metrics-grid" *ngIf="sessionMetrics">
+        <div class="metric-card">
+          <div class="metric-icon success">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ sessionMetrics.totalSessions | number }}</h3>
+            <p>Total de Sessões</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon info">
+            <i class="fas fa-user-check"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ sessionMetrics.activeSessions | number }}</h3>
+            <p>Sessões Ativas</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon warning">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ sessionMetrics.suspiciousSessions | number }}</h3>
+            <p>Sessões Suspeitas</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon primary">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ formatarDuracao(sessionMetrics.averageSessionDuration) }}</h3>
+            <p>Duração Média</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon secondary">
+            <i class="fas fa-mobile-alt"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ sessionMetrics.uniqueDevices | number }}</h3>
+            <p>Dispositivos Únicos</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon secondary">
+            <i class="fas fa-map-marker-alt"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ sessionMetrics.uniqueLocations | number }}</h3>
+            <p>Localizações Únicas</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sessões recentes e alertas -->
+      <div class="dashboard-grid">
+        <!-- Sessões ativas recentes -->
+        <div class="card sessions-card">
+          <div class="card-header">
+            <h4><i class="fas fa-users"></i> Sessões Ativas Recentes</h4>
+          </div>
+          <div class="card-body">
+            <div class="sessions-list">
+              <div class="session-item" *ngFor="let session of obterSessoesFiltradas().slice(0, 5)">
+                <div class="session-avatar">
+                  {{ session.userEmail.charAt(0).toUpperCase() }}
+                </div>
+                <div class="session-info">
+                  <div class="session-user">{{ session.userName }}</div>
+                  <div class="session-details">
+                    <small>{{ session.deviceInfo }}</small>
+                    <small>{{ session.location }}</small>
+                  </div>
+                </div>
+                <div class="session-status">
+                  <span class="status-indicator" [class.active]="session.isActive"></span>
+                  <span class="badge" [class]="'badge-' + obterCorRisco(session.riskLevel)">
+                    {{ session.riskLevel }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Alertas de segurança -->
+        <div class="card alerts-card">
+          <div class="card-header">
+            <h4><i class="fas fa-shield-alt"></i> Alertas de Segurança</h4>
+            <span class="alert-count" *ngIf="obterAlertasNaoResolvidos() > 0">
+              {{ obterAlertasNaoResolvidos() }} não resolvidos
+            </span>
+          </div>
+          <div class="card-body">
+            <div class="alerts-list">
+              <div class="alert-item" *ngFor="let alert of securityAlerts.slice(0, 4)">
+                <div class="alert-icon" [class]="'severity-' + alert.severity.toLowerCase()">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-content">
+                  <div class="alert-message">{{ alert.message }}</div>
+                  <div class="alert-meta">
+                    <small>{{ formatarData(alert.timestamp) }}</small>
+                    <span class="badge" [class]="'badge-' + obterCorSeveridade(alert.severity)">
+                      {{ alert.severity }}
+                    </span>
+                  </div>
+                </div>
+                <div class="alert-actions">
+                  <button 
+                    class="btn btn-sm btn-outline-success" 
+                    *ngIf="!alert.resolved"
+                    (click)="marcarAlertaComoResolvido(alert.id)">
+                    <i class="fas fa-check"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Sessões -->
+    <div *ngIf="visualizacaoAtiva === 'sessions'" class="sessions-content">
+      <!-- Filtros -->
+      <div class="filters-section">
+        <div class="filters-row">
+          <div class="filter-group">
+            <label>Status:</label>
+            <select [(ngModel)]="filtroStatus" (change)="aplicarFiltros()" class="form-select">
+              <option value="TODAS">Todas</option>
+              <option value="ATIVAS">Ativas</option>
+              <option value="INATIVAS">Inativas</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label>Nível de Risco:</label>
+            <select [(ngModel)]="filtroRisco" (change)="aplicarFiltros()" class="form-select">
+              <option value="TODOS">Todos</option>
+              <option value="BAIXO">Baixo</option>
+              <option value="MEDIO">Médio</option>
+              <option value="ALTO">Alto</option>
+              <option value="CRITICO">Crítico</option>
+            </select>
+          </div>
+          
+          <div class="filter-group">
+            <label>Ordenar por:</label>
+            <select [(ngModel)]="ordenacao" (change)="aplicarFiltros()" class="form-select">
+              <option value="lastActivity">Última Atividade</option>
+              <option value="loginTime">Hora de Login</option>
+              <option value="riskLevel">Nível de Risco</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de sessões -->
+      <div class="card sessions-table-card">
+        <div class="card-header">
+          <h4><i class="fas fa-list"></i> Sessões de Usuários</h4>
+          <span class="session-count">{{ obterSessoesFiltradas().length }} sessões</span>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead>
+                <tr>
+                  <th>Usuário</th>
+                  <th>Dispositivo</th>
+                  <th>Localização</th>
+                  <th>Login</th>
+                  <th>Última Atividade</th>
+                  <th>Duração</th>
+                  <th>Status</th>
+                  <th>Risco</th>
+                  <th>Ações</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let session of obterSessoesFiltradas()">
+                  <td>
+                    <div class="user-info">
+                      <div class="user-avatar">
+                        {{ session.userEmail.charAt(0).toUpperCase() }}
+                      </div>
+                      <div class="user-details">
+                        <strong>{{ session.userName }}</strong>
+                        <small>{{ session.userEmail }}</small>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="device-info">
+                      <i class="fas fa-desktop"></i>
+                      <span>{{ session.deviceInfo }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="location-info">
+                      <i class="fas fa-map-marker-alt"></i>
+                      <span>{{ session.location }}</span>
+                      <small>{{ session.ipAddress }}</small>
+                    </div>
+                  </td>
+                  <td>{{ formatarData(session.loginTime) }}</td>
+                  <td>{{ formatarData(session.lastActivity) }}</td>
+                  <td>{{ formatarDuracao(session.sessionDuration) }}</td>
+                  <td>
+                    <span class="status-badge" [class.active]="session.isActive">
+                      <i class="fas" [class.fa-circle]="session.isActive" [class.fa-circle-o]="!session.isActive"></i>
+                      {{ session.isActive ? 'Ativa' : 'Inativa' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="badge" [class]="'badge-' + obterCorRisco(session.riskLevel)">
+                      {{ obterIconeRisco(session.riskLevel) }} {{ session.riskLevel }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="action-buttons">
+                      <button 
+                        class="btn btn-sm btn-primary" 
+                        (click)="visualizarDetalhes(session)"
+                        title="Ver detalhes">
+                        <i class="fas fa-eye"></i>
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-warning" 
+                        *ngIf="session.isActive"
+                        (click)="encerrarSessao(session.id)"
+                        title="Encerrar sessão">
+                        <i class="fas fa-sign-out-alt"></i>
+                      </button>
+                      <button 
+                        class="btn btn-sm btn-danger" 
+                        (click)="bloquearUsuario(session.userId)"
+                        title="Bloquear usuário">
+                        <i class="fas fa-ban"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertas de Segurança -->
+    <div *ngIf="visualizacaoAtiva === 'alerts'" class="alerts-content">
+      <div class="card alerts-detailed-card">
+        <div class="card-header">
+          <h4><i class="fas fa-shield-alt"></i> Alertas de Segurança Detalhados</h4>
+          <span class="alert-summary">
+            {{ obterAlertasNaoResolvidos() }} de {{ securityAlerts.length }} não resolvidos
+          </span>
+        </div>
+        <div class="card-body">
+          <div class="alerts-detailed-list">
+            <div class="alert-detailed-item" *ngFor="let alert of securityAlerts" [class.resolved]="alert.resolved">
+              <div class="alert-header">
+                <div class="alert-icon-large" [class]="'severity-' + alert.severity.toLowerCase()">
+                  <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="alert-info">
+                  <h5>{{ alert.message }}</h5>
+                  <div class="alert-meta">
+                    <span class="badge" [class]="'badge-' + obterCorSeveridade(alert.severity)">
+                      {{ alert.severity }}
+                    </span>
+                    <span class="alert-type">{{ alert.type.replace('_', ' ') }}</span>
+                    <span class="alert-time">{{ formatarData(alert.timestamp) }}</span>
+                  </div>
+                </div>
+                <div class="alert-actions">
+                  <button 
+                    class="btn btn-success" 
+                    *ngIf="!alert.resolved"
+                    (click)="marcarAlertaComoResolvido(alert.id)">
+                    <i class="fas fa-check"></i> Resolver
+                  </button>
+                  <span class="resolved-badge" *ngIf="alert.resolved">
+                    <i class="fas fa-check-circle"></i> Resolvido
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detalhes da Sessão -->
+    <div *ngIf="visualizacaoAtiva === 'detalhes' && selectedSession" class="details-content">
+      <div class="session-details-header">
+        <button class="btn btn-secondary" (click)="alternarVisualizacao('sessions')">
+          <i class="fas fa-arrow-left"></i> Voltar
+        </button>
+        <h3>Detalhes da Sessão - {{ selectedSession.userName }}</h3>
+      </div>
+
+      <div class="details-grid">
+        <!-- Informações básicas -->
+        <div class="card session-info-card">
+          <div class="card-header">
+            <h4><i class="fas fa-user"></i> Informações da Sessão</h4>
+          </div>
+          <div class="card-body">
+            <div class="info-grid">
+              <div class="info-item">
+                <label>Usuário:</label>
+                <span>{{ selectedSession.userName }} ({{ selectedSession.userEmail }})</span>
+              </div>
+              <div class="info-item">
+                <label>ID da Sessão:</label>
+                <span>{{ selectedSession.id }}</span>
+              </div>
+              <div class="info-item">
+                <label>Dispositivo:</label>
+                <span>{{ selectedSession.deviceInfo }}</span>
+              </div>
+              <div class="info-item">
+                <label>IP Address:</label>
+                <span>{{ selectedSession.ipAddress }}</span>
+              </div>
+              <div class="info-item">
+                <label>Localização:</label>
+                <span>{{ selectedSession.location }}</span>
+              </div>
+              <div class="info-item">
+                <label>Hora de Login:</label>
+                <span>{{ formatarData(selectedSession.loginTime) }}</span>
+              </div>
+              <div class="info-item">
+                <label>Última Atividade:</label>
+                <span>{{ formatarData(selectedSession.lastActivity) }}</span>
+              </div>
+              <div class="info-item">
+                <label>Duração:</label>
+                <span>{{ formatarDuracao(selectedSession.sessionDuration) }}</span>
+              </div>
+              <div class="info-item">
+                <label>Status:</label>
+                <span class="status-badge" [class.active]="selectedSession.isActive">
+                  {{ selectedSession.isActive ? 'Ativa' : 'Inativa' }}
+                </span>
+              </div>
+              <div class="info-item">
+                <label>Nível de Risco:</label>
+                <span class="badge" [class]="'badge-' + obterCorRisco(selectedSession.riskLevel)">
+                  {{ selectedSession.riskLevel }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Atividades da sessão -->
+        <div class="card activities-card">
+          <div class="card-header">
+            <h4><i class="fas fa-history"></i> Atividades da Sessão</h4>
+          </div>
+          <div class="card-body">
+            <div class="activities-timeline">
+              <div class="activity-timeline-item" *ngFor="let activity of selectedSession.activities">
+                <div class="activity-time">{{ formatarData(activity.timestamp) }}</div>
+                <div class="activity-content">
+                  <strong>{{ activity.action }}</strong>
+                  <p>{{ activity.details }}</p>
+                  <small>IP: {{ activity.ipAddress }} | Score: {{ (activity.riskScore * 100).toFixed(1) }}%</small>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Ações da sessão -->
+      <div class="session-actions">
+        <button 
+          class="btn btn-warning" 
+          *ngIf="selectedSession.isActive"
+          (click)="encerrarSessao(selectedSession.id)">
+          <i class="fas fa-sign-out-alt"></i> Encerrar Sessão
+        </button>
+        <button 
+          class="btn btn-danger" 
+          (click)="bloquearUsuario(selectedSession.userId)">
+          <i class="fas fa-ban"></i> Bloquear Usuário
+        </button>
+      </div>
+    </div>
+  </div>
+</div> 

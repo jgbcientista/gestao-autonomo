@@ -13,6 +13,8 @@ import br.com.auth.infraestrutura.repositorios.RepositorioUsuario;
 import br.com.auth.infraestrutura.repositorios.RepositorioLogAuditoria;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -24,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.concurrent.CompletableFuture;
 
 @Slf4j
 @Service
@@ -36,11 +39,16 @@ public class AuthenticationService implements IServicoAutenticacao {
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
     private final BlockchainService blockchainService;
+    @Autowired(required = false)
+    private JavaBlockchainService javaBlockchainService;
     private final ContextAnalysisService contextAnalysisService;
     private final AiContextAnalysisService aiContextAnalysisService;
     private final ServicoAnaliseComportamentalIA servicoAnaliseComportamentalIA;
     private final ServicoGeolocalizacao servicoGeolocalizacao;
     private final ServicoScoreConfianca servicoScoreConfianca;
+
+    @Value("${blockchain.native.enabled:false}")
+    private boolean useNativeBlockchain;
 
     @Transactional
     public RespostaAutenticacao register(RequisicaoRegistro request) {
@@ -119,16 +127,14 @@ public class AuthenticationService implements IServicoAutenticacao {
                     .build();
             repositorioLogAuditoria.save(logAuditoria);
 
-            // Registra sucesso no blockchain (simplificado)
+            // Registra sucesso no blockchain
             try {
-                blockchainService.recordAuthenticationEvent(
-                    usuario, "LOGIN_SUCCESS", "ALLOWED", 
-                    0.8, // Score padrão
-                    request.getIpAddress(), request.getLocation(),
-                    "simple-device"
-                );
+                log.info("🔗 AuthService: Chamando blockchain para registrar LOGIN_SUCCESS");
+                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", 0.8, 
+                                    request.getIpAddress(), request.getLocation(), "simple-device");
+                log.info("🔗 AuthService: Blockchain chamado com sucesso");
             } catch (Exception e) {
-                log.warn("Erro ao registrar no blockchain: {}", e.getMessage());
+                log.error("🔗 AuthService: ERRO ao registrar no blockchain: {}", e.getMessage(), e);
             }
 
             var jwtToken = jwtService.generateToken(usuario);
@@ -168,13 +174,16 @@ public class AuthenticationService implements IServicoAutenticacao {
             repositorioLogAuditoria.save(logAuditoria);
 
             // Registra falha no blockchain
-            var contextRequestFailure = createContextAnalysisRequest(usuario, request);
-            blockchainService.recordAuthenticationEvent(
-                usuario, "LOGIN_FAILED", "DENIED", 
-                0.8, // Score alto para falhas de credenciais
-                request.getIpAddress(), request.getLocation(),
-                contextRequestFailure.getDeviceFingerprint()
-            );
+            try {
+                log.info("🔗 AuthService: Chamando blockchain para registrar LOGIN_FAILED");
+                var contextRequestFailure = createContextAnalysisRequest(usuario, request);
+                recordBlockchainEvent(usuario, "LOGIN_FAILED", "DENIED", 0.8, 
+                                    request.getIpAddress(), request.getLocation(),
+                                    contextRequestFailure.getDeviceFingerprint());
+                log.info("🔗 AuthService: Blockchain LOGIN_FAILED chamado com sucesso");
+            } catch (Exception blockchainException) {
+                log.error("🔗 AuthService: ERRO ao registrar falha no blockchain: {}", blockchainException.getMessage(), blockchainException);
+            }
 
             throw new RuntimeException("Credenciais inválidas");
         }
@@ -375,6 +384,33 @@ public class AuthenticationService implements IServicoAutenticacao {
         } catch (Exception e) {
             log.error("Erro ao renovar token: {}", e.getMessage());
             throw new RuntimeException("Token inválido para renovação");
+        }
+    }
+
+    /**
+     * Método para registrar evento no blockchain apropriado
+     * Escolhe entre JavaBlockchainService ou BlockchainService baseado na configuração
+     */
+    private void recordBlockchainEvent(Usuario usuario, String eventType, String decision, 
+                                     Double riskScore, String ipAddress, String location, 
+                                     String deviceFingerprint) {
+        try {
+            if (useNativeBlockchain && javaBlockchainService != null) {
+                log.info("🔗 Usando JavaBlockchainService (blockchain nativo)");
+                javaBlockchainService.recordAuthenticationEvent(
+                    usuario, eventType, decision, riskScore, 
+                    ipAddress, location, deviceFingerprint
+                );
+            } else {
+                log.info("🔗 Usando BlockchainService (Hyperledger/Ethereum)");
+                blockchainService.recordAuthenticationEvent(
+                    usuario, eventType, decision, riskScore, 
+                    ipAddress, location, deviceFingerprint
+                );
+            }
+        } catch (Exception e) {
+            log.error("🔗 Erro ao registrar no blockchain: {}", e.getMessage(), e);
+            throw e;
         }
     }
 } 

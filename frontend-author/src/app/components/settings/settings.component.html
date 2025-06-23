@@ -1,0 +1,718 @@
+<div class="settings-container">
+  <!-- Botão Voltar -->
+  <div class="back-button-section">
+    <button 
+      class="btn btn-back" 
+      (click)="goBack()"
+      title="Voltar ao Dashboard">
+      <i class="fas fa-arrow-left"></i>
+      Voltar
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="header-section">
+    <div class="header-content">
+      <h1><i class="fas fa-cogs"></i> Configurações</h1>
+      <p>Personalize suas preferências de segurança, notificações e configurações avançadas</p>
+    </div>
+    
+    <!-- Controles principais -->
+    <div class="header-controls">
+      <button 
+        class="btn btn-outline" 
+        (click)="exportSettings()"
+        [disabled]="!userSettings">
+        <i class="fas fa-download"></i>
+        Exportar
+      </button>
+      
+      <label class="btn btn-outline file-input-label">
+        <i class="fas fa-upload"></i>
+        Importar
+        <input 
+          type="file" 
+          accept=".json" 
+          (change)="importSettings($event)"
+          style="display: none;">
+      </label>
+      
+      <button 
+        class="btn btn-warning" 
+        (click)="resetToDefaults()">
+        <i class="fas fa-undo"></i>
+        Restaurar Padrão
+      </button>
+    </div>
+  </div>
+
+  <!-- Mensagens -->
+  <div *ngIf="successMessage" class="alert alert-success">
+    <i class="fas fa-check-circle"></i>
+    {{ successMessage }}
+  </div>
+  
+  <div *ngIf="error" class="alert alert-error">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ error }}
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="loading-container">
+    <div class="spinner"></div>
+    <p>Carregando configurações...</p>
+  </div>
+
+  <!-- Navegação por abas -->
+  <div class="tabs-navigation" *ngIf="!loading">
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'personal'"
+      (click)="switchTab('personal')">
+      <i class="fas fa-user"></i>
+      Configurações Pessoais
+    </button>
+    
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'security'"
+      (click)="switchTab('security')">
+      <i class="fas fa-shield-alt"></i>
+      Segurança
+    </button>
+    
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'notifications'"
+      (click)="switchTab('notifications')">
+      <i class="fas fa-bell"></i>
+      Notificações
+    </button>
+    
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'privacy'"
+      (click)="switchTab('privacy')">
+      <i class="fas fa-eye-slash"></i>
+      Privacidade
+    </button>
+    
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'advanced'"
+      (click)="switchTab('advanced')">
+      <i class="fas fa-cog"></i>
+      Avançadas
+    </button>
+    
+    <button 
+      *ngIf="isAdmin"
+      class="tab-button" 
+      [class.active]="activeTab === 'admin'"
+      (click)="switchTab('admin')">
+      <i class="fas fa-crown"></i>
+      Administração
+    </button>
+  </div>
+
+  <!-- Conteúdo das abas -->
+  <div class="tab-content" *ngIf="!loading">
+    
+    <!-- Configurações Pessoais -->
+    <div *ngIf="activeTab === 'personal'" class="tab-panel">
+      <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()">
+        
+        <!-- Informações do Usuário -->
+        <div class="settings-section">
+          <h3><i class="fas fa-user-circle"></i> Informações do Usuário</h3>
+          
+          <div class="user-info-card">
+            <div class="user-avatar">
+              {{ currentUser?.name?.charAt(0)?.toUpperCase() || 'U' }}
+            </div>
+            <div class="user-details">
+              <h4>{{ currentUser?.name || 'Usuário' }}</h4>
+              <p>{{ currentUser?.email || 'email@exemplo.com' }}</p>
+              <small>Membro desde: {{ currentUser?.createdAt | date:'dd/MM/yyyy' || 'N/A' }}</small>
+            </div>
+            <div class="user-actions">
+              <button type="button" class="btn btn-sm btn-outline">
+                <i class="fas fa-edit"></i>
+                Editar Perfil
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Configurações de Tema -->
+        <div class="settings-section">
+          <h3><i class="fas fa-palette"></i> Aparência</h3>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="theme">Tema</label>
+              <select id="theme" formControlName="theme" class="form-control">
+                <option value="LIGHT">Claro</option>
+                <option value="DARK">Escuro</option>
+                <option value="AUTO">Automático</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="language">Idioma</label>
+              <select id="language" formControlName="language" class="form-control">
+                <option value="PT_BR">Português (Brasil)</option>
+                <option value="EN_US">English (US)</option>
+                <option value="ES_ES">Español</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="timezone">Fuso Horário</label>
+              <select id="timezone" formControlName="timezone" class="form-control">
+                <option value="America/Sao_Paulo">São Paulo (UTC-3)</option>
+                <option value="America/New_York">New York (UTC-5)</option>
+                <option value="Europe/London">London (UTC+0)</option>
+                <option value="Asia/Tokyo">Tokyo (UTC+9)</option>
+              </select>
+            </div>
+            
+            <div class="form-group">
+              <label for="dateFormat">Formato de Data</label>
+              <select id="dateFormat" formControlName="dateFormat" class="form-control">
+                <option value="DD/MM/YYYY">DD/MM/AAAA</option>
+                <option value="MM/DD/YYYY">MM/DD/AAAA</option>
+                <option value="YYYY-MM-DD">AAAA-MM-DD</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão de salvar -->
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="saving || settingsForm.invalid">
+            <i class="fas fa-save" *ngIf="!saving"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+            {{ saving ? 'Salvando...' : 'Salvar Configurações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Configurações de Segurança -->
+    <div *ngIf="activeTab === 'security'" class="tab-panel">
+      <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()">
+        
+        <div class="settings-section">
+          <h3><i class="fas fa-shield-alt"></i> Configurações de Segurança</h3>
+          
+          <div class="form-grid">
+            <!-- Autenticação de Dois Fatores -->
+            <div class="form-group full-width">
+              <div class="toggle-setting">
+                <div class="toggle-info">
+                  <label>Autenticação de Dois Fatores (2FA)</label>
+                  <p>Adiciona uma camada extra de segurança ao seu login</p>
+                </div>
+                <div class="toggle-control">
+                  <label class="toggle-switch">
+                    <input 
+                      type="checkbox" 
+                      formControlName="twoFactorEnabled">
+                    <span class="slider"></span>
+                  </label>
+                  <button 
+                    type="button" 
+                    class="btn btn-sm btn-outline"
+                    (click)="enable2FA()"
+                    *ngIf="!settingsForm.get('twoFactorEnabled')?.value">
+                    Configurar
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Timeout de Sessão -->
+            <div class="form-group">
+              <label for="sessionTimeout">Timeout de Sessão (minutos)</label>
+              <input 
+                type="number" 
+                id="sessionTimeout" 
+                formControlName="sessionTimeout"
+                class="form-control"
+                [class.error]="isFieldInvalid('settings', 'sessionTimeout')"
+                min="5" 
+                max="480">
+              <small *ngIf="isFieldInvalid('settings', 'sessionTimeout')" class="error-message">
+                {{ getFieldError('settings', 'sessionTimeout') }}
+              </small>
+            </div>
+
+            <!-- Expiração de Senha -->
+            <div class="form-group">
+              <label for="passwordExpirationDays">Expiração de Senha (dias)</label>
+              <input 
+                type="number" 
+                id="passwordExpirationDays" 
+                formControlName="passwordExpirationDays"
+                class="form-control"
+                [class.error]="isFieldInvalid('settings', 'passwordExpirationDays')"
+                min="30" 
+                max="365">
+              <small *ngIf="isFieldInvalid('settings', 'passwordExpirationDays')" class="error-message">
+                {{ getFieldError('settings', 'passwordExpirationDays') }}
+              </small>
+            </div>
+          </div>
+
+          <!-- Alertas de Segurança -->
+          <div class="toggle-settings">
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Notificações de Login</label>
+                <p>Receba alertas quando houver login em sua conta</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="loginNotifications">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Alertas de Atividade Suspeita</label>
+                <p>Notificações sobre atividades anômalas detectadas</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="suspiciousActivityAlerts">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="saving || settingsForm.invalid">
+            <i class="fas fa-save" *ngIf="!saving"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+            {{ saving ? 'Salvando...' : 'Salvar Configurações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Configurações de Notificações -->
+    <div *ngIf="activeTab === 'notifications'" class="tab-panel">
+      <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()">
+        
+        <div class="settings-section">
+          <h3><i class="fas fa-bell"></i> Preferências de Notificação</h3>
+          
+          <div class="toggle-settings">
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Notificações por Email</label>
+                <p>Receba notificações importantes por email</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="emailNotifications">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Notificações Push</label>
+                <p>Notificações instantâneas no navegador</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="pushNotifications">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Notificações por SMS</label>
+                <p>Alertas críticos por mensagem de texto</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="smsNotifications">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Alertas de Segurança</label>
+                <p>Notificações sobre eventos de segurança</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="securityAlerts">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Atualizações do Sistema</label>
+                <p>Informações sobre novas funcionalidades</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="systemUpdates">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="notification-test">
+            <button 
+              type="button" 
+              class="btn btn-outline"
+              (click)="testNotifications()">
+              <i class="fas fa-paper-plane"></i>
+              Testar Notificações
+            </button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="saving || settingsForm.invalid">
+            <i class="fas fa-save" *ngIf="!saving"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+            {{ saving ? 'Salvando...' : 'Salvar Configurações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Configurações de Privacidade -->
+    <div *ngIf="activeTab === 'privacy'" class="tab-panel">
+      <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()">
+        
+        <div class="settings-section">
+          <h3><i class="fas fa-eye-slash"></i> Configurações de Privacidade</h3>
+          
+          <div class="form-group">
+            <label for="profileVisibility">Visibilidade do Perfil</label>
+            <select id="profileVisibility" formControlName="profileVisibility" class="form-control">
+              <option value="PUBLIC">Público</option>
+              <option value="RESTRICTED">Restrito</option>
+              <option value="PRIVATE">Privado</option>
+            </select>
+            <small class="form-help">Controla quem pode ver suas informações</small>
+          </div>
+
+          <div class="toggle-settings">
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Compartilhamento de Dados</label>
+                <p>Permitir compartilhamento de dados para melhorias</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="dataSharing">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Rastreamento de Analytics</label>
+                <p>Coleta de dados para análise de uso</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="analyticsTracking">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Rastreamento de Localização</label>
+                <p>Usar localização para recursos baseados em geografia</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="locationTracking">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="saving || settingsForm.invalid">
+            <i class="fas fa-save" *ngIf="!saving"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+            {{ saving ? 'Salvando...' : 'Salvar Configurações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Configurações Avançadas -->
+    <div *ngIf="activeTab === 'advanced'" class="tab-panel">
+      <form [formGroup]="settingsForm" (ngSubmit)="saveSettings()">
+        
+        <div class="settings-section">
+          <h3><i class="fas fa-cog"></i> Configurações Avançadas</h3>
+          
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="apiRateLimit">Limite de Taxa da API (req/h)</label>
+              <input 
+                type="number" 
+                id="apiRateLimit" 
+                formControlName="apiRateLimit"
+                class="form-control"
+                [class.error]="isFieldInvalid('settings', 'apiRateLimit')"
+                min="100" 
+                max="10000">
+              <small *ngIf="isFieldInvalid('settings', 'apiRateLimit')" class="error-message">
+                {{ getFieldError('settings', 'apiRateLimit') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="apiKeyRotationDays">Rotação de Chave API (dias)</label>
+              <input 
+                type="number" 
+                id="apiKeyRotationDays" 
+                formControlName="apiKeyRotationDays"
+                class="form-control"
+                [class.error]="isFieldInvalid('settings', 'apiKeyRotationDays')"
+                min="7" 
+                max="365">
+              <small *ngIf="isFieldInvalid('settings', 'apiKeyRotationDays')" class="error-message">
+                {{ getFieldError('settings', 'apiKeyRotationDays') }}
+              </small>
+            </div>
+          </div>
+
+          <div class="api-actions">
+            <button 
+              type="button" 
+              class="btn btn-warning"
+              (click)="regenerateApiKey()">
+              <i class="fas fa-key"></i>
+              Regenerar Chave API
+            </button>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button 
+            type="submit" 
+            class="btn btn-primary"
+            [disabled]="saving || settingsForm.invalid">
+            <i class="fas fa-save" *ngIf="!saving"></i>
+            <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+            {{ saving ? 'Salvando...' : 'Salvar Configurações' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Configurações de Administração -->
+    <div *ngIf="activeTab === 'admin' && isAdmin" class="tab-panel">
+      
+      <!-- Política de Segurança -->
+      <div class="settings-section">
+        <h3><i class="fas fa-shield-alt"></i> Política de Segurança do Sistema</h3>
+        
+        <form [formGroup]="securityForm" (ngSubmit)="saveSecurityPolicy()">
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="minPasswordLength">Tamanho Mínimo da Senha</label>
+              <input 
+                type="number" 
+                id="minPasswordLength" 
+                formControlName="minPasswordLength"
+                class="form-control"
+                [class.error]="isFieldInvalid('security', 'minPasswordLength')"
+                min="6" 
+                max="32">
+              <small *ngIf="isFieldInvalid('security', 'minPasswordLength')" class="error-message">
+                {{ getFieldError('security', 'minPasswordLength') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="maxLoginAttempts">Máximo de Tentativas de Login</label>
+              <input 
+                type="number" 
+                id="maxLoginAttempts" 
+                formControlName="maxLoginAttempts"
+                class="form-control"
+                [class.error]="isFieldInvalid('security', 'maxLoginAttempts')"
+                min="3" 
+                max="10">
+              <small *ngIf="isFieldInvalid('security', 'maxLoginAttempts')" class="error-message">
+                {{ getFieldError('security', 'maxLoginAttempts') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="lockoutDuration">Duração do Bloqueio (minutos)</label>
+              <input 
+                type="number" 
+                id="lockoutDuration" 
+                formControlName="lockoutDuration"
+                class="form-control"
+                [class.error]="isFieldInvalid('security', 'lockoutDuration')"
+                min="5" 
+                max="60">
+              <small *ngIf="isFieldInvalid('security', 'lockoutDuration')" class="error-message">
+                {{ getFieldError('security', 'lockoutDuration') }}
+              </small>
+            </div>
+          </div>
+
+          <div class="toggle-settings">
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Exigir Caracteres Especiais</label>
+                <p>Senhas devem conter caracteres especiais</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="requireSpecialChars">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Exigir Números</label>
+                <p>Senhas devem conter pelo menos um número</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="requireNumbers">
+                <span class="slider"></span>
+              </label>
+            </div>
+
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Exigir Maiúsculas</label>
+                <p>Senhas devem conter letras maiúsculas</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="requireUppercase">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button 
+              type="submit" 
+              class="btn btn-primary"
+              [disabled]="saving || securityForm.invalid">
+              <i class="fas fa-save" *ngIf="!saving"></i>
+              <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+              {{ saving ? 'Salvando...' : 'Salvar Política' }}
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Configuração do Sistema -->
+      <div class="settings-section">
+        <h3><i class="fas fa-server"></i> Configuração do Sistema</h3>
+        
+        <form [formGroup]="systemForm" (ngSubmit)="saveSystemConfiguration()">
+          <div class="toggle-settings">
+            <div class="toggle-setting">
+              <div class="toggle-info">
+                <label>Modo de Manutenção</label>
+                <p>Ativar modo de manutenção do sistema</p>
+              </div>
+              <label class="toggle-switch">
+                <input type="checkbox" formControlName="maintenanceMode">
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="maxConcurrentSessions">Máximo de Sessões Simultâneas</label>
+              <input 
+                type="number" 
+                id="maxConcurrentSessions" 
+                formControlName="maxConcurrentSessions"
+                class="form-control"
+                [class.error]="isFieldInvalid('system', 'maxConcurrentSessions')"
+                min="1" 
+                max="100">
+              <small *ngIf="isFieldInvalid('system', 'maxConcurrentSessions')" class="error-message">
+                {{ getFieldError('system', 'maxConcurrentSessions') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="sessionCleanupInterval">Intervalo de Limpeza de Sessão (min)</label>
+              <input 
+                type="number" 
+                id="sessionCleanupInterval" 
+                formControlName="sessionCleanupInterval"
+                class="form-control"
+                [class.error]="isFieldInvalid('system', 'sessionCleanupInterval')"
+                min="30" 
+                max="1440">
+              <small *ngIf="isFieldInvalid('system', 'sessionCleanupInterval')" class="error-message">
+                {{ getFieldError('system', 'sessionCleanupInterval') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="logRetentionDays">Retenção de Logs (dias)</label>
+              <input 
+                type="number" 
+                id="logRetentionDays" 
+                formControlName="logRetentionDays"
+                class="form-control"
+                [class.error]="isFieldInvalid('system', 'logRetentionDays')"
+                min="7" 
+                max="365">
+              <small *ngIf="isFieldInvalid('system', 'logRetentionDays')" class="error-message">
+                {{ getFieldError('system', 'logRetentionDays') }}
+              </small>
+            </div>
+
+            <div class="form-group">
+              <label for="backupFrequency">Frequência de Backup</label>
+              <select id="backupFrequency" formControlName="backupFrequency" class="form-control">
+                <option value="DAILY">Diário</option>
+                <option value="WEEKLY">Semanal</option>
+                <option value="MONTHLY">Mensal</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button 
+              type="submit" 
+              class="btn btn-primary"
+              [disabled]="saving || systemForm.invalid">
+              <i class="fas fa-save" *ngIf="!saving"></i>
+              <i class="fas fa-spinner fa-spin" *ngIf="saving"></i>
+              {{ saving ? 'Salvando...' : 'Salvar Configuração' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

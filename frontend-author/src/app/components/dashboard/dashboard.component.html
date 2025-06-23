@@ -38,6 +38,12 @@
             </li>
             <li><hr class="dropdown-divider"></li>
             <li>
+              <a class="dropdown-item" routerLink="/settings">
+                <i class="bi bi-gear me-2"></i>
+                Configurações
+              </a>
+            </li>
+            <li>
               <a class="dropdown-item" href="#" (click)="logout()">
                 <i class="bi bi-box-arrow-right me-2"></i>
                 Sair
@@ -196,6 +202,108 @@
               </div>
             </div>
             <div class="card-decoration"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Funcionalidades Avançadas -->
+    <section class="features-section">
+      <div class="container">
+        <div class="section-header">
+          <h2 class="section-title">🚀 Funcionalidades Avançadas</h2>
+          <p class="section-subtitle">Acesse todas as funcionalidades do sistema de autenticação inteligente</p>
+        </div>
+        
+        <div class="features-grid">
+          <div class="feature-card" routerLink="/system-monitor">
+            <div class="feature-icon">🖥️</div>
+            <div class="feature-content">
+              <h4 class="feature-title">Monitor do Sistema</h4>
+              <p class="feature-description">Monitore o status em tempo real de todos os serviços, saúde do sistema e alertas.</p>
+              <div class="feature-status">
+                <span class="status-dot success"></span>
+                <span class="status-text">Sistema Online</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+          
+          <div class="feature-card" routerLink="/trust-score">
+            <div class="feature-icon">🎯</div>
+            <div class="feature-content">
+              <h4 class="feature-title">Score de Confiança</h4>
+              <p class="feature-description">Visualize e gerencie seu score de confiabilidade, estatísticas e decisões de segurança.</p>
+              <div class="feature-status">
+                <span class="status-dot success"></span>
+                <span class="status-text">Score Excelente</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+          
+          <div class="feature-card" routerLink="/ai-analysis">
+            <div class="feature-icon">🤖</div>
+            <div class="feature-content">
+              <h4 class="feature-title">Análise IA</h4>
+              <p class="feature-description">Análise comportamental avançada usando inteligência artificial para detecção de anomalias.</p>
+              <div class="feature-status">
+                <span class="status-dot warning"></span>
+                <span class="status-text">IA Ativa</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+          
+          <div class="feature-card" routerLink="/security-analytics">
+            <div class="feature-icon">🔍</div>
+            <div class="feature-content">
+              <h4 class="feature-title">Analytics de Segurança</h4>
+              <p class="feature-description">Relatórios detalhados, métricas de segurança e análise de padrões comportamentais.</p>
+              <div class="feature-status">
+                <span class="status-dot info"></span>
+                <span class="status-text">Coletando Dados</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+          
+          <div class="feature-card" routerLink="/session-manager">
+            <div class="feature-icon">⚙️</div>
+            <div class="feature-content">
+              <h4 class="feature-title">Gerenciador de Sessão</h4>
+              <p class="feature-description">Controle e monitore suas sessões ativas, histórico de acessos e configurações.</p>
+              <div class="feature-status">
+                <span class="status-dot success"></span>
+                <span class="status-text">Sessão Ativa</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+          
+          <div class="feature-card" routerLink="/settings">
+            <div class="feature-icon">🛠️</div>
+            <div class="feature-content">
+              <h4 class="feature-title">Configurações</h4>
+              <p class="feature-description">Personalize suas preferências de segurança, notificações e configurações avançadas.</p>
+              <div class="feature-status">
+                <span class="status-dot neutral"></span>
+                <span class="status-text">Configurável</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
           </div>
         </div>
       </div>

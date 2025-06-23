@@ -1,0 +1,440 @@
+<!-- Navbar moderna com glassmorphism -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/dashboard">
+      <div class="brand-logo">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <span class="brand-text">AuthSystem</span>
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-2"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="#">
+            <i class="bi bi-display me-2"></i>Monitor do Sistema
+          </a>
+        </li>
+      </ul>
+      
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <button class="btn btn-outline-primary btn-sm me-2" (click)="refreshData()" [disabled]="loading">
+            <i class="bi bi-arrow-clockwise" [class.fa-spin]="loading"></i>
+            Atualizar
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="btn btn-outline-secondary btn-sm" (click)="voltarDashboard()">
+            <i class="bi bi-arrow-left me-1"></i>
+            Voltar
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Background animado -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
+  </div>
+</div>
+
+<!-- Conteúdo Principal -->
+<main class="dashboard-main">
+  <div class="container-fluid">
+    
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="hero-content">
+            <div class="welcome-badge">
+              <i class="bi bi-activity me-2"></i>
+              {{ systemHealth?.status === 'ONLINE' ? 'Sistema Online' : 'Verificando Status' }}
+            </div>
+            <h1 class="hero-title">
+              Monitor do Sistema 🖥️
+            </h1>
+            <p class="hero-subtitle">
+              Monitoramento inteligente de saúde do sistema e métricas de segurança em tempo real.
+            </p>
+            <div class="hero-stats">
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i class="bi bi-clock"></i>
+                </div>
+                <div class="stat-content">
+                  <span class="stat-number">{{ systemHealth?.uptime || 0 }}h</span>
+                  <span class="stat-label">Uptime</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i class="bi bi-hdd-stack"></i>
+                </div>
+                <div class="stat-content">
+                  <span class="stat-number">{{ systemHealth?.servicos?.length || 0 }}</span>
+                  <span class="stat-label">Serviços</span>
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon">
+                  <i class="bi bi-shield-check"></i>
+                </div>
+                <div class="stat-content">
+                  <span class="stat-number">{{ systemHealth?.versao || 'v1.0' }}</span>
+                  <span class="stat-label">Versão</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="hero-visual">
+            <div class="security-indicator">
+              <div class="indicator-circle" [class.online]="systemHealth?.status === 'ONLINE'">
+                <i class="bi bi-display"></i>
+              </div>
+              <div class="pulse-rings" *ngIf="systemHealth?.status === 'ONLINE'">
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <div *ngIf="loading && !systemHealth" class="loading-container">
+      <div class="spinner"></div>
+      <p>Carregando dados do sistema...</p>
+    </div>
+
+    <!-- Erro -->
+    <div *ngIf="error" class="alert alert-danger d-flex align-items-center mb-4">
+      <i class="bi bi-exclamation-triangle-fill me-2"></i>
+      <div>
+        <strong>Erro no Sistema</strong><br>
+        {{ error }}
+      </div>
+      <button class="btn btn-outline-danger btn-sm ms-auto" (click)="refreshData()">
+        <i class="bi bi-arrow-clockwise"></i>
+        Tentar Novamente
+      </button>
+    </div>
+
+    <!-- Status Cards -->
+    <section class="status-section" *ngIf="systemHealth">
+      <div class="row g-4">
+        <!-- Status Geral -->
+        <div class="col-lg-3 col-md-6">
+          <div class="status-card" [ngClass]="getStatusCardClass(systemHealth.status)">
+            <div class="card-icon">
+              <i class="bi" [ngClass]="getStatusIconClass(systemHealth.status)"></i>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">Status Geral</h3>
+              <p class="card-description">{{ systemHealth.status }}</p>
+              <div class="card-status">
+                <span class="status-indicator" [ngClass]="getStatusIndicatorClass(systemHealth.status)"></span>
+                <span class="status-text">{{ getStatusText(systemHealth.status) }}</span>
+              </div>
+            </div>
+            <div class="card-decoration"></div>
+          </div>
+        </div>
+
+        <!-- Serviços Ativos -->
+        <div class="col-lg-3 col-md-6">
+          <div class="status-card card-info">
+            <div class="card-icon">
+              <i class="bi bi-hdd-stack-fill"></i>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">Serviços</h3>
+              <p class="card-description">{{ systemHealth.servicos?.length || 0 }} serviços monitorados</p>
+              <div class="card-status">
+                <span class="status-indicator status-info"></span>
+                <span class="status-text">Monitorando</span>
+              </div>
+            </div>
+            <div class="card-decoration"></div>
+          </div>
+        </div>
+
+        <!-- Métricas de Segurança -->
+        <div class="col-lg-3 col-md-6">
+          <div class="status-card card-warning">
+            <div class="card-icon">
+              <i class="bi bi-shield-lock-fill"></i>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">Segurança</h3>
+              <p class="card-description">{{ dashboardData?.metricas?.totalUsuarios || 0 }} usuários monitorados</p>
+              <div class="card-status">
+                <span class="status-indicator status-warning"></span>
+                <span class="status-text">Protegido</span>
+              </div>
+            </div>
+            <div class="card-decoration"></div>
+          </div>
+        </div>
+
+        <!-- Integridade -->
+        <div class="col-lg-3 col-md-6">
+          <div class="status-card card-success">
+            <div class="card-icon">
+              <i class="bi bi-check-circle-fill"></i>
+            </div>
+            <div class="card-content">
+              <h3 class="card-title">Integridade</h3>
+              <p class="card-description">{{ dashboardData?.metricas?.integridadeBlockchain || 'Verificando' }}</p>
+              <div class="card-status">
+                <span class="status-indicator status-success"></span>
+                <span class="status-text">Íntegro</span>
+              </div>
+            </div>
+            <div class="card-decoration"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Detalhes dos Serviços -->
+    <section class="services-section" *ngIf="systemHealth?.servicos">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="bi bi-gear-fill me-2"></i>
+          Serviços do Sistema
+        </h2>
+        <p class="section-subtitle">Status detalhado de todos os serviços monitorados</p>
+      </div>
+      
+      <div class="row g-3">
+        <div class="col-lg-4 col-md-6" *ngFor="let servico of systemHealth.servicos">
+          <div class="service-card glass-card">
+            <div class="service-header">
+              <div class="service-icon" [ngClass]="getStatusColor(servico.status)">
+                <i class="bi" [ngClass]="getServiceIcon(servico.nome)"></i>
+              </div>
+              <div class="service-info">
+                <h4 class="service-name">{{ servico.nome }}</h4>
+                <span class="service-status" [ngClass]="getStatusColor(servico.status)">
+                  {{ servico.status }}
+                </span>
+              </div>
+            </div>
+            <div class="service-details">
+              <p class="service-check">
+                <i class="bi bi-clock me-1"></i>
+                Última verificação: {{ servico.ultimaVerificacao | date:'short' }}
+              </p>
+              <p class="service-description" *ngIf="servico.detalhes">
+                {{ servico.detalhes }}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Métricas Detalhadas -->
+    <section class="metrics-section" *ngIf="dashboardData?.metricas">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="bi bi-graph-up me-2"></i>
+          Métricas de Segurança
+        </h2>
+        <p class="section-subtitle">Indicadores de performance e segurança do sistema</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="metrics-card glass-card">
+            <div class="metrics-grid">
+              <div class="metric-item">
+                <div class="metric-icon">
+                  <i class="bi bi-people-fill"></i>
+                </div>
+                <div class="metric-content">
+                  <span class="metric-value">{{ dashboardData.metricas.totalUsuarios }}</span>
+                  <span class="metric-label">Total de Usuários</span>
+                </div>
+              </div>
+              
+              <div class="metric-item">
+                <div class="metric-icon risk-medium">
+                  <i class="bi bi-exclamation-triangle-fill"></i>
+                </div>
+                <div class="metric-content">
+                  <span class="metric-value">{{ dashboardData.metricas.usuariosAltoRisco }}</span>
+                  <span class="metric-label">Usuários Alto Risco</span>
+                </div>
+              </div>
+              
+              <div class="metric-item">
+                <div class="metric-icon risk-high">
+                  <i class="bi bi-shield-exclamation"></i>
+                </div>
+                <div class="metric-content">
+                  <span class="metric-value">{{ dashboardData.metricas.transacoesAltoRisco }}</span>
+                  <span class="metric-label">Transações Suspeitas</span>
+                </div>
+              </div>
+              
+              <div class="metric-item">
+                <div class="metric-icon">
+                  <i class="bi bi-graph-down"></i>
+                </div>
+                <div class="metric-content">
+                  <span class="metric-value">{{ (dashboardData.metricas.pontuacaoRiscoMedia * 100) | number:'1.1-1' }}%</span>
+                  <span class="metric-label">Score Médio de Risco</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4">
+          <div class="blockchain-card glass-card">
+            <div class="blockchain-header">
+              <h4>Integridade Blockchain</h4>
+              <span class="blockchain-status" [ngClass]="getBlockchainStatusClass(dashboardData.metricas.integridadeBlockchain)">
+                {{ dashboardData.metricas.integridadeBlockchain }}
+              </span>
+            </div>
+            <div class="blockchain-visual">
+              <div class="blockchain-indicator" [ngClass]="getBlockchainIndicatorClass(dashboardData.metricas.integridadeBlockchain)">
+                <i class="bi bi-link-45deg"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Alertas -->
+    <section class="alerts-section" *ngIf="dashboardData?.alertas && dashboardData.alertas.length > 0">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="bi bi-bell-fill me-2"></i>
+          Alertas do Sistema
+        </h2>
+        <p class="section-subtitle">Notificações importantes sobre segurança e performance</p>
+      </div>
+      
+      <div class="row g-3">
+        <div class="col-lg-6" *ngFor="let alerta of dashboardData.alertas">
+          <div class="alert-card glass-card" [ngClass]="'alert-' + alerta.tipo.toLowerCase()">
+            <div class="alert-header">
+              <div class="alert-icon">
+                <i class="bi" [ngClass]="getAlertIconClass(alerta.tipo)"></i>
+              </div>
+              <div class="alert-info">
+                <h4 class="alert-title">{{ alerta.titulo }}</h4>
+                <span class="alert-time">{{ alerta.timestamp | date:'short' }}</span>
+              </div>
+              <span class="alert-badge" [ngClass]="'badge-' + alerta.tipo.toLowerCase()">
+                {{ alerta.tipo }}
+              </span>
+            </div>
+            <p class="alert-message">{{ alerta.mensagem }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Componentes Integrados -->
+    <section class="components-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="bi bi-puzzle-fill me-2"></i>
+          Funcionalidades Integradas
+        </h2>
+        <p class="section-subtitle">Acesso rápido às principais funcionalidades do sistema</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-3 col-md-6">
+          <div class="component-card glass-card" routerLink="/trust-score">
+            <div class="component-icon">
+              <i class="bi bi-bullseye"></i>
+            </div>
+            <div class="component-content">
+              <h4 class="component-title">Score de Confiança</h4>
+              <p class="component-description">Monitoramento de confiabilidade dos usuários</p>
+            </div>
+            <div class="component-status">
+              <span class="status-badge status-success">ATIVO</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="component-card glass-card" routerLink="/ai-analysis">
+            <div class="component-icon">
+              <i class="bi bi-cpu"></i>
+            </div>
+            <div class="component-content">
+              <h4 class="component-title">Análise IA</h4>
+              <p class="component-description">Detecção de anomalias comportamentais</p>
+            </div>
+            <div class="component-status">
+              <span class="status-badge status-success">ATIVO</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="component-card glass-card" routerLink="/security-analytics">
+            <div class="component-icon">
+              <i class="bi bi-search"></i>
+            </div>
+            <div class="component-content">
+              <h4 class="component-title">Analytics de Segurança</h4>
+              <p class="component-description">Relatórios e métricas de segurança</p>
+            </div>
+            <div class="component-status">
+              <span class="status-badge status-success">ATIVO</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="component-card glass-card" routerLink="/session-manager">
+            <div class="component-icon">
+              <i class="bi bi-person-gear"></i>
+            </div>
+            <div class="component-content">
+              <h4 class="component-title">Gerenciador de Sessão</h4>
+              <p class="component-description">Controle de sessões ativas</p>
+            </div>
+            <div class="component-status">
+              <span class="status-badge status-success">ATIVO</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>

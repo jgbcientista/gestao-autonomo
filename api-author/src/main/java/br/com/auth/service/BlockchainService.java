@@ -98,9 +98,15 @@ public class BlockchainService {
             String location,
             String deviceFingerprint) {
 
+        log.info("🔗 BLOCKCHAIN: Iniciando registro de evento de autenticação");
+        log.info("Usuario: {}, Evento: {}, Decisao: {}, Risco: {}", 
+                usuario.getEmail(), eventType, decision, riskScore);
+        log.info("Blockchain habilitado: {}", blockchainEnabled);
+
         try {
             // Cria hash dos dados
             String dataHash = createDataHash(usuario, eventType, decision, riskScore, ipAddress, location, deviceFingerprint);
+            log.info("Hash dos dados criado: {}", dataHash);
 
             // Registra localmente primeiro
             TransacaoBlockchain transacao = TransacaoBlockchain.builder()
@@ -120,8 +126,10 @@ public class BlockchainService {
                     .build();
 
             TransacaoBlockchain transacaoSalva = repositorioTransacaoBlockchain.save(transacao);
+            log.info("🔗 Transação salva no BD com ID: {}", transacaoSalva.getId());
 
             if (blockchainEnabled) {
+                log.info("🔗 Blockchain habilitado, processando evento...");
                 if ("hyperledger".equalsIgnoreCase(networkType) && hyperledgerFabricService != null) {
                     // Usa Hyperledger Fabric
                     try {
@@ -156,11 +164,12 @@ public class BlockchainService {
                     return simulateBlockchainTransaction(transacaoSalva, dataHash);
                 }
             } else {
+                log.info("🔗 Blockchain DESABILITADO, usando simulação");
                 return simulateBlockchainTransaction(transacaoSalva, dataHash);
             }
 
         } catch (Exception e) {
-            log.error("Error recording authentication event to blockchain", e);
+            log.error("🔗 ERRO ao registrar evento no blockchain: {}", e.getMessage(), e);
             return CompletableFuture.completedFuture(null);
         }
     }
@@ -270,14 +279,16 @@ public class BlockchainService {
     }
 
     private CompletableFuture<String> simulateBlockchainTransaction(TransacaoBlockchain transacaoSalva, String dataHash) {
+        log.info("🔗 Executando simulação de transação blockchain...");
+        
         // Simula hash quando blockchain está desabilitado ou falha
         String simulatedHash = "0x" + Integer.toHexString(dataHash.hashCode());
         transacaoSalva.setHashTransacao(simulatedHash);
         transacaoSalva.setStatusConfirmacao(TransacaoBlockchain.StatusConfirmacao.CONFIRMADO);
         transacaoSalva.setVerificado(true);
-        repositorioTransacaoBlockchain.save(transacaoSalva);
+        TransacaoBlockchain transacaoAtualizada = repositorioTransacaoBlockchain.save(transacaoSalva);
 
-        log.info("Authentication event recorded locally with simulated hash: {}", simulatedHash);
+        log.info("🔗 Simulação concluída - Hash: {}, ID: {}", simulatedHash, transacaoAtualizada.getId());
         return CompletableFuture.completedFuture(simulatedHash);
     }
 

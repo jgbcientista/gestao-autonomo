@@ -1,0 +1,143 @@
+# Connection Profile para Produção - Hyperledger Fabric
+# ⚠️ AJUSTE TODOS OS VALORES CONFORME SUA REDE REAL
+
+name: "production-auth-network"
+version: "1.0.0"
+description: "Rede blockchain de produção para auditoria de autenticação"
+
+client:
+  organization: YourOrg  # ⚠️ ALTERAR para sua organização
+  connection:
+    timeout:
+      peer:
+        endorser: '300'
+        eventHub: '60'
+        eventReg: '30'
+      orderer: '300'
+    discovery:
+      enabled: true
+      asLocalhost: false  # IMPORTANTE: false em produção
+
+# ⚠️ CONFIGURAR CANAIS REAIS
+channels:
+  businesschannel:  # ⚠️ Nome do seu canal real
+    orderers:
+      - orderer.yournetwork.com  # ⚠️ Seu orderer real
+    peers:
+      peer0.yourorg.com:  # ⚠️ Seu peer real
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
+      peer1.yourorg.com:  # ⚠️ Peer adicional se houver
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: false
+
+# ⚠️ CONFIGURAR ORGANIZAÇÕES REAIS
+organizations:
+  YourOrg:  # ⚠️ Nome da sua organização
+    mspid: YourOrgMSP  # ⚠️ MSP ID real
+    peers:
+      - peer0.yourorg.com  # ⚠️ Seus peers reais
+      - peer1.yourorg.com
+    certificateAuthorities:
+      - ca.yourorg.com  # ⚠️ Sua CA real
+    adminPrivateKeyPEM:
+      path: "/opt/fabric/crypto/users/Admin@yourorg.com/msp/keystore/priv_sk"
+    signedCertPEM:
+      path: "/opt/fabric/crypto/users/Admin@yourorg.com/msp/signcerts/cert.pem"
+
+# ⚠️ CONFIGURAR ORDERERS REAIS
+orderers:
+  orderer.yournetwork.com:  # ⚠️ Endereço real do orderer
+    url: grpcs://orderer.yournetwork.com:7050  # ⚠️ Use grpcs:// para TLS
+    grpcOptions:
+      ssl-target-name-override: orderer.yournetwork.com
+      hostnameOverride: orderer.yournetwork.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+    tlsCACerts:
+      path: "/opt/fabric/crypto/ordererOrganizations/yournetwork.com/tlsca/tlsca.yournetwork.com-cert.pem"
+
+# ⚠️ CONFIGURAR PEERS REAIS
+peers:
+  peer0.yourorg.com:  # ⚠️ Endereço real do peer
+    url: grpcs://peer0.yourorg.com:7051  # ⚠️ Use grpcs:// para TLS
+    grpcOptions:
+      ssl-target-name-override: peer0.yourorg.com
+      hostnameOverride: peer0.yourorg.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+    tlsCACerts:
+      path: "/opt/fabric/crypto/peerOrganizations/yourorg.com/tlsca/tlsca.yourorg.com-cert.pem"
+
+  peer1.yourorg.com:  # ⚠️ Peer adicional se houver
+    url: grpcs://peer1.yourorg.com:7051
+    grpcOptions:
+      ssl-target-name-override: peer1.yourorg.com
+      hostnameOverride: peer1.yourorg.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: false
+    tlsCACerts:
+      path: "/opt/fabric/crypto/peerOrganizations/yourorg.com/tlsca/tlsca.yourorg.com-cert.pem"
+
+# ⚠️ CONFIGURAR CERTIFICATE AUTHORITIES REAIS
+certificateAuthorities:
+  ca.yourorg.com:  # ⚠️ Endereço real da CA
+    url: https://ca.yourorg.com:7054  # ⚠️ URL real da CA
+    caName: ca-yourorg  # ⚠️ Nome real da CA
+    grpcOptions:
+      verify: true  # IMPORTANTE: true em produção
+    tlsCACerts:
+      path: "/opt/fabric/crypto/peerOrganizations/yourorg.com/ca/ca.yourorg.com-cert.pem"
+    registrar:
+      enrollId: admin
+      enrollSecret: adminpw  # ⚠️ Use senha segura em produção
+    httpOptions:
+      verify: true
+
+# Configurações específicas para produção
+x-production-config:
+  # Configurações de timeout mais conservadoras para produção
+  timeouts:
+    connection: 30s
+    request: 60s
+    endorsement: 120s
+    
+  # Configurações de retry
+  retry:
+    attempts: 3
+    delay: 2s
+    
+  # Configurações de TLS obrigatórias
+  tls:
+    enabled: true
+    mutual: true  # TLS mútuo recomendado
+    
+  # Configurações de logging
+  logging:
+    level: INFO
+    
+# Exemplo de como usar este perfil:
+# 1. Substitua todos os valores marcados com ⚠️
+# 2. Certifique-se de que os caminhos dos certificados estão corretos
+# 3. Verifique se todos os endpoints estão acessíveis
+# 4. Configure as variáveis de ambiente necessárias
+# 5. Teste a conectividade antes de usar em produção
+
+# Comandos úteis para validação:
+# - docker ps (verificar containers em execução)
+# - peer channel list (listar canais)
+# - peer lifecycle chaincode queryinstalled (listar chaincodes)
+# - openssl x509 -in cert.pem -text -noout (verificar certificados) 

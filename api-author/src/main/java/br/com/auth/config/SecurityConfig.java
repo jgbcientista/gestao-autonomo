@@ -58,6 +58,8 @@ public class SecurityConfig {
                     "/api/v1/configuration/ui",
                     "/api/v1/configuration/security",
                     "/api/v1/actuator/**",
+                    "/api/blockchain/test/**",
+                    "/actuator/**",
                     "/swagger-ui/**",
                     "/swagger-ui.html",
                     "/v3/api-docs/**",

@@ -1,0 +1,137 @@
+# Configuração de Produção para Hyperledger Fabric
+# Copie este arquivo e ajuste os valores conforme sua rede real
+
+spring:
+  profiles:
+    active: production
+  datasource:
+    url: jdbc:postgresql://localhost:5432/auth_db_prod
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      minimum-idle: 10
+      maximum-pool-size: 50
+  jpa:
+    hibernate:
+      ddl-auto: validate  # Nunca usar create-drop em produção
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: false
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+# Configurações do Hyperledger Fabric para PRODUÇÃO
+blockchain:
+  enabled: true
+  network:
+    type: hyperledger
+    name: "production-network"
+  hyperledger:
+    # ⚠️ CONFIGURE ESTES VALORES COM OS DADOS REAIS DA SUA REDE
+    channel: "businesschannel"  # Nome do canal real
+    chaincode: "auth-audit"     # Nome do chaincode real
+    organization: "YourOrgMSP"  # MSP ID da sua organização
+    peer: "peer0.yourorg.com:7051"  # Endereço do peer real
+    ca-url: "https://ca.yourorg.com:7054"  # URL da CA real
+    orderer: "orderer.yournetwork.com:7050"  # Endereço do orderer real
+    
+    # Credenciais de usuário
+    user: "appUser"
+    user-secret: "${FABRIC_USER_SECRET:appUserSecret}"
+    admin-user: "admin"
+    admin-secret: "${FABRIC_ADMIN_SECRET:adminpw}"
+    
+    # Caminhos para arquivos
+    connection-profile-path: "/opt/fabric/connection-profiles/connection-org1.yaml"
+    wallet-path: "/opt/fabric/wallets/org1-wallet"
+    certificate-path: "/opt/fabric/crypto/users/User1@yourorg.com/msp/signcerts/cert.pem"
+    private-key-path: "/opt/fabric/crypto/users/User1@yourorg.com/msp/keystore/priv_sk"
+    
+    # Configurações de segurança
+    tls-enabled: true
+    simulation-mode: false  # IMPORTANTE: false para usar dados reais
+    
+    # Configurações de conexão
+    connection-timeout: 30
+    retry-attempts: 3
+  
+  # Configurações de auditoria
+  audit:
+    enabled: true
+    retention:
+      days: 365
+
+# Configurações de logging para produção
+logging:
+  level:
+    org.springframework.security: WARN
+    br.com.auth: INFO
+    org.web3j: WARN
+    org.hibernate.SQL: WARN
+    # Logs específicos do Hyperledger Fabric
+    org.hyperledger: INFO
+  file:
+    name: /var/log/auth-service/application.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+# Configurações de segurança JWT
+jwt:
+  secret: ${JWT_SECRET_PROD:}  # Use uma chave forte em produção
+  expiration: 3600000  # 1 hora em produção
+
+# Configurações Redis para cache
+redis:
+  host: ${REDIS_HOST:redis-cluster.yournetwork.com}
+  port: ${REDIS_PORT:6379}
+  password: ${REDIS_PASSWORD:}
+  database: 0
+  timeout: 5000ms
+  lettuce:
+    pool:
+      max-active: 20
+      max-idle: 10
+      min-idle: 5
+      max-wait: 2000ms
+
+# Configurações de IA
+ai:
+  service:
+    enabled: true
+    url: ${AI_SERVICE_URL:https://ai-service.yournetwork.com}
+
+# Configurações de geolocalização
+geolocalizacao:
+  opencage:
+    api-key: ${OPENCAGE_API_KEY:}
+  timeout: 10000
+  fallback:
+    enabled: true
+
+# Configurações de thresholds de risco
+risk:
+  threshold:
+    low: 0.3
+    medium: 0.6
+    high: 0.8
+
+# Configurações do servidor
+server:
+  port: 8080
+  servlet:
+    session:
+      timeout: 60m
+  tomcat:
+    connection-timeout: 10s
+    max-connections: 500
+    threads:
+      max: 200
+      min-spare: 20
+
+# Configurações do Swagger (desabilitado em produção por segurança)
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false 

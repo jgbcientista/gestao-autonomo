@@ -1,19 +1,107 @@
 ---
-# Perfil de Conexão para Hyperledger Fabric
-# Este arquivo define a estrutura da rede blockchain
+# CONNECTION PROFILE CONFIGURADO COM DADOS REAIS
+# Baseado na rede test-network do Hyperledger Fabric que está rodando
+name: "fabric-test-network-real"
+version: "1.0"
+description: "Connection profile para rede Hyperledger Fabric real (test-network)"
 
-name: "auth-audit-network"
-version: "1.0.0"
-description: "Rede blockchain para auditoria de autenticação"
-
+# ✅ DADOS REAIS COLETADOS:
 client:
   organization: Org1
   connection:
     timeout:
       peer:
         endorser: '300'
+        eventHub: '300'
+        eventReg: '300'
       orderer: '300'
-      
+
+# ✅ ORGANIZAÇÕES REAIS:
+organizations:
+  Org1:
+    mspid: Org1MSP
+    peers:
+      - peer0.org1.example.com
+    certificateAuthorities:
+      - ca.org1.example.com
+    adminPrivateKeyPEM: |
+      # Será preenchido automaticamente quando os certificados forem gerados
+    signedCertPEM: |
+      # Será preenchido automaticamente quando os certificados forem gerados
+
+  Org2:
+    mspid: Org2MSP
+    peers:
+      - peer0.org2.example.com
+    certificateAuthorities:
+      - ca.org2.example.com
+
+# ✅ PEERS CONFIGURADOS (quando estiverem funcionando):
+peers:
+  peer0.org1.example.com:
+    url: grpc://localhost:7051
+    eventUrl: grpc://localhost:7053
+    grpcOptions:
+      ssl-target-name-override: peer0.org1.example.com
+      hostnameOverride: peer0.org1.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: true
+    tlsCACerts:
+      path: # Será configurado quando os certificados estiverem disponíveis
+
+  peer0.org2.example.com:
+    url: grpc://localhost:9051
+    eventUrl: grpc://localhost:9053
+    grpcOptions:
+      ssl-target-name-override: peer0.org2.example.com
+      hostnameOverride: peer0.org2.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: true
+
+# ✅ ORDERERS CONFIGURADOS:
+orderers:
+  orderer.example.com:
+    url: grpc://localhost:7050
+    grpcOptions:
+      ssl-target-name-override: orderer.example.com
+      hostnameOverride: orderer.example.com
+      keep-alive-time: 0s
+      keep-alive-timeout: 20s
+      keep-alive-permit: false
+      fail-fast: false
+      allow-insecure: true
+
+# ✅ CERTIFICATE AUTHORITIES REAIS (FUNCIONANDO):
+certificateAuthorities:
+  ca.org1.example.com:
+    url: http://localhost:7054  # ✅ CA REAL rodando na porta 7054
+    caName: ca-org1
+    tlsCACerts:
+      path: # Será configurado quando necessário
+    httpOptions:
+      verify: false
+    registrar:
+      enrollId: admin
+      enrollSecret: adminpw
+
+  ca.org2.example.com:
+    url: http://localhost:8054  # ✅ CA REAL rodando na porta 8054
+    caName: ca-org2
+    tlsCACerts:
+      path: # Será configurado quando necessário
+    httpOptions:
+      verify: false
+    registrar:
+      enrollId: admin
+      enrollSecret: adminpw
+
+# ✅ CHANNELS CONFIGURADOS:
 channels:
   mychannel:
     orderers:
@@ -24,58 +112,38 @@ channels:
         chaincodeQuery: true
         ledgerQuery: true
         eventSource: true
+      peer0.org2.example.com:
+        endorsingPeer: true
+        chaincodeQuery: true
+        ledgerQuery: true
+        eventSource: true
 
-organizations:
-  Org1:
-    mspid: Org1MSP
-    peers:
-      - peer0.org1.example.com
-    certificateAuthorities:
-      - ca.org1.example.com
+# ✅ CONFIGURAÇÕES ADICIONAIS:
+entityMatchers:
+  peer:
+    - pattern: peer0.org1.example.com
+      urlSubstitutionExp: localhost:7051
+      eventUrlSubstitutionExp: localhost:7053
+      sslTargetOverrideUrlSubstitutionExp: peer0.org1.example.com
+      mappedHost: peer0.org1.example.com
 
-orderers:
-  orderer.example.com:
-    url: grpc://orderer.example.com:7050
-    grpcOptions:
-      ssl-target-name-override: orderer.example.com
-      keep-alive-time: 0s
-      keep-alive-timeout: 20s
-      keep-alive-permit: false
-      fail-fast: false
-      allow-insecure: false
+    - pattern: peer0.org2.example.com  
+      urlSubstitutionExp: localhost:9051
+      eventUrlSubstitutionExp: localhost:9053
+      sslTargetOverrideUrlSubstitutionExp: peer0.org2.example.com
+      mappedHost: peer0.org2.example.com
 
-peers:
-  peer0.org1.example.com:
-    url: grpc://peer0.org1.example.com:7051
-    grpcOptions:
-      ssl-target-name-override: peer0.org1.example.com
-      keep-alive-time: 0s
-      keep-alive-timeout: 20s
-      keep-alive-permit: false
-      fail-fast: false
-      allow-insecure: false
+  orderer:
+    - pattern: orderer.example.com
+      urlSubstitutionExp: localhost:7050
+      sslTargetOverrideUrlSubstitutionExp: orderer.example.com
+      mappedHost: orderer.example.com
 
-certificateAuthorities:
-  ca.org1.example.com:
-    url: https://ca.org1.example.com:7054
-    caName: ca-org1
-    grpcOptions:
-      verify: false
-    registrar:
-      enrollId: admin
-      enrollSecret: adminpw
+  certificateAuthority:
+    - pattern: ca.org1.example.com
+      urlSubstitutionExp: http://localhost:7054
+      mappedHost: ca.org1.example.com
 
-# Configurações para ambiente de desenvolvimento local
-# Para produção, ajustar URLs e usar certificados TLS apropriados
-dev:
-  orderers:
-    orderer.example.com:
-      url: grpc://localhost:7050
-      
-  peers:
-    peer0.org1.example.com:
-      url: grpc://localhost:7051
-      
-  certificateAuthorities:
-    ca.org1.example.com:
-      url: https://localhost:7054 
+    - pattern: ca.org2.example.com
+      urlSubstitutionExp: http://localhost:8054
+      mappedHost: ca.org2.example.com 

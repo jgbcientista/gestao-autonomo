@@ -85,16 +85,16 @@ risk:
     medium: ${RISK_THRESHOLD_MEDIUM:0.6}
     high: ${RISK_THRESHOLD_HIGH:0.8}
 
-# Configurações de Blockchain
+# Configurações de Blockchain - CONFIGURADO COM DADOS REAIS
 blockchain:
-  enabled: ${BLOCKCHAIN_ENABLED:true}
+  enabled: true  # ✅ HABILITADO para usar dados reais
   # Escolher implementação: hyperledger ou java-native
   native: 
-    enabled: ${BLOCKCHAIN_NATIVE_ENABLED:false}  # true para blockchain Java nativa
+    enabled: false  # Usando Hyperledger Fabric real
   network:
-    type: ${BLOCKCHAIN_NETWORK_TYPE:hyperledger} # ethereum ou hyperledger
-    name: ${BLOCKCHAIN_NETWORK_NAME:hyperledger-local}
-    url: ${BLOCKCHAIN_NETWORK_URL:http://localhost:8545}
+    type: hyperledger  # ✅ CONFIRMADO: Usando Hyperledger Fabric
+    name: "fabric-test-network"  # ✅ Nome da rede real
+    url: "http://localhost:7051"  # ✅ URL do peer
   private:
     key: ${BLOCKCHAIN_PRIVATE_KEY:}
   contract:
@@ -102,25 +102,29 @@ blockchain:
   confirmation:
     blocks: ${BLOCKCHAIN_CONFIRMATION_BLOCKS:12} # Número mínimo de confirmações
   hyperledger:
-    channel: ${HYPERLEDGER_CHANNEL:mychannel}
-    chaincode: ${HYPERLEDGER_CHAINCODE:auth-audit}
-    organization: ${HYPERLEDGER_ORG:Org1MSP}
-    peer: ${HYPERLEDGER_PEER:peer0.org1.example.com:7051}
-    ca-url: ${HYPERLEDGER_CA_URL:https://ca.org1.example.com:7054}
-    orderer: ${HYPERLEDGER_ORDERER:orderer.example.com:7050}
-    user: ${HYPERLEDGER_USER:appUser}
-    user-secret: ${HYPERLEDGER_USER_SECRET:appUserSecret}
-    admin-user: ${HYPERLEDGER_ADMIN_USER:admin}
-    admin-secret: ${HYPERLEDGER_ADMIN_SECRET:adminpw}
-    connection-profile-path: ${HYPERLEDGER_CONNECTION_PROFILE:src/main/resources/connection-profile.yaml}
-    wallet-path: ${HYPERLEDGER_WALLET_PATH:wallet}
+    # ✅ DADOS COLETADOS DA REDE REAL:
+    channel: "mychannel"  # ✅ Canal padrão do test-network
+    chaincode: "auth-audit"  # ✅ Nome do nosso chaincode
+    organization: "Org1MSP"  # ✅ Organização 1 do test-network
+    peer: "localhost:7051"  # ✅ Peer da Org1 (será configurado quando funcionar)
+    ca-url: "https://localhost:7054"  # ✅ CA da Org1 REAL (rodando)
+    orderer: "localhost:7050"  # ✅ Orderer (será configurado quando funcionar)
+    user: "appUser"
+    user-secret: "appUserSecret"
+    admin-user: "admin"
+    admin-secret: "adminpw"
+    connection-profile-path: "src/main/resources/connection-profile.yaml"
+    wallet-path: "wallet"
     certificate-path: ${HYPERLEDGER_CERT_PATH:}
     private-key-path: ${HYPERLEDGER_KEY_PATH:}
-    tls-enabled: ${HYPERLEDGER_TLS_ENABLED:true}
+    tls-enabled: false  # ✅ AJUSTADO: false para test-network local
+    simulation-mode: false  # ✅ IMPORTANTE: false para usar dados reais
+    connection-timeout: 30
+    retry-attempts: 3
   audit:
-    enabled: ${BLOCKCHAIN_AUDIT_ENABLED:true}
+    enabled: true
     retention:
-      days: ${BLOCKCHAIN_RETENTION_DAYS:365} # Retenção de dados em dias
+      days: 365 # Retenção de dados em dias
 
 # Configurações Redis (apenas para produção)
 redis:

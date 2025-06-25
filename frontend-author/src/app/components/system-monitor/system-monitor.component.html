@@ -29,7 +29,7 @@
       <ul class="navbar-nav">
         <li class="nav-item">
           <button class="btn btn-outline-primary btn-sm me-2" (click)="refreshData()" [disabled]="loading">
-            <i class="bi bi-arrow-clockwise" [class.fa-spin]="loading"></i>
+            <i class="bi bi-arrow-clockwise" [class.spinning]="loading"></i>
             Atualizar
           </button>
         </li>
@@ -90,7 +90,7 @@
                   <i class="bi bi-hdd-stack"></i>
                 </div>
                 <div class="stat-content">
-                  <span class="stat-number">{{ systemHealth?.servicos?.length || 0 }}</span>
+                  <span class="stat-number">{{ systemHealth && systemHealth.servicos ? systemHealth.servicos.length : 0 }}</span>
                   <span class="stat-label">Serviços</span>
                 </div>
               </div>
@@ -144,10 +144,18 @@
 
     <!-- Status Cards -->
     <section class="status-section" *ngIf="systemHealth">
+      <div class="section-header text-center mb-5">
+        <h2 class="section-title">
+          <i class="bi bi-graph-up me-2"></i>
+          Status do Sistema
+        </h2>
+        <p class="section-subtitle">Visão geral dos componentes críticos do sistema</p>
+      </div>
+      
       <div class="row g-4">
         <!-- Status Geral -->
         <div class="col-lg-3 col-md-6">
-          <div class="status-card" [ngClass]="getStatusCardClass(systemHealth.status)">
+          <div class="status-card" [ngClass]="getStatusCardClass(systemHealth.status)" data-aos="fade-up" data-aos-delay="100">
             <div class="card-icon">
               <i class="bi" [ngClass]="getStatusIconClass(systemHealth.status)"></i>
             </div>
@@ -165,13 +173,13 @@
 
         <!-- Serviços Ativos -->
         <div class="col-lg-3 col-md-6">
-          <div class="status-card card-info">
+          <div class="status-card card-info" data-aos="fade-up" data-aos-delay="200">
             <div class="card-icon">
               <i class="bi bi-hdd-stack-fill"></i>
             </div>
             <div class="card-content">
               <h3 class="card-title">Serviços</h3>
-                             <p class="card-description">{{ (systemHealth?.servicos?.length || 0) }} serviços monitorados</p>
+              <p class="card-description">{{ systemHealth && systemHealth.servicos ? systemHealth.servicos.length : 0 }} serviços monitorados</p>
               <div class="card-status">
                 <span class="status-indicator status-info"></span>
                 <span class="status-text">Monitorando</span>
@@ -183,7 +191,7 @@
 
         <!-- Métricas de Segurança -->
         <div class="col-lg-3 col-md-6">
-          <div class="status-card card-warning">
+          <div class="status-card card-warning" data-aos="fade-up" data-aos-delay="300">
             <div class="card-icon">
               <i class="bi bi-shield-lock-fill"></i>
             </div>
@@ -199,17 +207,17 @@
           </div>
         </div>
 
-        <!-- Integridade -->
+        <!-- Integridade Blockchain -->
         <div class="col-lg-3 col-md-6">
-          <div class="status-card card-success">
+          <div class="status-card" [ngClass]="getBlockchainStatusClass(dashboardData?.metricas?.integridadeBlockchain || 'BOA')" data-aos="fade-up" data-aos-delay="400">
             <div class="card-icon">
-              <i class="bi bi-check-circle-fill"></i>
+              <i class="bi bi-link-45deg"></i>
             </div>
             <div class="card-content">
-              <h3 class="card-title">Integridade</h3>
-              <p class="card-description">{{ dashboardData?.metricas?.integridadeBlockchain || 'Verificando' }}</p>
+              <h3 class="card-title">Integridade Blockchain</h3>
+              <p class="card-description">{{ dashboardData?.metricas?.integridadeBlockchain || 'BOA' }}</p>
               <div class="card-status">
-                <span class="status-indicator status-success"></span>
+                <span class="status-indicator" [ngClass]="getBlockchainIndicatorClass(dashboardData?.metricas?.integridadeBlockchain || 'BOA')"></span>
                 <span class="status-text">Íntegro</span>
               </div>
             </div>
@@ -220,7 +228,7 @@
     </section>
 
     <!-- Detalhes dos Serviços -->
-    <section class="services-section" *ngIf="systemHealth?.servicos">
+    <section class="services-section" *ngIf="systemHealth?.servicos" data-aos="fade-up" data-aos-delay="500">
       <div class="section-header">
         <h2 class="section-title">
           <i class="bi bi-gear-fill me-2"></i>
@@ -230,207 +238,140 @@
       </div>
       
       <div class="row g-3">
-                 <div class="col-lg-4 col-md-6" *ngFor="let servico of systemHealth?.servicos">
+        <div class="col-lg-4 col-md-6" *ngFor="let servico of systemHealth?.servicos; let i = index" data-aos="fade-up" [attr.data-aos-delay]="600 + (i * 100)">
           <div class="service-card glass-card">
             <div class="service-header">
-              <div class="service-icon" [ngClass]="getStatusColor(servico.status)">
+              <div class="service-icon">
                 <i class="bi" [ngClass]="getServiceIcon(servico.nome)"></i>
               </div>
               <div class="service-info">
                 <h4 class="service-name">{{ servico.nome }}</h4>
-                <span class="service-status" [ngClass]="getStatusColor(servico.status)">
+                <span class="service-status" [ngClass]="getStatusCardClass(servico.status)">
+                  <i class="bi bi-circle-fill me-1"></i>
                   {{ servico.status }}
                 </span>
               </div>
             </div>
             <div class="service-details">
-              <p class="service-check">
-                <i class="bi bi-clock me-1"></i>
-                Última verificação: {{ servico.ultimaVerificacao | date:'short' }}
-              </p>
-              <p class="service-description" *ngIf="servico.detalhes">
-                {{ servico.detalhes }}
-              </p>
+              <p class="service-description">{{ servico.detalhes }}</p>
+              <div class="service-meta">
+                <small class="text-muted">
+                  <i class="bi bi-clock me-1"></i>
+                  Última verificação: {{ servico.ultimaVerificacao | date:'HH:mm:ss' }}
+                </small>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Métricas Detalhadas -->
-    <section class="metrics-section" *ngIf="dashboardData?.metricas">
+    <!-- Métricas de Segurança -->
+    <section class="metrics-section" *ngIf="dashboardData?.metricas" data-aos="fade-up" data-aos-delay="700">
       <div class="section-header">
         <h2 class="section-title">
-          <i class="bi bi-graph-up me-2"></i>
+          <i class="bi bi-bar-chart-line-fill me-2"></i>
           Métricas de Segurança
         </h2>
         <p class="section-subtitle">Indicadores de performance e segurança do sistema</p>
       </div>
-      
+
       <div class="row g-4">
-        <div class="col-lg-8">
-          <div class="metrics-card glass-card">
-            <div class="metrics-grid">
-              <div class="metric-item">
-                <div class="metric-icon">
-                  <i class="bi bi-people-fill"></i>
-                </div>
-                               <div class="metric-content">
-                 <span class="metric-value">{{ dashboardData?.metricas?.totalUsuarios || 0 }}</span>
-                 <span class="metric-label">Total de Usuários</span>
-               </div>
-             </div>
-             
-             <div class="metric-item">
-               <div class="metric-icon risk-medium">
-                 <i class="bi bi-exclamation-triangle-fill"></i>
-               </div>
-               <div class="metric-content">
-                 <span class="metric-value">{{ dashboardData?.metricas?.usuariosAltoRisco || 0 }}</span>
-                 <span class="metric-label">Usuários Alto Risco</span>
-               </div>
-             </div>
-             
-             <div class="metric-item">
-               <div class="metric-icon risk-high">
-                 <i class="bi bi-shield-exclamation"></i>
-               </div>
-               <div class="metric-content">
-                 <span class="metric-value">{{ dashboardData?.metricas?.transacoesAltoRisco || 0 }}</span>
-                 <span class="metric-label">Transações Suspeitas</span>
-               </div>
-             </div>
-             
-             <div class="metric-item">
-               <div class="metric-icon">
-                 <i class="bi bi-graph-down"></i>
-               </div>
-               <div class="metric-content">
-                 <span class="metric-value">{{ ((dashboardData?.metricas?.pontuacaoRiscoMedia || 0) * 100) | number:'1.1-1' }}%</span>
-                 <span class="metric-label">Score Médio de Risco</span>
-               </div>
-             </div>
+        <!-- Total de Usuários -->
+        <div class="col-lg-3 col-md-6">
+          <div class="metric-card glass-card" data-aos="fade-up" data-aos-delay="800">
+            <div class="metric-icon">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="metric-content">
+                             <div class="metric-number">{{ dashboardData?.metricas?.totalUsuarios || 0 }}</div>
+              <div class="metric-label">Total de Usuários</div>
+              <div class="metric-trend positive">
+                <i class="bi bi-arrow-up"></i>
+                <span>5.2%</span>
+              </div>
             </div>
           </div>
         </div>
-        
-        <div class="col-lg-4">
-                     <div class="blockchain-card glass-card">
-             <div class="blockchain-header">
-               <h4>Integridade Blockchain</h4>
-               <span class="blockchain-status" [ngClass]="getBlockchainStatusClass(dashboardData?.metricas?.integridadeBlockchain || '')">
-                 {{ dashboardData?.metricas?.integridadeBlockchain || 'Verificando' }}
-               </span>
+
+        <!-- Usuários Alto Risco -->
+        <div class="col-lg-3 col-md-6">
+          <div class="metric-card glass-card" data-aos="fade-up" data-aos-delay="900">
+            <div class="metric-icon warning">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+            </div>
+            <div class="metric-content">
+                             <div class="metric-number">{{ dashboardData?.metricas?.usuariosAltoRisco || 0 }}</div>
+               <div class="metric-label">Usuários Alto Risco</div>
+               <div class="metric-percentage">
+                 {{ (((dashboardData?.metricas?.usuariosAltoRisco || 0) / (dashboardData?.metricas?.totalUsuarios || 1)) * 100).toFixed(1) }}%
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Transações Suspeitas -->
+        <div class="col-lg-3 col-md-6">
+          <div class="metric-card glass-card" data-aos="fade-up" data-aos-delay="1000">
+            <div class="metric-icon danger">
+              <i class="bi bi-shield-exclamation"></i>
+            </div>
+            <div class="metric-content">
+                             <div class="metric-number">{{ dashboardData?.metricas?.transacoesAltoRisco || 0 }}</div>
+              <div class="metric-label">Transações Suspeitas</div>
+              <div class="metric-trend negative">
+                <i class="bi bi-arrow-down"></i>
+                <span>-12%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+                 <!-- Score Médio de Risco -->
+         <div class="col-lg-3 col-md-6">
+           <div class="metric-card glass-card" data-aos="fade-up" data-aos-delay="1100">
+             <div class="metric-icon" [ngClass]="getRiskColor(dashboardData?.metricas?.pontuacaoRiscoMedia || 0)">
+               <i class="bi bi-speedometer2"></i>
              </div>
-             <div class="blockchain-visual">
-               <div class="blockchain-indicator" [ngClass]="getBlockchainIndicatorClass(dashboardData?.metricas?.integridadeBlockchain || '')">
-                 <i class="bi bi-link-45deg"></i>
+             <div class="metric-content">
+               <div class="metric-number">{{ ((dashboardData?.metricas?.pontuacaoRiscoMedia || 0) * 100).toFixed(1) }}%</div>
+               <div class="metric-label">Score Médio de Risco</div>
+               <div class="metric-bar">
+                 <div class="metric-bar-fill" [style.width.%]="(dashboardData?.metricas?.pontuacaoRiscoMedia || 0) * 100"></div>
                </div>
              </div>
            </div>
-        </div>
+         </div>
       </div>
     </section>
 
-         <!-- Alertas -->
-     <section class="alerts-section" *ngIf="dashboardData?.alertas && (dashboardData?.alertas?.length || 0) > 0">
+         <!-- Alertas do Sistema -->
+     <section class="alerts-section" *ngIf="dashboardData?.alertas?.length" data-aos="fade-up" data-aos-delay="1200">
        <div class="section-header">
          <h2 class="section-title">
            <i class="bi bi-bell-fill me-2"></i>
            Alertas do Sistema
          </h2>
-         <p class="section-subtitle">Notificações importantes sobre segurança e performance</p>
+         <p class="section-subtitle">Notificações e alertas de segurança recentes</p>
        </div>
-       
-       <div class="row g-3">
-         <div class="col-lg-6" *ngFor="let alerta of dashboardData?.alertas">
-          <div class="alert-card glass-card" [ngClass]="'alert-' + alerta.tipo.toLowerCase()">
-            <div class="alert-header">
-              <div class="alert-icon">
-                <i class="bi" [ngClass]="getAlertIconClass(alerta.tipo)"></i>
-              </div>
-              <div class="alert-info">
-                <h4 class="alert-title">{{ alerta.titulo }}</h4>
-                <span class="alert-time">{{ alerta.timestamp | date:'short' }}</span>
-              </div>
-              <span class="alert-badge" [ngClass]="'badge-' + alerta.tipo.toLowerCase()">
-                {{ alerta.tipo }}
-              </span>
-            </div>
+
+       <div class="alerts-container">
+         <div class="alert-item glass-card" *ngFor="let alerta of dashboardData?.alertas">
+          <div class="alert-icon" [ngClass]="getAlertIconClass(alerta.tipo)">
+            <i class="bi" [ngClass]="getAlertIcon(alerta.tipo)"></i>
+          </div>
+          <div class="alert-content">
+            <h5 class="alert-title">{{ alerta.titulo }}</h5>
             <p class="alert-message">{{ alerta.mensagem }}</p>
+            <small class="alert-time">
+              <i class="bi bi-clock me-1"></i>
+              {{ alerta.timestamp | date:'dd/MM/yyyy HH:mm' }}
+            </small>
           </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Componentes Integrados -->
-    <section class="components-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <i class="bi bi-puzzle-fill me-2"></i>
-          Funcionalidades Integradas
-        </h2>
-        <p class="section-subtitle">Acesso rápido às principais funcionalidades do sistema</p>
-      </div>
-      
-      <div class="row g-4">
-        <div class="col-lg-3 col-md-6">
-          <div class="component-card glass-card" routerLink="/trust-score">
-            <div class="component-icon">
-              <i class="bi bi-bullseye"></i>
-            </div>
-            <div class="component-content">
-              <h4 class="component-title">Score de Confiança</h4>
-              <p class="component-description">Monitoramento de confiabilidade dos usuários</p>
-            </div>
-            <div class="component-status">
-              <span class="status-badge status-success">ATIVO</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-          <div class="component-card glass-card" routerLink="/ai-analysis">
-            <div class="component-icon">
-              <i class="bi bi-cpu"></i>
-            </div>
-            <div class="component-content">
-              <h4 class="component-title">Análise IA</h4>
-              <p class="component-description">Detecção de anomalias comportamentais</p>
-            </div>
-            <div class="component-status">
-              <span class="status-badge status-success">ATIVO</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-          <div class="component-card glass-card" routerLink="/security-analytics">
-            <div class="component-icon">
-              <i class="bi bi-search"></i>
-            </div>
-            <div class="component-content">
-              <h4 class="component-title">Analytics de Segurança</h4>
-              <p class="component-description">Relatórios e métricas de segurança</p>
-            </div>
-            <div class="component-status">
-              <span class="status-badge status-success">ATIVO</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="col-lg-3 col-md-6">
-          <div class="component-card glass-card" routerLink="/session-manager">
-            <div class="component-icon">
-              <i class="bi bi-person-gear"></i>
-            </div>
-            <div class="component-content">
-              <h4 class="component-title">Gerenciador de Sessão</h4>
-              <p class="component-description">Controle de sessões ativas</p>
-            </div>
-            <div class="component-status">
-              <span class="status-badge status-success">ATIVO</span>
-            </div>
+          <div class="alert-actions">
+            <button class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-eye"></i>
+            </button>
           </div>
         </div>
       </div>

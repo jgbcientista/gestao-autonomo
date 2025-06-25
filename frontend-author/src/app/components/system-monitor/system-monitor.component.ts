@@ -206,9 +206,9 @@ export class SystemMonitorComponent implements OnInit, OnDestroy {
   }
 
   getRiskColor(score: number): string {
-    if (score >= 0.7) return 'text-red-600';
-    if (score >= 0.4) return 'text-yellow-600';
-    return 'text-green-600';
+    if (score >= 0.7) return 'risk-high';
+    if (score >= 0.4) return 'risk-medium';
+    return 'risk-low';
   }
 
   getBlockchainColor(status: string): string {
@@ -220,15 +220,7 @@ export class SystemMonitorComponent implements OnInit, OnDestroy {
     }
   }
 
-  getAlertIcon(tipo: string): string {
-    switch (tipo) {
-      case 'ERROR': return '🚨';
-      case 'WARNING': return '⚠️';
-      case 'INFO': return 'ℹ️';
-      case 'SUCCESS': return '✅';
-      default: return '📢';
-    }
-  }
+
 
   // Novos métodos para o template padronizado
 
@@ -290,23 +282,33 @@ export class SystemMonitorComponent implements OnInit, OnDestroy {
 
   getBlockchainStatusClass(status: string): string {
     switch (status) {
-      case 'BOA': return 'text-success';
-      case 'PRECISA_ATENCAO': return 'text-warning';
-      case 'CRITICA': return 'text-danger';
-      default: return 'text-secondary';
+      case 'BOA': return 'card-success';
+      case 'PRECISA_ATENCAO': return 'card-warning';
+      case 'CRITICA': return 'card-danger';
+      default: return 'card-secondary';
     }
   }
 
   getBlockchainIndicatorClass(status: string): string {
     switch (status) {
-      case 'BOA': return 'indicator-success';
-      case 'PRECISA_ATENCAO': return 'indicator-warning';
-      case 'CRITICA': return 'indicator-danger';
-      default: return 'indicator-secondary';
+      case 'BOA': return 'status-success';
+      case 'PRECISA_ATENCAO': return 'status-warning';
+      case 'CRITICA': return 'status-danger';
+      default: return 'status-secondary';
     }
   }
 
   getAlertIconClass(tipo: string): string {
+    switch (tipo) {
+      case 'ERROR': return 'error';
+      case 'WARNING': return 'warning';
+      case 'INFO': return 'info';
+      case 'SUCCESS': return 'success';
+      default: return 'info';
+    }
+  }
+
+  getAlertIcon(tipo: string): string {
     switch (tipo) {
       case 'ERROR': return 'bi-exclamation-triangle-fill';
       case 'WARNING': return 'bi-exclamation-circle-fill';

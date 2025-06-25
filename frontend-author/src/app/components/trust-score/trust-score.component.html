@@ -1,19 +1,100 @@
-<div class="trust-score-container">
-  <!-- Navigation -->
-  <div class="nav-container">
-    <button class="back-btn" routerLink="/dashboard">
-      ← Voltar ao Dashboard
+<!-- Navbar moderna com glassmorphism -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/dashboard">
+      <div class="brand-logo">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <span class="brand-text">AuthSystem</span>
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
     </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-2"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="#">
+            <i class="bi bi-bullseye me-2"></i>Score de Confiança
+          </a>
+        </li>
+      </ul>
+      
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <button class="btn btn-outline-primary btn-sm me-2" (click)="refreshData()" [disabled]="loading">
+            <i class="bi bi-arrow-clockwise" [class.spinning]="loading"></i>
+            Atualizar
+          </button>
+        </li>
+        <li class="nav-item">
+          <button class="btn btn-outline-secondary btn-sm" routerLink="/dashboard">
+            <i class="bi bi-arrow-left me-1"></i>
+            Voltar
+          </button>
+        </li>
+      </ul>
+    </div>
   </div>
+</nav>
 
-  <!-- Header -->
-  <div class="header">
-    <h1 class="title">🎯 Score de Confiança</h1>
-    <button class="refresh-btn" (click)="refreshData()" [disabled]="loading">
-      <span class="refresh-icon" [class.spinning]="loading">🔄</span>
-      Atualizar
-    </button>
+<!-- Background animado -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
   </div>
+</div>
+
+<!-- Conteúdo Principal -->
+<main class="dashboard-main">
+  <div class="container-fluid">
+    
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="hero-content">
+            <div class="welcome-badge">
+              <i class="bi bi-bullseye me-2"></i>
+              Score de Confiança
+            </div>
+            <h1 class="hero-title">
+              Score de Confiança 🎯
+            </h1>
+            <p class="hero-subtitle">
+              Monitoramento e análise do nível de confiabilidade dos usuários baseado em comportamento e histórico.
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="hero-visual">
+            <div class="security-indicator">
+              <div class="indicator-circle" [class.online]="trustScore">
+                <i class="bi bi-bullseye"></i>
+              </div>
+              <div class="pulse-rings" *ngIf="trustScore">
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+<div class="trust-score-container">
 
   <!-- Loading -->
   <div *ngIf="loading" class="loading">
@@ -220,4 +301,5 @@
       </div>
     </div>
   </div>
-</div>
+
+  </div>

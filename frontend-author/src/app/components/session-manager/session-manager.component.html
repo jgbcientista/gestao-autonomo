@@ -1,3 +1,59 @@
+<!-- Navbar moderna com glassmorphism -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/dashboard">
+      <div class="brand-logo">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <span class="brand-text">AuthSystem</span>
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-2"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" href="#">
+            <i class="bi bi-person-gear me-2"></i>Gerenciador de Sessão
+          </a>
+        </li>
+      </ul>
+      
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <button class="btn btn-outline-secondary btn-sm" routerLink="/dashboard">
+            <i class="bi bi-arrow-left me-1"></i>
+            Voltar
+          </button>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Background animado -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
+  </div>
+</div>
+
+<!-- Conteúdo Principal -->
+<main class="dashboard-main">
+  <div class="container-fluid">
+
 <div class="session-manager-container">
   <!-- Header -->
   <div class="header-section">
@@ -490,4 +546,5 @@
       </div>
     </div>
   </div>
-</div> 
+
+  </div> 

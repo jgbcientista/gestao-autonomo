@@ -11,6 +11,8 @@ import org.springframework.web.client.ResourceAccessException;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * Serviço de Geolocalização com integração a múltiplas APIs
@@ -178,6 +180,17 @@ public class ServicoGeolocalizacao {
         }
         
         return false;
+    }
+
+    public Map<String, String> obterLocalizacao(String ip) {
+        // TODO: Implementar integração com serviço de geolocalização
+        // Por enquanto retorna dados mock
+        Map<String, String> localizacao = new HashMap<>();
+        localizacao.put("pais", "Brasil");
+        localizacao.put("cidade", "São Paulo");
+        localizacao.put("latitude", "-23.5505");
+        localizacao.put("longitude", "-46.6333");
+        return localizacao;
     }
 
     // Métodos privados

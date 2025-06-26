@@ -4,6 +4,7 @@ import br.com.auth.dominio.interfaces.IServicoAutenticacao;
 import br.com.auth.dto.AuthenticationRequest;
 import br.com.auth.dto.AuthenticationResponse;
 import br.com.auth.dto.RegisterRequest;
+import br.com.auth.service.AuthenticationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -27,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class AutenticacaoController {
 
     private final IServicoAutenticacao servicoAutenticacao;
+    private final AuthenticationService authenticationService;
 
     @PostMapping("/registrar")
     @Operation(summary = "Registrar novo usuário", 
@@ -135,6 +137,49 @@ public class AutenticacaoController {
                description = "Verifica se o serviço de autenticação está funcionando")
     public ResponseEntity<String> status() {
         return ResponseEntity.ok("Serviço de autenticação operacional");
+    }
+
+    @PostMapping("/atualizar-roles")
+    @Operation(summary = "Atualizar roles do usuário", 
+               description = "Atualiza as roles de um usuário no sistema")
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Roles atualizadas com sucesso"),
+        @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
+    })
+    public ResponseEntity<String> atualizarRoles(@RequestParam String email, @RequestParam String novaRole) {
+        try {
+            authenticationService.atualizarRoles(email, novaRole);
+            return ResponseEntity.ok("Roles atualizadas com sucesso");
+        } catch (Exception e) {
+            log.error("Erro ao atualizar roles do usuário {}: {}", email, e.getMessage());
+            return ResponseEntity.status(400).body("Erro ao atualizar roles do usuário");
+        }
+    }
+
+    @GetMapping("/atualizar-roles-joao")
+    @Operation(summary = "Atualizar roles do João Guedes", 
+               description = "Endpoint temporário para atualizar as roles do usuário João Guedes")
+    public ResponseEntity<String> atualizarRolesJoao() {
+        try {
+            authenticationService.atualizarRoles("joaoguedesdebrito@gmail.com", "ADMIN");
+            log.info("✅ Roles do João Guedes atualizadas para ADMIN");
+            return ResponseEntity.ok("✅ Roles do João Guedes atualizadas para ADMIN com sucesso!");
+        } catch (Exception e) {
+            log.error("❌ Erro ao atualizar roles do João Guedes: {}", e.getMessage());
+            return ResponseEntity.status(500).body("❌ Erro: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String token = authHeader.substring(7);
+            authenticationService.logout(token);
+            return ResponseEntity.ok().build();
+        }
+        return ResponseEntity.badRequest().build();
     }
 
     // Métodos auxiliares privados

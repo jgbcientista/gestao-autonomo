@@ -34,10 +34,36 @@
           </button>
         </li>
         <li class="nav-item">
-          <button class="btn btn-outline-secondary btn-sm" (click)="voltarDashboard()">
-            <i class="bi bi-arrow-left me-1"></i>
-            Voltar
+          <button class="btn btn-outline-light btn-sm me-2" (click)="voltarDashboard()">
+            <i class="bi bi-arrow-left me-1"></i>Voltar
           </button>
+        </li>
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header">
+              <div class="user-info">
+                <strong>{{ usuarioAtual.name }}</strong>
+                <small>{{ usuarioAtual.email }}</small>
+              </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" routerLink="/settings">
+                <i class="bi bi-gear me-2"></i>Configurações
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" (click)="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
         </li>
       </ul>
     </div>

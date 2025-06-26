@@ -26,7 +26,10 @@ export class ApiService {
     if (this.isBrowser) {
       const token = localStorage.getItem('auth_token');
       if (token) {
+        console.log('🔑 Token encontrado:', token.substring(0, 10) + '...');
         headers = headers.set('Authorization', `Bearer ${token}`);
+      } else {
+        console.warn('⚠️ Token não encontrado no localStorage');
       }
     }
     
@@ -72,35 +75,45 @@ export class ApiService {
   }
 
   getStatus(): Observable<string> {
-    return this.http.get<string>(
+    return this.http.get(
       `${this.baseUrl}/api/v1/autenticacao/status`, 
-      { headers: this.getHeaders() }
+      { 
+        headers: this.getHeaders(),
+        responseType: 'text'
+      }
     );
   }
 
   // === SCORE DE CONFIANÇA ===
   getTrustScore(email: string): Observable<any> {
+    console.log('📊 Buscando Trust Score para:', email);
+    const headers = this.getHeaders();
+    console.log('🔒 Headers:', headers.keys());
+    
     return this.http.get<any>(
       `${this.baseUrl}/api/trust-score/usuario/${email}`,
-      { headers: this.getHeaders() }
+      { headers }
     );
   }
 
   adjustTrustScore(email: string, ajuste: number, motivo: string): Observable<any> {
+    console.log('⚖️ Ajustando Trust Score:', { email, ajuste, motivo });
+    const headers = this.getHeaders();
+    
     return this.http.post<any>(
       `${this.baseUrl}/api/trust-score/ajustar/${email}`,
-      null,
-      { 
-        headers: this.getHeaders(),
-        params: { ajuste: ajuste.toString(), motivo }
-      }
+      { ajuste, motivo },  // Enviando como objeto no body
+      { headers }
     );
   }
 
   getTrustScoreStatistics(): Observable<any> {
+    console.log('📈 Buscando estatísticas do Trust Score');
+    const headers = this.getHeaders();
+    
     return this.http.get<any>(
       `${this.baseUrl}/api/trust-score/estatisticas`,
-      { headers: this.getHeaders() }
+      { headers }
     );
   }
 
@@ -261,18 +274,26 @@ export class ApiService {
     );
   }
 
-  // === HEALTH CHECK ===
+  // === HEALTH CHECK E MONITORAMENTO ===
   getHealthStatus(): Observable<any> {
+    console.log('🏥 Buscando status de saúde do sistema');
+    const headers = this.getHeaders();
+    console.log('🔒 Headers:', headers.keys());
+    
     return this.http.get<any>(
       `${this.baseUrl}/api/v1/health/status`,
-      { headers: this.getHeaders() }
+      { headers }
     );
   }
 
   getSystemHealth(): Observable<any> {
+    console.log('🔍 Buscando métricas do sistema');
+    const headers = this.getHeaders();
+    console.log('🔒 Headers:', headers.keys());
+    
     return this.http.get<any>(
       `${this.baseUrl}/api/v1/health/system`,
-      { headers: this.getHeaders() }
+      { headers }
     );
   }
 
@@ -294,32 +315,67 @@ export class ApiService {
 
   // === POLÍTICA DE SEGURANÇA (ADMIN) ===
   getSecurityPolicy(): Observable<any> {
+    console.log('🔒 Buscando política de segurança');
+    const headers = this.getHeaders();
+    
     return this.http.get<any>(
-      `${this.baseUrl}/api/v1/configuracoes/politica-seguranca`,
-      { headers: this.getHeaders() }
+      `${this.baseUrl}/api/v1/configuracoes/seguranca`,
+      { headers }
     );
   }
 
   updateSecurityPolicy(policy: any): Observable<any> {
-    return this.http.put<any>(
-      `${this.baseUrl}/api/v1/configuracoes/politica-seguranca`,
+    console.log('🔒 Atualizando política de segurança:', policy);
+    const headers = this.getHeaders();
+    
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/configuracoes/seguranca`,
       policy,
-      { headers: this.getHeaders() }
+      { headers }
     );
   }
 
   // === CONFIGURAÇÃO DO SISTEMA (ADMIN) ===
   getSystemConfiguration(): Observable<any> {
+    console.log('⚙️ Buscando configurações do sistema');
+    const headers = this.getHeaders();
+    
     return this.http.get<any>(
       `${this.baseUrl}/api/v1/configuracoes/sistema`,
-      { headers: this.getHeaders() }
+      { headers }
     );
   }
 
   updateSystemConfiguration(config: any): Observable<any> {
-    return this.http.put<any>(
+    console.log('⚙️ Atualizando configurações:', config);
+    const headers = this.getHeaders();
+    
+    return this.http.post<any>(
       `${this.baseUrl}/api/v1/configuracoes/sistema`,
       config,
+      { headers }
+    );
+  }
+
+  blockSession(sessionId: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/sessoes/${sessionId}/bloquear`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  endSession(sessionId: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/sessoes/${sessionId}/encerrar`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getSessionStats(): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/sessoes/estatisticas`,
       { headers: this.getHeaders() }
     );
   }

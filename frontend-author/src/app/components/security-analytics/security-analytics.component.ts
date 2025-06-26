@@ -1,6 +1,7 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, Inject, PLATFORM_ID } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Subscription, forkJoin, interval } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
@@ -13,6 +14,7 @@ import {
   Alert,
   RecentActivity
 } from '../../models/system.model';
+import { isPlatformBrowser } from '@angular/common';
 
 @Component({
   selector: 'app-security-analytics',
@@ -55,12 +57,14 @@ export class SecurityAnalyticsComponent implements OnInit, OnDestroy {
 
   constructor(
     private apiService: ApiService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router,
+    @Inject(PLATFORM_ID) private platformId: Object
   ) {}
 
   ngOnInit(): void {
     // Verifica se está executando no browser para evitar problemas de SSR
-    if (typeof window !== 'undefined') {
+    if (isPlatformBrowser(this.platformId)) {
       this.carregarDados();
       // Delay antes de iniciar monitoramento para evitar problemas de SSR
       setTimeout(() => {
@@ -78,14 +82,50 @@ export class SecurityAnalyticsComponent implements OnInit, OnDestroy {
   }
 
   carregarDados(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.carregarDadosSimuladosSSR();
+      return;
+    }
+
     this.loading = true;
     this.error = null;
-    
+
+    // Carrega usuário atual primeiro
     this.usuarioAtual = this.authService.getCurrentUser();
+    
+    // Debug detalhado do usuário atual
+    console.log('🔍 Debug Security Analytics:', {
+      usuarioAtual: this.usuarioAtual,
+      userRole: this.usuarioAtual?.role,
+      isAdmin: this.usuarioAtual?.role === 'ADMIN',
+      token: localStorage.getItem('auth_token') ? 'exists' : 'missing',
+      tokenLength: localStorage.getItem('auth_token')?.length || 0
+    });
+
+    // Verifica se o usuário é admin antes de fazer as chamadas
+    const isAdmin = this.usuarioAtual?.role === 'ADMIN';
+    console.log('👤 Verificação Admin:', {
+      isAdmin,
+      userRole: this.usuarioAtual?.role,
+      userName: this.usuarioAtual?.name,
+      userEmail: this.usuarioAtual?.email
+    });
+
+    if (!isAdmin) {
+      console.warn('⚠️ Usuário não é ADMIN. Carregando dados simulados.');
+      this.modoSimulado = true;
+      this.carregarDadosSimulados();
+      this.loading = false;
+      return;
+    }
+
+    console.log('🚀 Iniciando carregamento de dados reais da API...');
     
     // Verifica se o usuário está autenticado e tem token
     const token = this.authService.getToken();
     const isAuthenticated = this.authService.isAuthenticated();
+    
+    console.log('👤 Usuário:', this.usuarioAtual?.name, '| Role:', this.usuarioAtual?.role, '| Admin:', isAdmin);
     
     if (!isAuthenticated || !token) {
       console.warn('Usuário não autenticado ou token ausente. Usando dados simulados.');
@@ -95,8 +135,8 @@ export class SecurityAnalyticsComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Se está autenticado, considerar como dados "reais" (mesmo que simulados)
-    console.log('Usuário autenticado detectado:', this.usuarioAtual);
+    // Se está autenticado e é admin, carregar dados reais
+    console.log('Usuário administrador detectado:', this.usuarioAtual);
     this.modoSimulado = false;
 
     // Tenta carregar dados reais da API
@@ -107,6 +147,18 @@ export class SecurityAnalyticsComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: (dados) => {
         console.log('Dados reais carregados com sucesso:', dados);
+        
+        // Verifica se os dados são realmente reais ou simulados
+        if (dados.metricas && dados.metricas.simulado) {
+          console.warn('⚠️ API retornou dados simulados:', {
+            motivo: 'Dados de métricas são simulados - sistema não possui dados reais'
+          });
+          this.modoSimulado = true;
+          this.carregarDadosSimulados();
+          this.loading = false;
+          return;
+        }
+        
         this.metricas = dados.metricas;
         this.transacoesAltoRisco = dados.transacoesAltoRisco;
         this.transacoesNaoVerificadas = dados.transacoesNaoVerificadas;
@@ -118,9 +170,20 @@ export class SecurityAnalyticsComponent implements OnInit, OnDestroy {
       },
       error: (erro) => {
         console.error('Erro ao carregar dados reais:', erro);
-        console.log('Gerando dados simulados para usuário autenticado');
         
-        // Para usuário autenticado, gerar dados simulados mas não mostrar aviso
+        // Verifica se é erro de autorização (403/401)
+        if (erro.status === 403 || erro.status === 401) {
+          console.warn('⚠️ Erro de autorização detectado. Usuário pode precisar de novas permissões.');
+          console.log('💡 Sugestão: Faça logout e login novamente para atualizar permissões.');
+          
+          // Opcional: Mostrar mensagem para o usuário
+          this.error = 'Suas permissões podem estar desatualizadas. Faça logout e login novamente.';
+        } else {
+          console.log('API não disponível. Usando dados simulados.');
+        }
+        
+        // Se API não está disponível, marcar como simulado
+        this.modoSimulado = true;
         this.carregarDadosSimulados();
         this.loading = false;
       }
@@ -231,10 +294,14 @@ export class SecurityAnalyticsComponent implements OnInit, OnDestroy {
     // Simula carregamento de usuários de alto risco reais
     // Em uma implementação real, isso faria uma chamada para a API
     const numUsuarios = Math.min(this.metricas?.usuariosAltoRisco || 0, 10);
+    const nomesReais = [
+      'carlos.mendes', 'patricia.silva', 'rodrigo.santos', 'amanda.costa', 'felipe.oliveira',
+      'daniela.ferreira', 'bruno.almeida', 'camila.lima', 'thiago.souza', 'vanessa.rocha'
+    ];
     
     this.usuariosAltoRisco = Array.from({ length: numUsuarios }, (_, i) => ({
       idUsuario: i + 1,
-      emailUsuario: `usuario${i + 1}@empresa.com`,
+      emailUsuario: `${nomesReais[i]}@empresa.com`,
       pontuacaoRiscoAtual: 0.7 + (this.getRandom() * 0.3),
       nivelRisco: this.getRandom() > 0.5 ? 'ALTO' : 'CRITICO',
       totalLogins: Math.floor(this.getRandom() * 100) + 20,
@@ -543,5 +610,14 @@ export class SecurityAnalyticsComponent implements OnInit, OnDestroy {
       return 0.5; // Valor fixo para SSR
     }
     return Math.random();
+  }
+
+  // Método para voltar ao dashboard
+  voltarDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 } 

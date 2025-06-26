@@ -92,108 +92,12 @@
   }
 }
 
-/* Navbar Moderna */
-.modern-navbar {
-  background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1rem 0;
-  z-index: 1030;
-}
-
-.nav-link.active {
-  color: rgba(255, 255, 255, 1) !important;
-  font-weight: 600;
-}
-
-.brand-logo {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 1rem;
-  transition: all 0.3s ease;
-}
-
-.brand-logo i {
-  color: white;
-  font-size: 1.2rem;
-}
-
-.brand-text {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: rgba(255, 255, 255, 0.95);
-}
-
-.navbar-brand:hover .brand-logo {
-  transform: scale(1.1);
-  box-shadow: 0 5px 15px rgba(59, 130, 246, 0.4);
-}
-
-.user-menu {
-  display: flex;
-  align-items: center;
-  padding: 0.5rem 1rem;
-  border-radius: 50px;
-  background: rgba(255, 255, 255, 0.1);
-  transition: all 0.3s ease;
-}
-
-.user-menu:hover {
-  background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
-}
-
-.user-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #10b981, #3b82f6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-right: 0.5rem;
-}
-
-.user-avatar i {
-  color: white;
-  font-size: 1rem;
-}
-
-.user-name {
-  color: rgba(255, 255, 255, 0.9);
-  font-weight: 600;
-}
-
-.dropdown-menu {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  padding: 1rem;
-  margin-top: 0.5rem;
-}
-
-.user-info strong {
-  color: #1f2937;
-  font-size: 0.875rem;
-}
-
-.user-info small {
-  color: #6b7280;
-  font-size: 0.75rem;
-}
+/* AI Analysis Component - Estilos específicos */
 
 /* Main Dashboard */
 .dashboard-main {
-  padding-top: 100px;
+  padding-top: 85px; // Ajustado para novo design global
+  padding-bottom: 4rem; // Espaço para evitar corte do conteúdo
   min-height: 100vh;
   position: relative;
   z-index: 1;

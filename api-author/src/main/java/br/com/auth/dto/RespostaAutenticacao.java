@@ -34,6 +34,9 @@ public class RespostaAutenticacao {
     @Schema(description = "Mensagem relacionada ao MFA", example = "Autenticação de dois fatores necessária")
     private String mfaMessage;
 
+    @Schema(description = "Papel/perfil do usuário", example = "ADMIN")
+    private String role;
+
     // Métodos auxiliares para compatibilidade com código existente
     public String getName() {
         return nome;

@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,7 +82,7 @@ public class ServicoExtracaoFeatures {
         if (userAgent == null) return false;
         
         return historico.stream()
-            .anyMatch(log -> userAgent.equals(log.getUserAgent()));
+            .anyMatch(log -> userAgent.equals(log.getDeviceInfo()));
     }
 
     private Boolean verificarLocalizacaoJaUtilizada(List<LogAuditoria> historico, String localizacao) {
@@ -218,8 +219,8 @@ public class ServicoExtracaoFeatures {
 
     private Integer contarDispositivosDistintos(List<LogAuditoria> historico) {
         Set<String> dispositivosDistintos = historico.stream()
-            .map(LogAuditoria::getUserAgent)
-            .filter(ua -> ua != null && !ua.isEmpty())
+            .map(LogAuditoria::getDeviceInfo)
+            .filter(device -> device != null && !device.isEmpty())
             .collect(Collectors.toSet());
 
         return dispositivosDistintos.size();
@@ -232,12 +233,40 @@ public class ServicoExtracaoFeatures {
 
         // Analisar padrões de navegação baseado em tipos de evento
         long acoesUnicas = historico.stream()
-            .map(LogAuditoria::getTipoEvento)
+            .map(LogAuditoria::getEventType)
             .filter(acao -> acao != null)
             .collect(Collectors.toSet())
             .size();
 
         // Normalizar score (mais ações únicas = comportamento mais diverso)
         return Math.min(1.0, acoesUnicas / 10.0);
+    }
+
+    private Map<String, Long> contarEventosPorTipo(List<LogAuditoria> logs) {
+        return logs.stream()
+            .collect(Collectors.groupingBy(
+                LogAuditoria::getEventType,
+                Collectors.counting()
+            ));
+    }
+
+    private double calcularScoreDispositivosUnicos(List<LogAuditoria> historico) {
+        // Contar dispositivos únicos
+        long dispositivosUnicos = historico.stream()
+            .map(LogAuditoria::getDeviceInfo)
+            .filter(device -> device != null)
+            .distinct()
+            .count();
+
+        // Normalizar score (assumindo que mais de 5 dispositivos é suspeito)
+        return Math.min(1.0, 5.0 / Math.max(5.0, dispositivosUnicos));
+    }
+
+    private Map<String, Long> contarDispositivosUsados(List<LogAuditoria> logs) {
+        return logs.stream()
+            .collect(Collectors.groupingBy(
+                LogAuditoria::getDeviceInfo,
+                Collectors.counting()
+            ));
     }
 } 

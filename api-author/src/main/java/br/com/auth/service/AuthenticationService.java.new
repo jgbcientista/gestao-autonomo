@@ -1,0 +1,258 @@
+package br.com.auth.service;
+
+import br.com.auth.dominio.entidades.LogAuditoria;
+import br.com.auth.dominio.entidades.Usuario;
+import br.com.auth.dominio.interfaces.IServicoAutenticacao;
+import br.com.auth.dto.AuthenticationRequest;
+import br.com.auth.dto.AuthenticationResponse;
+import br.com.auth.dto.RegisterRequest;
+import br.com.auth.dto.RequisicaoAutenticacao;
+import br.com.auth.dto.RespostaAutenticacao;
+import br.com.auth.dto.RequisicaoRegistro;
+import br.com.auth.exception.RegistrationException;
+import br.com.auth.infraestrutura.repositorios.RepositorioUsuario;
+import br.com.auth.infraestrutura.repositorios.RepositorioLogAuditoria;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.BadCredentialsException;
+import jakarta.servlet.http.HttpServletRequest;
+
+import java.time.LocalDateTime;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AuthenticationService implements IServicoAutenticacao {
+
+    private final RepositorioUsuario repositorioUsuario;
+    private final RepositorioLogAuditoria repositorioLogAuditoria;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtService jwtService;
+    private final AuthenticationManager authenticationManager;
+    private final BlockchainService blockchainService;
+    @Autowired(required = false)
+    private JavaBlockchainService javaBlockchainService;
+    private final ContextAnalysisService contextAnalysisService;
+    private final AiContextAnalysisService aiContextAnalysisService;
+    private final ServicoAnaliseComportamentalIA servicoAnaliseComportamentalIA;
+    private final ServicoGeolocalizacao servicoGeolocalizacao;
+    private final ServicoScoreConfianca servicoScoreConfianca;
+    private final GerenciadorSessaoService gerenciadorSessaoService;
+
+    @Value("${blockchain.native.enabled:false}")
+    private boolean useNativeBlockchain;
+
+    @Transactional
+    public RespostaAutenticacao register(RequisicaoRegistro request) {
+        if (repositorioUsuario.existsByEmail(request.getEmail())) {
+            throw new RuntimeException("Email já cadastrado");
+        }
+
+        // Define roles baseado no email e nome do usuário
+        Set<String> userRoles = new HashSet<>();
+        if (request.getRoles() != null && !request.getRoles().isEmpty()) {
+            userRoles.addAll(request.getRoles());
+        } else {
+            // Lógica inteligente para definir roles
+            userRoles.addAll(determineUserRoles(request.getEmail(), request.getName()));
+        }
+
+        var usuario = Usuario.builder()
+                .nome(request.getName())
+                .email(request.getEmail())
+                .senha(passwordEncoder.encode(request.getPassword()))
+                .perfis(userRoles)
+                .tentativasLoginFalhadas(0)
+                .contaBloqueada(false)
+                .autenticacaoDoisFatoresHabilitada(false)
+                .build();
+
+        repositorioUsuario.save(usuario);
+        log.info("Usuário {} registrado com sucesso, Roles: {}", usuario.getEmail(), usuario.getPerfis());
+
+        var jwtToken = jwtService.generateToken(usuario);
+        return RespostaAutenticacao.builder()
+                .token(jwtToken)
+                .nome(usuario.getName())
+                .login(usuario.getEmail())
+                .trustScore(0.8)
+                .trustLevel("HIGH")
+                .requiresMfa(false)
+                .role(usuario.getPerfis().stream().findFirst().orElse("USER"))
+                .build();
+    }
+
+    @Transactional
+    public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletRequest httpRequest) {
+        try {
+            var usuario = repositorioUsuario.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+            if (usuario.getAccountLocked() != null && usuario.getAccountLocked()) {
+                log.warn("Tentativa de login em conta bloqueada: {}", request.getEmail());
+                throw new BadCredentialsException("Conta bloqueada. Tente novamente mais tarde.");
+            }
+
+            // Autenticar usuário
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+                )
+            );
+            
+            // Gerar token JWT
+            var jwtToken = jwtService.generateToken(usuario);
+
+            // Criar nova sessão
+            gerenciadorSessaoService.criarSessao(usuario, jwtToken, httpRequest);
+
+            // Atualizar dados do usuário
+            atualizarDadosLogin(usuario, httpRequest);
+
+            // Registrar log de auditoria
+            registrarLogAuditoria(usuario, "LOGIN_SUCCESS", httpRequest);
+
+            // Registrar no blockchain
+            try {
+                Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(httpRequest.getRemoteAddr());
+                String locationStr = String.format("%s, %s", localizacao.get("cidade"), localizacao.get("pais"));
+                
+                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", 0.8, 
+                    httpRequest.getRemoteAddr(), 
+                    locationStr,
+                    httpRequest.getHeader("User-Agent"));
+            } catch (Exception e) {
+                log.error("Erro ao registrar evento no blockchain", e);
+            }
+
+            return buildAuthResponse(usuario, jwtToken);
+        } catch (Exception e) {
+            log.error("Erro durante autenticação: {}", e.getMessage());
+            throw new BadCredentialsException("Falha na autenticação: " + e.getMessage());
+        }
+    }
+
+    private void registrarLogAuditoria(Usuario usuario, String evento, HttpServletRequest request) {
+        try {
+            Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(request.getRemoteAddr());
+            String locationStr = String.format("%s, %s", localizacao.get("cidade"), localizacao.get("pais"));
+            
+            LogAuditoria log = LogAuditoria.builder()
+                .usuario(usuario)
+                .evento(evento)
+                .ip(request.getRemoteAddr())
+                .localizacao(locationStr)
+                .dispositivo(request.getHeader("User-Agent"))
+                .dataHora(LocalDateTime.now())
+                .sucesso(true)
+                .build();
+            
+            repositorioLogAuditoria.save(log);
+        } catch (Exception e) {
+            log.error("Erro ao registrar log de auditoria", e);
+        }
+    }
+
+    @Override
+    public boolean validarToken(String token) {
+        try {
+            var userEmail = jwtService.extractUsername(token);
+            var userDetails = repositorioUsuario.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+            return jwtService.isTokenValid(token, userDetails);
+        } catch (Exception e) {
+            log.error("Erro ao validar token: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    private Set<String> determineUserRoles(String email, String name) {
+        Set<String> roles = new HashSet<>();
+        roles.add("USER"); // Role padrão
+
+        // Adiciona role de admin para emails específicos
+        if (email.endsWith("@admin.com") || email.contains("admin")) {
+            roles.add("ADMIN");
+        }
+
+        // Adiciona role de analista para emails específicos
+        if (email.contains("analyst") || email.contains("analista")) {
+            roles.add("ANALYST");
+        }
+
+        return roles;
+    }
+
+    private AuthenticationResponse buildAuthResponse(Usuario usuario, String token) {
+        return AuthenticationResponse.builder()
+                .token(token)
+                .email(usuario.getEmail())
+                .name(usuario.getName())
+                .roles(new ArrayList<>(usuario.getPerfis()))
+                .build();
+    }
+
+    private void atualizarDadosLogin(Usuario usuario, HttpServletRequest request) {
+        usuario.setLastLoginIp(request.getRemoteAddr());
+        usuario.setLastLoginDevice(request.getHeader("User-Agent"));
+        usuario.setLastLoginTime(LocalDateTime.now());
+        
+        Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(request.getRemoteAddr());
+        usuario.setLastLoginLocation(String.format("%s, %s", localizacao.get("cidade"), localizacao.get("pais")));
+        
+        usuario.setFailedLoginAttempts(0);
+        repositorioUsuario.save(usuario);
+    }
+
+    @Transactional
+    public void logout(String token) {
+        try {
+            gerenciadorSessaoService.encerrarSessao(token);
+            log.info("Logout realizado com sucesso");
+        } catch (Exception e) {
+            log.error("Erro ao realizar logout: {}", e.getMessage());
+        }
+    }
+
+    private void recordBlockchainEvent(Usuario usuario, String eventType, String decision, 
+                                     Double riskScore, String ipAddress, String location, 
+                                     String deviceFingerprint) {
+        try {
+            Map<String, Object> eventData = new HashMap<>();
+            eventData.put("userId", usuario.getId());
+            eventData.put("email", usuario.getEmail());
+            eventData.put("eventType", eventType);
+            eventData.put("decision", decision);
+            eventData.put("riskScore", riskScore);
+            eventData.put("ipAddress", ipAddress);
+            eventData.put("location", location);
+            eventData.put("deviceFingerprint", deviceFingerprint);
+            eventData.put("timestamp", LocalDateTime.now().toString());
+
+            if (useNativeBlockchain && javaBlockchainService != null) {
+                CompletableFuture.runAsync(() -> {
+                    javaBlockchainService.addBlock(eventData);
+                });
+            } else {
+                CompletableFuture.runAsync(() -> {
+                    blockchainService.recordEvent(eventData);
+                });
+            }
+        } catch (Exception e) {
+            log.error("Erro ao registrar evento no blockchain: {}", e.getMessage());
+        }
+    }
+} 

@@ -8,6 +8,7 @@ import { AiAnalysisComponent } from './components/ai-analysis/ai-analysis.compon
 import { SecurityAnalyticsComponent } from './components/security-analytics/security-analytics.component';
 import { SessionManagerComponent } from './components/session-manager/session-manager.component';
 import { SettingsComponent } from './components/settings/settings.component';
+import { SessionMonitorComponent } from './components/session-monitor/session-monitor.component';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -20,5 +21,6 @@ export const routes: Routes = [
   { path: 'security-analytics', component: SecurityAnalyticsComponent },
   { path: 'session-manager', component: SessionManagerComponent },
   { path: 'settings', component: SettingsComponent },
+  { path: 'session-monitor', component: SessionMonitorComponent },
   { path: '**', redirectTo: '/login' }
 ];

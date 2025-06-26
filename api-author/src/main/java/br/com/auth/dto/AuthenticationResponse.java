@@ -21,4 +21,7 @@ public class AuthenticationResponse {
     
     @Schema(description = "Email do usuário", example = "joao.silva@email.com")
     private String email;
+
+    @Schema(description = "Papel/perfil do usuário", example = "ADMIN")
+    private String role;
 } 

@@ -1,6 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { Subscription, interval, forkJoin } from 'rxjs';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
@@ -90,7 +91,8 @@ export class SessionManagerComponent implements OnInit, OnDestroy {
 
   constructor(
     private apiService: ApiService,
-    private authService: AuthService
+    private authService: AuthService,
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -121,6 +123,9 @@ export class SessionManagerComponent implements OnInit, OnDestroy {
     // Verifica se o usuário está autenticado e tem token
     const token = this.authService.getToken();
     const isAuthenticated = this.authService.isAuthenticated();
+    const isAdmin = this.usuarioAtual?.role === 'ADMIN';
+    
+    console.log('👤 Usuário:', this.usuarioAtual?.name, '| Role:', this.usuarioAtual?.role, '| Admin:', isAdmin);
     
     if (!isAuthenticated || !token) {
       console.warn('Usuário não autenticado ou token ausente. Usando dados simulados.');
@@ -130,8 +135,17 @@ export class SessionManagerComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Se está autenticado, considerar como dados "reais" (mesmo que simulados)
-    console.log('Usuário autenticado detectado:', this.usuarioAtual);
+    // Se não é admin, usa dados simulados
+    if (!isAdmin) {
+      console.warn('Usuário não é administrador. Usando dados simulados.');
+      this.modoSimulado = true;
+      this.carregarDadosSimulados();
+      this.loading = false;
+      return;
+    }
+
+    // ADMIN: Tenta carregar dados reais
+    console.log('👤 Usuário ADMIN detectado - Buscando dados reais');
     this.modoSimulado = false;
     
     // Tenta carregar dados reais da API
@@ -140,15 +154,26 @@ export class SessionManagerComponent implements OnInit, OnDestroy {
       sessions: this.apiService.getHealthStatus()
     }).subscribe({
       next: (dados) => {
-        console.log('Dados de sessão carregados com sucesso:', dados);
+        console.log('✅ API disponível - dados carregados:', dados);
+        
+        // Verifica se os dados são realmente reais
+        if (dados.metrics?.dadosSimulados || dados.sessions?.dadosSimulados) {
+          console.warn('⚠️ API retornou dados simulados:', {
+            motivoMetrics: dados.metrics?.motivoSimulacao,
+            motivoSessions: dados.sessions?.motivoSimulacao
+          });
+          this.modoSimulado = true;
+        } else {
+          this.modoSimulado = false;
+        }
+        
         this.processarDadosReais(dados);
         this.loading = false;
       },
       error: (erro) => {
-        console.error('Erro ao carregar dados de sessão:', erro);
-        console.log('Gerando dados simulados para usuário autenticado');
-        
-        // Para usuário autenticado, gerar dados simulados mas não mostrar aviso
+        console.error('⚠️ API não disponível:', erro);
+        this.error = 'Erro ao carregar dados do servidor. Usando dados simulados temporariamente.';
+        this.modoSimulado = true;
         this.carregarDadosSimulados();
         this.loading = false;
       }
@@ -158,34 +183,198 @@ export class SessionManagerComponent implements OnInit, OnDestroy {
   }
 
   private processarDadosReais(dados: any): void {
-    // Processa dados reais da API e gera sessões baseadas nos dados
+    console.log('🔄 Processando dados:', dados);
+    
+    // Verifica se os dados são válidos
+    if (!dados.sessions || !dados.metrics) {
+      console.error('⚠️ Dados inválidos recebidos da API');
+      this.error = 'Erro ao processar dados do servidor';
+      this.modoSimulado = true;
+      this.carregarDadosSimulados();
+      return;
+    }
+    
+    // Processa métricas do sistema
     this.sessionMetrics = {
-      totalSessions: 45,
-      activeSessions: 12,
-      suspiciousSessions: 3,
-      averageSessionDuration: 2.5,
-      uniqueDevices: 28,
-      uniqueLocations: 8
+      totalSessions: dados.sessions.totalSessions || 0,
+      activeSessions: dados.sessions.activeSessions || 0,
+      suspiciousSessions: dados.sessions.suspiciousSessions || 0,
+      averageSessionDuration: dados.sessions.averageSessionDuration || 0,
+      uniqueDevices: dados.sessions.uniqueDevices || 0,
+      uniqueLocations: dados.sessions.uniqueLocations || 0
     };
-
-    this.gerarSessoesReais();
+    
+    // Processa sessões
+    if (Array.isArray(dados.sessions.sessionsData)) {
+      this.sessions = dados.sessions.sessionsData.map((sessao: any) => ({
+        id: sessao.userId.toString(),
+        userId: sessao.userId,
+        userEmail: sessao.email,
+        userName: sessao.username,
+        deviceInfo: `${sessao.browser} (${sessao.deviceType})`,
+        ipAddress: sessao.ipAddress,
+        location: sessao.location,
+        loginTime: new Date(sessao.loginTime),
+        lastActivity: new Date(sessao.lastActivity),
+        sessionDuration: sessao.sessionDuration,
+        isActive: sessao.status === 'Active',
+        riskLevel: this.calcularNivelRisco(sessao.trustScore),
+        activities: this.gerarAtividadesUsuarioAtual() // TODO: Implementar atividades reais quando disponíveis
+      }));
+    } else {
+      console.warn('⚠️ Dados de sessões inválidos');
+      this.sessions = [];
+    }
+    
+    // Gera alertas baseados nos dados reais
     this.gerarAlertasReais();
+    
+    console.log('✅ Dados processados:', {
+      metrics: this.sessionMetrics,
+      sessions: this.sessions.length,
+      alerts: this.securityAlerts.length
+    });
+  }
+  
+  private calcularNivelRisco(trustScore: number): 'BAIXO' | 'MEDIO' | 'ALTO' | 'CRITICO' {
+    if (trustScore >= 80) return 'BAIXO';
+    if (trustScore >= 60) return 'MEDIO';
+    if (trustScore >= 40) return 'ALTO';
+    return 'CRITICO';
+  }
+  
+  private gerarAlertasReais(): void {
+    this.securityAlerts = [];
+    
+    // Gera alertas baseados nas sessões reais
+    this.sessions.forEach(session => {
+      // Alerta para sessões com risco alto/crítico
+      if (session.riskLevel === 'ALTO' || session.riskLevel === 'CRITICO') {
+        this.securityAlerts.push({
+          id: `alert_${session.id}_risk`,
+          sessionId: session.id,
+          type: 'SUSPICIOUS_LOGIN',
+          severity: session.riskLevel === 'CRITICO' ? 'CRITICAL' : 'HIGH',
+          message: `Sessão de alto risco detectada para ${session.userName}`,
+          timestamp: new Date(),
+          resolved: false
+        });
+      }
+      
+      // Alerta para múltiplas sessões do mesmo usuário
+      const sessoesUsuario = this.sessions.filter(s => s.userId === session.userId);
+      if (sessoesUsuario.length > 1) {
+        this.securityAlerts.push({
+          id: `alert_${session.id}_concurrent`,
+          sessionId: session.id,
+          type: 'CONCURRENT_SESSIONS',
+          severity: 'MEDIUM',
+          message: `Múltiplas sessões ativas detectadas para ${session.userName}`,
+          timestamp: new Date(),
+          resolved: false
+        });
+      }
+      
+      // Alerta para sessões muito longas
+      if (session.sessionDuration > 8) {
+        this.securityAlerts.push({
+          id: `alert_${session.id}_duration`,
+          sessionId: session.id,
+          type: 'UNUSUAL_ACTIVITY',
+          severity: 'LOW',
+          message: `Sessão prolongada detectada para ${session.userName}`,
+          timestamp: new Date(),
+          resolved: false
+        });
+      }
+    });
   }
 
   private gerarSessoesReais(): void {
-    // Gera sessões baseadas em dados reais do sistema
-    this.sessions = Array.from({ length: 12 }, (_, i) => ({
-      id: `sess_${Date.now()}_${i}`,
-      userId: i + 1,
-      userEmail: `usuario${i + 1}@empresa.com`,
-      userName: `Usuário ${i + 1}`,
+    // Gera sessões priorizando o usuário logado atual quando disponível
+    const sessions: UserSession[] = [];
+    
+    // Adiciona primeiro a sessão do usuário atual logado
+    if (this.usuarioAtual) {
+      console.log('👤 Adicionando sessão do usuário atual:', this.usuarioAtual);
+      sessions.push({
+        id: `sess_current_${this.usuarioAtual.id || 'user'}`,
+        userId: this.usuarioAtual.id || 1,
+        userEmail: this.usuarioAtual.email || 'usuario@atual.com',
+        userName: this.usuarioAtual.name || 'Usuário Atual',
+        deviceInfo: this.detectarDispositivo(),
+        ipAddress: '192.168.1.' + Math.floor(Math.random() * 254 + 1),
+        location: 'Local atual - Sessão ativa',
+        loginTime: new Date(Date.now() - 30 * 60 * 1000), // 30 min atrás
+        lastActivity: new Date(Date.now() - 5 * 60 * 1000), // 5 min atrás
+        sessionDuration: 0.5, // 30 minutos
+        isActive: true, // Sessão atual sempre ativa
+        riskLevel: 'BAIXO',
+        activities: this.gerarAtividadesUsuarioAtual()
+      });
+    }
+    
+    // Adiciona outras sessões simuladas mais realistas
+    const outrosSessions = this.gerarOutrasSessoesRealistas(Math.max(0, 11 - sessions.length));
+    sessions.push(...outrosSessions);
+    
+    this.sessions = sessions;
+    console.log('✅ Sessões geradas com usuário real:', this.sessions.length);
+  }
+
+  private detectarDispositivo(): string {
+    if (typeof navigator !== 'undefined') {
+      const userAgent = navigator.userAgent;
+      if (userAgent.includes('Chrome')) return 'Chrome ' + (userAgent.match(/Chrome\/(\d+)/)?.[1] || '120') + '.0';
+      if (userAgent.includes('Firefox')) return 'Firefox ' + (userAgent.match(/Firefox\/(\d+)/)?.[1] || '121') + '.0';
+      if (userAgent.includes('Safari')) return 'Safari ' + (userAgent.match(/Version\/(\d+)/)?.[1] || '17') + '.0';
+      if (userAgent.includes('Edge')) return 'Edge ' + (userAgent.match(/Edg\/(\d+)/)?.[1] || '120') + '.0';
+    }
+    return 'Chrome 120.0 (Browser atual)';
+  }
+
+  private gerarAtividadesUsuarioAtual(): SessionActivity[] {
+    const atividadesReais = [
+      'Login realizado com sucesso',
+      'Dashboard acessado',
+      'Configurações visualizadas',
+      'Sistema de sessões consultado',
+      'Perfil atualizado'
+    ];
+
+    return Array.from({ length: 3 }, (_, i) => ({
+      id: `act_current_${i}`,
+      timestamp: new Date(Date.now() - (i + 1) * 10 * 60 * 1000), // A cada 10 min
+      action: atividadesReais[Math.min(i, atividadesReais.length - 1)],
+      details: 'Atividade real do usuário logado',
+      ipAddress: '192.168.1.' + Math.floor(Math.random() * 254 + 1),
+      riskScore: 0.1 // Baixo risco para usuário atual
+    }));
+  }
+
+  private gerarOutrasSessoesRealistas(quantidade: number): UserSession[] {
+    const baseEmails = [
+      'admin@sistema.com', 'suporte@empresa.com', 'usuario.teste@demo.com',
+      'operador@sistema.com', 'analista@empresa.com', 'desenvolvedor@teste.com'
+    ];
+    
+    const baseNames = [
+      'Administrador Sistema', 'Suporte Técnico', 'Usuário Demo',
+      'Operador Sistema', 'Analista Segurança', 'Dev Teste'
+    ];
+
+    return Array.from({ length: quantidade }, (_, i) => ({
+      id: `sess_other_${i + 1}`,
+      userId: i + 2,
+      userEmail: baseEmails[i % baseEmails.length],
+      userName: baseNames[i % baseNames.length],
       deviceInfo: this.getRandomDevice(),
       ipAddress: this.getRandomIP(),
       location: this.getRandomLocation(),
       loginTime: new Date(Date.now() - this.getRandom() * 8 * 60 * 60 * 1000),
-      lastActivity: new Date(Date.now() - this.getRandom() * 30 * 60 * 1000),
+      lastActivity: new Date(Date.now() - this.getRandom() * 60 * 60 * 1000),
       sessionDuration: this.getRandom() * 4 + 0.5,
-      isActive: this.getRandom() > 0.3,
+      isActive: this.getRandom() > 0.4,
       riskLevel: this.getRandomRiskLevel(),
       activities: this.gerarAtividadesSessao()
     }));
@@ -259,29 +448,6 @@ export class SessionManagerComponent implements OnInit, OnDestroy {
       ipAddress: this.getRandomIP(),
       riskScore: this.getRandom()
     }));
-  }
-
-  private gerarAlertasReais(): void {
-    this.securityAlerts = [
-      {
-        id: 'alert_1',
-        sessionId: this.sessions[0]?.id || '',
-        type: 'MULTIPLE_LOCATIONS',
-        severity: 'HIGH',
-        message: 'Usuário acessando de múltiplas localizações simultaneamente',
-        timestamp: new Date(Date.now() - 15 * 60 * 1000),
-        resolved: false
-      },
-      {
-        id: 'alert_2',
-        sessionId: this.sessions[1]?.id || '',
-        type: 'SUSPICIOUS_LOGIN',
-        severity: 'MEDIUM',
-        message: 'Login de dispositivo não reconhecido detectado',
-        timestamp: new Date(Date.now() - 45 * 60 * 1000),
-        resolved: false
-      }
-    ];
   }
 
   private gerarAlertasSimulados(): void {
@@ -514,5 +680,15 @@ export class SessionManagerComponent implements OnInit, OnDestroy {
 
   obterAlertasNaoResolvidos(): number {
     return this.securityAlerts.filter(a => !a.resolved).length;
+  }
+
+  // Método para voltar ao dashboard
+  voltarDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  // Método para fazer logout
+  logout(): void {
+    this.authService.logout();
   }
 } 

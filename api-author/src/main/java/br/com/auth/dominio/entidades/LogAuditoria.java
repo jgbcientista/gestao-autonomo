@@ -15,7 +15,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "logs_auditoria")
+@Table(name = "log_auditoria")
 @EntityListeners(AuditingEntityListener.class)
 public class LogAuditoria {
 
@@ -27,26 +27,29 @@ public class LogAuditoria {
     @JoinColumn(name = "usuario_id")
     private Usuario usuario;
 
-    @Column(nullable = false)
+    @Column(name = "tipo_evento", nullable = false)
     private String tipoEvento;
 
-    @Column(nullable = false)
+    @Column(name = "descricao")
     private String descricao;
 
-    @Column(name = "endereco_ip")
+    @Column(name = "endereco_ip", nullable = false)
     private String enderecoIp;
 
     @Column(name = "agente_usuario")
     private String agenteUsuario;
 
-    @Column(name = "localizacao")
+    @Column
     private String localizacao;
 
     @Column(name = "info_dispositivo")
     private String infoDispositivo;
 
-    @Column(name = "sucesso")
-    private Boolean sucesso;
+    @Column(name = "data_hora", nullable = false)
+    private LocalDateTime dataHora;
+
+    @Column(nullable = false)
+    private boolean sucesso;
 
     @Column(name = "motivo_falha")
     private String motivoFalha;
@@ -72,28 +75,12 @@ public class LogAuditoria {
         this.tipoEvento = tipo;
     }
 
-    public String getDescription() {
-        return descricao;
-    }
-
-    public void setDescription(String descricao) {
-        this.descricao = descricao;
-    }
-
     public String getIpAddress() {
         return enderecoIp;
     }
 
     public void setIpAddress(String ip) {
         this.enderecoIp = ip;
-    }
-
-    public String getUserAgent() {
-        return agenteUsuario;
-    }
-
-    public void setUserAgent(String agente) {
-        this.agenteUsuario = agente;
     }
 
     public String getLocation() {
@@ -118,5 +105,21 @@ public class LogAuditoria {
 
     public void setFailureReason(String motivo) {
         this.motivoFalha = motivo;
+    }
+
+    public String getUserAgent() {
+        return agenteUsuario;
+    }
+
+    public void setUserAgent(String agente) {
+        this.agenteUsuario = agente;
+    }
+
+    public String getDeviceInfo() {
+        return infoDispositivo;
+    }
+
+    public void setDeviceInfo(String info) {
+        this.infoDispositivo = info;
     }
 } 

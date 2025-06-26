@@ -113,3 +113,37 @@ Estruturar a integração com blockchain (inicialmente local/testnet)
 
 
 docker-compose up -d postgres
+
+
+Implementar rastreamento real de sessões ativas no banco de dados
+Armazenar informações reais de dispositivo e localização durante o login
+Manter um histórico real de atividades por sessão
+Implementar um mecanismo de timeout para sessões inativas
+Você gostaria que eu implementasse alguma dessas melhorias?
+
+
+róximos passos sugeridos:
+Implementar limite de sessões simultâneas por usuário
+Adicionar notificações de novas sessões
+Criar dashboard de monitoramento
+Implementar bloqueio automático de sessões suspeitas
+
+O sistema irá:
+Monitorar sessões em tempo real
+Bloquear automaticamente contas suspeitas
+Notificar usuários sobre bloqueios
+Manter histórico de ações
+
+
+spring:
+  mail:
+    username: ${MAIL_USERNAME}
+    password: ${MAIL_PASSWORD}
+	
+	  cd frontend-author
+     npm cache clean --force
+     del /f /s /q node_modules
+     del /f package-lock.json
+     npm install --legacy-peer-deps
+     npm install -g @angular/cli@17.2.0
+     ng serve --port 4202

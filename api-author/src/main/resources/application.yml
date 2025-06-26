@@ -42,6 +42,25 @@ spring:
         connection:
           provider_disables_autocommit: false
     open-in-view: false
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: ${MAIL_USERNAME:joaoguedesdebrito@gmail.com}
+    password: ${MAIL_PASSWORD:sua_senha_de_app}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+  thymeleaf:
+    prefix: classpath:/templates/
+    suffix: .html
+    mode: HTML
+    encoding: UTF-8
+    cache: false
+    check-template-location: true
 
 springdoc:
   api-docs:
@@ -217,6 +236,16 @@ logging:
     org.web3j: ERROR
     org.hibernate.SQL: INFO 
 
+session:
+  timeout:
+    minutes: 30
+  max-concurrent: 3
+  cleanup:
+    interval: 300000 # 5 minutos
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:4200}
+
 ---
 # Profile de produção com PostgreSQL
 spring:
@@ -275,3 +304,10 @@ logging:
     br.com.auth: INFO
     org.web3j: INFO
     org.hibernate.SQL: INFO 
+
+security:
+  auto-block:
+    max-suspicious-sessions: 3
+    min-trust-score: 0.3
+    suspicious-locations-threshold: 2
+    check-interval: 60000 # 1 minuto 

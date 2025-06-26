@@ -11,8 +11,12 @@ export interface AuthenticationRequest {
 
 export interface AuthenticationResponse {
   token: string;
-  name: string;
-  email: string;
+  name?: string;
+  email?: string;
+  role?: string;
+  trustScore?: number;
+  trustLevel?: string;
+  requiresMfa?: boolean;
 }
 
 export interface RegisterRequest {
@@ -26,5 +30,6 @@ export interface User {
   id?: number;
   name: string;
   email: string;
+  role?: string;
   roles?: string[];
 }

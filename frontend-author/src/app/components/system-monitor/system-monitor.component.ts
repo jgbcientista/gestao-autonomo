@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Router } from '@angular/router';
 import { interval, Subscription } from 'rxjs';
 import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
 import { SystemHealth, DashboardData } from '../../models/system.model';
 
 @Component({
@@ -19,14 +20,19 @@ export class SystemMonitorComponent implements OnInit, OnDestroy {
   loading = false;
   error: string | null = null;
   
+  // Usuário atual para menu
+  usuarioAtual: any = null;
+  
   private subscriptions: Subscription[] = [];
   
   constructor(
     private apiService: ApiService,
+    private authService: AuthService,
     private router: Router
   ) { }
 
   ngOnInit(): void {
+    this.usuarioAtual = this.authService.getCurrentUser();
     this.loadSystemData();
     
     // Atualizar dados a cada 30 segundos
@@ -316,5 +322,9 @@ export class SystemMonitorComponent implements OnInit, OnDestroy {
       case 'SUCCESS': return 'bi-check-circle-fill';
       default: return 'bi-bell-fill';
     }
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 }

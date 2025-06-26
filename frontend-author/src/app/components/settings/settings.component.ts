@@ -545,15 +545,12 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.subscriptions.add(subscription);
   }
 
-  // Método para voltar à página anterior
-  goBack(): void {
-    console.log('🔙 Voltando à página anterior');
-    // Primeiro tenta voltar usando o histórico do navegador
-    if (window.history.length > 1) {
-      this.location.back();
-    } else {
-      // Se não há histórico, vai para o dashboard
-      this.router.navigate(['/dashboard']);
-    }
+  // Método para voltar ao dashboard
+  voltarDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  logout(): void {
+    this.authService.logout();
   }
 } 

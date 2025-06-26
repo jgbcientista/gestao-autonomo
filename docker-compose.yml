@@ -1,0 +1,67 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: authdb
+      POSTGRES_USER: authuser
+      POSTGRES_PASSWORD: authpass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - auth-network
+
+  # Redis (para cache e sessões)
+  redis:
+    image: redis:7-alpine
+    container_name: auth-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - auth-network
+
+  # Auth Service (API)
+  auth-service:
+    build: .
+    container_name: auth-service
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=production
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/authdb
+      - SPRING_DATASOURCE_USERNAME=authuser
+      - SPRING_DATASOURCE_PASSWORD=authpass
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - auth-network
+    volumes:
+      - ./api-author/logs:/app/logs
+
+  # Frontend (Angular)
+  frontend:
+    build:
+      context: ./frontend-author
+      dockerfile: Dockerfile.frontend
+    container_name: auth-frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - auth-service
+    networks:
+      - auth-network
+
+volumes:
+  postgres_data:
+
+networks:
+  auth-network:
+    driver: bridge 

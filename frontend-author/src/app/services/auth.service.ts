@@ -35,24 +35,79 @@ export class AuthService {
     const userStr = localStorage.getItem('current_user');
     
     if (token && userStr) {
-      const user = JSON.parse(userStr);
-      this.currentUserSubject.next(user);
-      this.isAuthenticatedSubject.next(true);
+      try {
+        const user = JSON.parse(userStr);
+        console.log('🔐 Verificando status de autenticação:', {
+          token: token.substring(0, 10) + '...',
+          user
+        });
+        
+        // Se o usuário não tem role definido ou é USER, re-determinar baseado no email/nome
+        if (!user.role || user.role === 'USER') {
+          user.role = this.determineUserRole(user.email, user);
+          console.log('👤 Role redeterminada:', user.role);
+          
+          // Atualizar localStorage com novo role
+          if (this.isBrowser) {
+            localStorage.setItem('current_user', JSON.stringify(user));
+          }
+        }
+        
+        this.currentUserSubject.next(user);
+        this.isAuthenticatedSubject.next(true);
+        
+        // Validar token no backend
+        this.validateTokenWithBackend(token);
+      } catch (error) {
+        console.error('❌ Erro ao processar dados do usuário:', error);
+        this.logout();
+      }
+    } else {
+      console.warn('⚠️ Nenhum token ou usuário encontrado');
+      this.logout();
     }
   }
 
+  private validateTokenWithBackend(token: string): void {
+    this.apiService.validateToken(token).subscribe({
+      next: (isValid) => {
+        console.log('🔒 Token validado:', isValid);
+        if (!isValid) {
+          console.warn('⚠️ Token inválido, fazendo logout');
+          this.logout();
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erro ao validar token:', err);
+        this.logout();
+      }
+    });
+  }
+
   login(credentials: AuthenticationRequest): Observable<AuthenticationResponse> {
+    console.log('🔑 Iniciando login para:', credentials.email);
+    
     // Enriquecer requisição com informações do cliente
     const enrichedCredentials = this.enrichAuthRequest(credentials);
     
     return this.apiService.login(enrichedCredentials).pipe(
       tap(response => {
-        console.log('Resposta do login:', response);
+        console.log('✅ Resposta do login:', {
+          token: response.token ? 'presente' : 'ausente',
+          name: response.name,
+          email: response.email,
+          role: response.role
+        });
         
         if (response && response.token && response.token.trim() !== '') {
+          // Usar role da resposta da API
+          const userRole = response.role || this.determineUserRole(response.email || credentials.email, response);
+          console.log('👤 Role:', userRole);
+          
           const user: User = {
             name: response.name || 'Usuário',
-            email: response.email || credentials.email
+            email: response.email || credentials.email,
+            role: userRole
           };
           
           if (this.isBrowser) {
@@ -63,9 +118,9 @@ export class AuthService {
           this.currentUserSubject.next(user);
           this.isAuthenticatedSubject.next(true);
           
-          console.log('Login realizado com sucesso!', user);
+          console.log('✨ Login realizado com sucesso!', user);
         } else {
-          console.warn('Token vazio recebido do servidor:', response);
+          console.warn('⚠️ Token vazio recebido do servidor:', response);
           throw new Error('Token não fornecido pelo servidor');
         }
       })
@@ -78,9 +133,13 @@ export class AuthService {
         console.log('Resposta do registro:', response);
         
         if (response && response.token && response.token.trim() !== '') {
+          // Determinar role do usuário
+          const userRole = this.determineUserRole(response.email || userDetails.email, response);
+          
           const user: User = {
             name: response.name || userDetails.name,
-            email: response.email || userDetails.email
+            email: response.email || userDetails.email,
+            role: userRole
           };
           
           if (this.isBrowser) {
@@ -101,6 +160,8 @@ export class AuthService {
   }
 
   logout(): void {
+    console.log('🚪 Realizando logout');
+    
     if (this.isBrowser) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('current_user');
@@ -109,7 +170,7 @@ export class AuthService {
     this.currentUserSubject.next(null);
     this.isAuthenticatedSubject.next(false);
     
-    this.router.navigate(['/login']);
+    console.log('✅ Logout concluído');
   }
 
   getCurrentUser(): User | null {
@@ -121,24 +182,80 @@ export class AuthService {
   }
 
   getToken(): string | null {
-    if (!this.isBrowser) {
-      return null;
-    }
-    return localStorage.getItem('auth_token');
+    return this.isBrowser ? localStorage.getItem('auth_token') : null;
   }
 
-  private getClientInfo(): { ipAddress?: string; userAgent?: string; location?: string } {
-    return {
-      userAgent: navigator.userAgent,
-      location: 'São Paulo, BR' // Padrão conforme API
-    };
+  private getDeviceInfo(): string {
+    return navigator.userAgent;
   }
 
-  enrichAuthRequest(request: AuthenticationRequest): AuthenticationRequest {
-    const clientInfo = this.getClientInfo();
+  enrichAuthRequest(request: any): any {
     return {
       ...request,
-      ...clientInfo
+      deviceInfo: this.getDeviceInfo(),
+      timestamp: new Date().toISOString()
     };
+  }
+
+  private determineUserRole(email: string, response: any): string {
+    console.log('🔍 Determinando role para:', email);
+    
+    // Se a resposta da API contém role, usar ela
+    if (response && response.role) {
+      console.log('✅ Role encontrada na resposta da API:', response.role);
+      return response.role;
+    }
+    
+    // Se não tem role na resposta, usar role do token JWT
+    const token = this.getToken();
+    if (token) {
+      try {
+        const tokenData = JSON.parse(atob(token.split('.')[1]));
+        if (tokenData && tokenData.role) {
+          console.log('✅ Role encontrada no token JWT:', tokenData.role);
+          return tokenData.role;
+        }
+      } catch (error) {
+        console.error('❌ Erro ao decodificar token:', error);
+      }
+    }
+    
+    // Se não encontrou role, assumir USER
+    console.warn('⚠️ Role não encontrada, assumindo USER');
+    return 'USER';
+  }
+
+  isAdmin(): boolean {
+    const currentUser = this.getCurrentUser();
+    return currentUser?.role === 'ADMIN';
+  }
+
+  hasRole(role: string): boolean {
+    const currentUser = this.getCurrentUser();
+    return currentUser?.role === role;
+  }
+
+  refreshToken(): Observable<any> {
+    const token = this.getToken();
+    if (!token) {
+      console.warn('⚠️ Nenhum token para renovar');
+      return new Observable(subscriber => {
+        subscriber.error('Nenhum token disponível');
+      });
+    }
+
+    return this.apiService.refreshToken(token).pipe(
+      tap(newToken => {
+        if (newToken) {
+          console.log('🔄 Token renovado');
+          if (this.isBrowser) {
+            localStorage.setItem('auth_token', newToken);
+          }
+        } else {
+          console.warn('⚠️ Renovação de token falhou');
+          this.logout();
+        }
+      })
+    );
   }
 }

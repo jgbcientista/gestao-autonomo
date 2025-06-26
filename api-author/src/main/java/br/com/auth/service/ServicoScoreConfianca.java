@@ -7,6 +7,7 @@ import br.com.auth.dominio.entidades.Usuario;
 import br.com.auth.infraestrutura.repositorios.RepositorioLogAuditoria;
 import br.com.auth.infraestrutura.repositorios.RepositorioPerfilComportamentalIA;
 import br.com.auth.infraestrutura.repositorios.RepositorioScoreConfianca;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -117,6 +118,25 @@ public class ServicoScoreConfianca {
     }
 
     /**
+     * Sobrecarga do método calcularScore que aceita HttpServletRequest
+     */
+    public Double calcularScore(Usuario usuario, HttpServletRequest request) {
+        // Criar um perfil comportamental simplificado baseado no request
+        PerfilComportamentalIA perfil = PerfilComportamentalIA.builder()
+            .usuario(usuario)
+            .ipAcesso(request.getRemoteAddr())
+            .userAgent(request.getHeader("User-Agent"))
+            .dataHoraAcesso(LocalDateTime.now())
+            .classificacaoAcesso(PerfilComportamentalIA.ClassificacaoAcesso.ESPERADO)
+            .scoreAnomalia(0.2)
+            .build();
+
+        // Calcular o score completo
+        ScoreConfianca scoreConfianca = calcularScore(usuario, perfil);
+        return scoreConfianca.getScoreAtual();
+    }
+
+    /**
      * Atualiza o score após um evento de login
      */
     @Transactional
@@ -204,24 +224,23 @@ public class ServicoScoreConfianca {
     // Métodos privados para cálculo de scores
 
     private double calcularScoreHistorico(Usuario usuario) {
-        LocalDateTime dataInicio = LocalDateTime.now().minus(90, ChronoUnit.DAYS);
-        LocalDateTime agora = LocalDateTime.now();
-        List<LogAuditoria> historico = repositorioLogAuditoria.findByUsuarioAndCriadoEmBetween(usuario, dataInicio, agora);
-
+        List<LogAuditoria> historico = repositorioLogAuditoria.findByUsuario(usuario);
+        
         if (historico.isEmpty()) {
             return 0.5; // Score neutro para usuários sem histórico
         }
 
-        long sucessos = historico.stream().filter(LogAuditoria::getSucesso).count();
-        long falhas = historico.size() - sucessos;
-
         // Calcular taxa de sucesso
-        double taxaSucesso = (double) sucessos / historico.size();
+        long loginsSucesso = historico.stream()
+            .filter(log -> log.isSucesso())
+            .count();
 
-        // Penalizar muitas falhas
-        double penalidade = Math.min(0.3, falhas * 0.02);
+        double taxaSucesso = (double) loginsSucesso / historico.size();
 
-        return Math.max(0.0, taxaSucesso - penalidade);
+        // Ajustar baseado no volume de histórico
+        double fatorVolume = Math.min(1.0, historico.size() / 100.0);
+        
+        return taxaSucesso * fatorVolume;
     }
 
     private double calcularScoreIA(PerfilComportamentalIA perfilIA) {

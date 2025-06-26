@@ -33,17 +33,18 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> cors.disable()) // Desabilitar CORS do Spring Security (usando filtro personalizado)
+            .cors(cors -> cors.configurationSource(corsConfigurationSource())) // Usar configuração CORS personalizada
             .headers(headers -> headers
                 .frameOptions(frameOptions -> frameOptions.disable()) // Permite H2 console
             )
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers(
                     "/health",
+                    "/health/status",
+                    "/health/info",
                     "/auth/register",
                     "/auth/login",
                     "/api/v1/test/**",
-                    "/api/v1/health/**", 
                     "/api/v1/autenticacao/**",
                     "/api/v1/auth/register",
                     "/api/v1/auth/login",
@@ -69,6 +70,9 @@ public class SecurityConfig {
                     "/configuration/ui",
                     "/configuration/security"
                 ).permitAll()
+                .requestMatchers("/api/v1/health/status", "/api/v1/health/system").hasRole("ADMIN")
+                .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                .requestMatchers("/api/v1/configuracoes/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session
@@ -98,8 +102,10 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:4200",    // Angular dev server
             "http://localhost:3000",    // React/Node dev server  
+            "http://localhost:4202",    // Angular dev server alternativo
             "http://127.0.0.1:4200",
-            "http://127.0.0.1:3000"
+            "http://127.0.0.1:3000",
+            "http://127.0.0.1:4202"
         ));
         
         // Permitir métodos HTTP específicos

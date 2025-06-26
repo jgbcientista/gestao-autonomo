@@ -19,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -95,6 +96,9 @@ public class Usuario implements UserDetails {
 
     @Column(name = "segredo_dois_fatores", length = 32)
     private String segredoDoisFatores;
+
+    @Column(name = "lock_reason", length = 255)
+    private String lockReason;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -198,8 +202,12 @@ public class Usuario implements UserDetails {
         return contaBloqueadaAte;
     }
 
-    public void setAccountLockedUntil(LocalDateTime ate) {
-        this.contaBloqueadaAte = ate;
+    public void setAccountLockedUntil(LocalDateTime data) {
+        this.contaBloqueadaAte = data;
+    }
+
+    public String getRole() {
+        return perfis.stream().findFirst().orElse("USUARIO_PADRAO");
     }
 
     public Boolean getTwoFactorEnabled() {
@@ -208,5 +216,13 @@ public class Usuario implements UserDetails {
 
     public void setTwoFactorEnabled(Boolean habilitado) {
         this.autenticacaoDoisFatoresHabilitada = habilitado;
+    }
+
+    public String getLockReason() {
+        return lockReason;
+    }
+
+    public void setLockReason(String lockReason) {
+        this.lockReason = lockReason;
     }
 } 

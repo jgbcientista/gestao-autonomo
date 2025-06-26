@@ -76,7 +76,7 @@ public class ServicoAnaliseComportamentalIA implements IServicoAnaliseComportame
                 .userAgent(dadosContexto.userAgent())
                 .localizacaoGeografica(dadosContexto.localizacaoGeografica())
                 .horarioAcesso(LocalDateTime.now())
-                .diaSemana(LocalDateTime.now().getDayOfWeek().getValue())
+                .diaSemana(LocalDateTime.now().getDayOfWeek().toString())
                 .horaDia(LocalDateTime.now().getHour())
                 .mediaSessoesDiarias(features.mediaSessoesDiarias())
                 .desvioPadraoHorarios(features.desvioPadraoHorarios())
@@ -288,5 +288,16 @@ public class ServicoAnaliseComportamentalIA implements IServicoAnaliseComportame
         } else {
             return 0.2; // Frequência normal
         }
+    }
+
+    private PerfilComportamentalIA criarPerfilComportamental(Usuario usuario, DadosContextoAcesso dados) {
+        return PerfilComportamentalIA.builder()
+            .usuario(usuario)
+            .ipAcesso(dados.enderecoIp())
+            .userAgent(dados.userAgent())
+            .dataHoraAcesso(LocalDateTime.now())
+            .classificacaoAcesso(PerfilComportamentalIA.ClassificacaoAcesso.ESPERADO)
+            .scoreAnomalia(0.0)
+            .build();
     }
 } 

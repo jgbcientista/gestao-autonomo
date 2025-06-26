@@ -9,6 +9,7 @@ import br.com.auth.dto.RegisterRequest;
 import br.com.auth.dto.RequisicaoAutenticacao;
 import br.com.auth.dto.RespostaAutenticacao;
 import br.com.auth.dto.RequisicaoRegistro;
+import br.com.auth.exception.RegistrationException;
 import br.com.auth.infraestrutura.repositorios.RepositorioUsuario;
 import br.com.auth.infraestrutura.repositorios.RepositorioLogAuditoria;
 import lombok.RequiredArgsConstructor;
@@ -19,12 +20,17 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.authentication.BadCredentialsException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -46,6 +52,7 @@ public class AuthenticationService implements IServicoAutenticacao {
     private final ServicoAnaliseComportamentalIA servicoAnaliseComportamentalIA;
     private final ServicoGeolocalizacao servicoGeolocalizacao;
     private final ServicoScoreConfianca servicoScoreConfianca;
+    private final GerenciadorSessaoService gerenciadorSessaoService;
 
     @Value("${blockchain.native.enabled:false}")
     private boolean useNativeBlockchain;
@@ -56,12 +63,13 @@ public class AuthenticationService implements IServicoAutenticacao {
             throw new RuntimeException("Email já cadastrado");
         }
 
-        // Define roles padrão se não fornecidas
+        // Define roles baseado no email e nome do usuário
         Set<String> userRoles = new HashSet<>();
         if (request.getRoles() != null && !request.getRoles().isEmpty()) {
             userRoles.addAll(request.getRoles());
         } else {
-            userRoles.add("USER_DEFAULT");
+            // Lógica inteligente para definir roles
+            userRoles.addAll(determineUserRoles(request.getEmail(), request.getName()));
         }
 
         var usuario = Usuario.builder()
@@ -75,117 +83,90 @@ public class AuthenticationService implements IServicoAutenticacao {
                 .build();
 
         repositorioUsuario.save(usuario);
+        log.info("Usuário {} registrado com sucesso, Roles: {}", usuario.getEmail(), usuario.getPerfis());
 
         var jwtToken = jwtService.generateToken(usuario);
         return RespostaAutenticacao.builder()
                 .token(jwtToken)
                 .nome(usuario.getName())
                 .login(usuario.getEmail())
+                .trustScore(0.8)
+                .trustLevel("HIGH")
+                .requiresMfa(false)
+                .role(usuario.getPerfis().stream().findFirst().orElse("USER"))
                 .build();
     }
 
     @Transactional
-    public RespostaAutenticacao authenticate(RequisicaoAutenticacao request) {
-        var usuario = repositorioUsuario.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        // Verifica se a conta está bloqueada
-        if (Boolean.TRUE.equals(usuario.getAccountLocked()) && usuario.getAccountLockedUntil() != null 
-            && usuario.getAccountLockedUntil().isAfter(LocalDateTime.now())) {
-            throw new RuntimeException("Conta bloqueada. Tente novamente mais tarde.");
-        }
-
+    public AuthenticationResponse authenticate(AuthenticationRequest request, HttpServletRequest httpRequest) {
         try {
-            authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            request.getEmail(),
-                            request.getPassword()
-                    )
+            var usuario = repositorioUsuario.findByEmail(request.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+            if (usuario.getAccountLocked() != null && usuario.getAccountLocked()) {
+                log.warn("Tentativa de login em conta bloqueada: {}", request.getEmail());
+                throw new BadCredentialsException("Conta bloqueada. Tente novamente mais tarde.");
+            }
+
+            // Autenticar usuário
+            Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    request.getEmail(),
+                    request.getPassword()
+                )
             );
-
-            // Análise simplificada (IA desabilitada temporariamente para teste)
-            log.info("Login simples - análise de IA desabilitada para teste");
-
-            // Atualiza informações de login
-            usuario.setLastLoginTime(LocalDateTime.now());
-            usuario.setLastLoginIp(request.getIpAddress());
-            usuario.setLastLoginLocation(request.getLocation());
-            usuario.setLastLoginDevice(request.getUserAgent());
-            usuario.setFailedLoginAttempts(0);
-            usuario.setAccountLocked(false);
-            repositorioUsuario.save(usuario);
-
-            // Registra o log de auditoria
-            var logAuditoria = LogAuditoria.builder()
-                    .usuario(usuario)
-                    .tipoEvento("LOGIN_SUCCESS")
-                    .descricao("Login realizado com sucesso")
-                    .enderecoIp(request.getIpAddress())
-                    .agenteUsuario(request.getUserAgent())
-                    .localizacao(request.getLocation())
-                    .sucesso(true)
-                    .build();
-            repositorioLogAuditoria.save(logAuditoria);
-
-            // Registra sucesso no blockchain
-            try {
-                log.info("🔗 AuthService: Chamando blockchain para registrar LOGIN_SUCCESS");
-                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", 0.8, 
-                                    request.getIpAddress(), request.getLocation(), "simple-device");
-                log.info("🔗 AuthService: Blockchain chamado com sucesso");
-            } catch (Exception e) {
-                log.error("🔗 AuthService: ERRO ao registrar no blockchain: {}", e.getMessage(), e);
-            }
-
+            
+            // Gerar token JWT
             var jwtToken = jwtService.generateToken(usuario);
-            return RespostaAutenticacao.builder()
-                    .token(jwtToken)
-                    .nome(usuario.getName())
-                    .login(usuario.getEmail())
-                    .trustScore(0.8)
-                    .trustLevel("HIGH")
-                    .requiresMfa(false)
-                    .build();
 
-        } catch (Exception e) {
-            // Incrementa tentativas de login
-            int currentAttempts = usuario.getFailedLoginAttempts() != null ? usuario.getFailedLoginAttempts() : 0;
-            usuario.setFailedLoginAttempts(currentAttempts + 1);
-            
-            // Bloqueia a conta após 5 tentativas
-            if (usuario.getFailedLoginAttempts() >= 5) {
-                usuario.setAccountLocked(true);
-                usuario.setAccountLockedUntil(LocalDateTime.now().plusHours(1));
-            }
-            
-            repositorioUsuario.save(usuario);
+            // Criar nova sessão
+            gerenciadorSessaoService.criarSessao(usuario, jwtToken, httpRequest);
 
-            // Registra o log de auditoria
-            var logAuditoria = LogAuditoria.builder()
-                    .usuario(usuario)
-                    .tipoEvento("LOGIN_FAILED")
-                    .descricao("Falha no login: " + e.getMessage())
-                    .enderecoIp(request.getIpAddress())
-                    .agenteUsuario(request.getUserAgent())
-                    .localizacao(request.getLocation())
-                    .sucesso(false)
-                    .motivoFalha(e.getMessage())
-                    .build();
-            repositorioLogAuditoria.save(logAuditoria);
+            // Atualizar dados do usuário
+            atualizarDadosLogin(usuario, httpRequest);
 
-            // Registra falha no blockchain
+            // Registrar log de auditoria
+            registrarLogAuditoria(usuario, "LOGIN_SUCCESS", httpRequest);
+
+            // Registrar no blockchain
             try {
-                log.info("🔗 AuthService: Chamando blockchain para registrar LOGIN_FAILED");
-                var contextRequestFailure = createContextAnalysisRequest(usuario, request);
-                recordBlockchainEvent(usuario, "LOGIN_FAILED", "DENIED", 0.8, 
-                                    request.getIpAddress(), request.getLocation(),
-                                    contextRequestFailure.getDeviceFingerprint());
-                log.info("🔗 AuthService: Blockchain LOGIN_FAILED chamado com sucesso");
-            } catch (Exception blockchainException) {
-                log.error("🔗 AuthService: ERRO ao registrar falha no blockchain: {}", blockchainException.getMessage(), blockchainException);
+                Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(httpRequest.getRemoteAddr());
+                String locationStr = String.format("%s, %s", localizacao.get("cidade"), localizacao.get("pais"));
+                
+                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", 0.8, 
+                    httpRequest.getRemoteAddr(), 
+                    locationStr,
+                    httpRequest.getHeader("User-Agent"));
+            } catch (Exception e) {
+                log.error("Erro ao registrar evento no blockchain", e);
             }
 
-            throw new RuntimeException("Credenciais inválidas");
+            return buildAuthResponse(usuario, jwtToken);
+        } catch (Exception e) {
+            log.error("Erro durante autenticação: {}", e.getMessage());
+            throw new BadCredentialsException("Falha na autenticação: " + e.getMessage());
+        }
+    }
+
+    private void registrarLogAuditoria(Usuario usuario, String evento, HttpServletRequest request) {
+        try {
+            Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(request.getRemoteAddr());
+            String locationStr = String.format("%s, %s", localizacao.get("cidade"), localizacao.get("pais"));
+            
+            LogAuditoria log = LogAuditoria.builder()
+                .usuario(usuario)
+                .tipoEvento(evento)
+                .enderecoIp(request.getRemoteAddr())
+                .agenteUsuario(request.getHeader("User-Agent"))
+                .localizacao(locationStr)
+                .infoDispositivo(request.getHeader("User-Agent"))
+                .dataHora(LocalDateTime.now())
+                .sucesso(true)
+                .build();
+            
+            repositorioLogAuditoria.save(log);
+        } catch (Exception e) {
+            log.error("Erro ao registrar log de auditoria", e);
         }
     }
 
@@ -263,12 +244,13 @@ public class AuthenticationService implements IServicoAutenticacao {
                 throw new RuntimeException("Email já cadastrado");
             }
 
-            // Define roles padrão se não fornecidas
+            // Define roles baseado no email e nome do usuário
             Set<String> userRoles = new HashSet<>();
             if (requisicao.getRoles() != null && !requisicao.getRoles().isEmpty()) {
                 userRoles.addAll(requisicao.getRoles());
             } else {
-                userRoles.add("USUARIO_PADRAO");
+                // Lógica inteligente para definir roles
+                userRoles.addAll(determineUserRoles(requisicao.getEmail(), requisicao.getName()));
             }
 
             // Cria o usuário
@@ -284,7 +266,8 @@ public class AuthenticationService implements IServicoAutenticacao {
 
             // Salva o usuário
             Usuario usuarioSalvo = repositorioUsuario.save(usuario);
-            log.info("Usuário {} salvo com sucesso, ID: {}", usuarioSalvo.getEmail(), usuarioSalvo.getId());
+            log.info("Usuário {} salvo com sucesso, ID: {}, Roles: {}", 
+                usuarioSalvo.getEmail(), usuarioSalvo.getId(), usuarioSalvo.getPerfis());
 
             // Gera o token JWT
             var jwtToken = jwtService.generateToken(usuarioSalvo);
@@ -302,71 +285,79 @@ public class AuthenticationService implements IServicoAutenticacao {
         }
     }
     
+    /**
+     * Determina as roles do usuário baseado no email e nome
+     */
+    private Set<String> determineUserRoles(String email, String name) {
+        Set<String> roles = new HashSet<>();
+        
+        // Emails específicos de admin
+        Set<String> adminEmails = Set.of(
+            "admin@empresa.com", 
+            "admin@teste.com", 
+            "joao@teste.com",
+            "joao.guedes@empresa.com",
+            "joaoguedesdebrito@gmail.com"
+        );
+        
+        // Verifica por email específico
+        if (adminEmails.contains(email.toLowerCase())) {
+            roles.add("ADMIN");
+            roles.add("USER");
+            log.info("Usuário {} definido como ADMIN por email específico", email);
+            return roles;
+        }
+        
+        // Verifica se email contém "admin"
+        if (email.toLowerCase().contains("admin")) {
+            roles.add("ADMIN");
+            roles.add("USER");
+            log.info("Usuário {} definido como ADMIN por conter 'admin' no email", email);
+            return roles;
+        }
+        
+        // Verifica por nome específico
+        if (name != null && name.toLowerCase().contains("joão guedes")) {
+            roles.add("ADMIN");
+            roles.add("USER");
+            log.info("Usuário {} definido como ADMIN por nome específico", name);
+            return roles;
+        }
+        
+        // Usuário padrão
+        roles.add("USER");
+        log.info("Usuário {} definido como USER padrão", email);
+        return roles;
+    }
+    
     @Override
     public AuthenticationResponse autenticar(AuthenticationRequest requisicao) {
-        try {
-            log.info("Iniciando autenticação para usuário: {}", requisicao.getEmail());
-            
-            // Converte AuthenticationRequest para RequisicaoAutenticacao
-            RequisicaoAutenticacao req = RequisicaoAutenticacao.builder()
-                    .email(requisicao.getEmail())
-                    .senha(requisicao.getPassword())
-                    .enderecoIp(requisicao.getIpAddress())
-                    .agenteUsuario(requisicao.getUserAgent())
-                    .localizacao(requisicao.getLocation())
-                    .build();
-            
-            RespostaAutenticacao resposta = authenticate(req);
-            
-            log.info("=== DEBUG RESPOSTA AUTENTICACAO ===");
-            log.info("Token existe: {}", resposta.getToken() != null);
-            log.info("Token length: {}", resposta.getToken() != null ? resposta.getToken().length() : 0);
-            log.info("Nome: '{}'", resposta.getNome());
-            log.info("Login: '{}'", resposta.getLogin());
-            log.info("RequiresMfa: {}", resposta.getRequiresMfa());
-            log.info("================================");
-            
-            // Verifica se é resposta de MFA
-            if (Boolean.TRUE.equals(resposta.getRequiresMfa())) {
-                // Se MFA é exigido, retorna resposta apropriada
-                return AuthenticationResponse.builder()
-                        .token(null) // Token não é fornecido até completar MFA
-                        .name("MFA_REQUIRED")
-                        .email(requisicao.getEmail())
-                        .build();
+        // Criar um HttpServletRequest mock com os dados necessários
+        HttpServletRequest mockRequest = new HttpServletRequestWrapper(null) {
+            @Override
+            public String getRemoteAddr() {
+                return "127.0.0.1"; // IP local padrão
             }
-            
-            // Converte RespostaAutenticacao para AuthenticationResponse
-            AuthenticationResponse response = AuthenticationResponse.builder()
-                    .token(resposta.getToken())
-                    .name(resposta.getNome())
-                    .email(resposta.getLogin())
-                    .build();
-            
-            log.info("=== DEBUG RESPONSE FINAL ===");
-            log.info("Response token existe: {}", response.getToken() != null);
-            log.info("Response token length: {}", response.getToken() != null ? response.getToken().length() : 0);
-            log.info("Response name: '{}'", response.getName());
-            log.info("Response email: '{}'", response.getEmail());
-            log.info("============================");
-                
-            return response;
-            
-        } catch (Exception e) {
-            log.error("Erro durante autenticação para usuário {}: {}", requisicao.getEmail(), e.getMessage(), e);
-            throw new RuntimeException("Erro na autenticação: " + e.getMessage(), e);
-        }
+
+            @Override
+            public String getHeader(String name) {
+                if ("User-Agent".equals(name)) {
+                    return "Unknown"; // User-Agent padrão
+                }
+                return null;
+            }
+        };
+
+        return authenticate(requisicao, mockRequest);
     }
     
     @Override
     public boolean validarToken(String token) {
         try {
-            String email = jwtService.extractUsername(token);
-            Usuario usuario = repositorioUsuario.findByEmail(email).orElse(null);
-            if (usuario == null) {
-                return false;
-            }
-            return jwtService.isTokenValid(token, usuario);
+            var userEmail = jwtService.extractUsername(token);
+            var userDetails = repositorioUsuario.findByEmail(userEmail)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+            return jwtService.isTokenValid(token, userDetails);
         } catch (Exception e) {
             log.error("Erro ao validar token: {}", e.getMessage());
             return false;
@@ -375,16 +366,17 @@ public class AuthenticationService implements IServicoAutenticacao {
     
     @Override
     public String renovarToken(String tokenExpirado) {
-        try {
-            String email = jwtService.extractUsername(tokenExpirado);
-            Usuario usuario = repositorioUsuario.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-            
-            return jwtService.generateToken(usuario);
-        } catch (Exception e) {
-            log.error("Erro ao renovar token: {}", e.getMessage());
-            throw new RuntimeException("Token inválido para renovação");
-        }
+        String email = jwtService.extractUsername(tokenExpirado);
+        var usuario = repositorioUsuario.findByEmail(email)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+        String novoToken = jwtService.generateToken(usuario);
+        
+        // Encerrar sessão antiga e criar nova
+        gerenciadorSessaoService.encerrarSessao(tokenExpirado);
+        gerenciadorSessaoService.criarSessao(usuario, novoToken, null);
+
+        return novoToken;
     }
 
     /**
@@ -412,5 +404,160 @@ public class AuthenticationService implements IServicoAutenticacao {
             log.error("🔗 Erro ao registrar no blockchain: {}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    /**
+     * Atualiza as roles de um usuário existente baseado na lógica inteligente
+     */
+    @Transactional
+    public void updateUserRoles(String email) {
+        var usuario = repositorioUsuario.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        // Determina as novas roles baseado no email e nome
+        Set<String> newRoles = determineUserRoles(usuario.getEmail(), usuario.getName());
+        
+        // Atualiza as roles
+        usuario.setPerfis(newRoles);
+        repositorioUsuario.save(usuario);
+        
+        log.info("Roles do usuário {} atualizadas para: {}", email, newRoles);
+    }
+    
+    /**
+     * Atualiza as roles de todos os usuários baseado na lógica inteligente
+     */
+    @Transactional
+    public void updateAllUserRoles() {
+        var usuarios = repositorioUsuario.findAll();
+        
+        for (Usuario usuario : usuarios) {
+            Set<String> newRoles = determineUserRoles(usuario.getEmail(), usuario.getName());
+            
+            // Só atualiza se as roles mudaram
+            if (!usuario.getPerfis().equals(newRoles)) {
+                usuario.setPerfis(newRoles);
+                repositorioUsuario.save(usuario);
+                log.info("Roles do usuário {} atualizadas de {} para {}", 
+                    usuario.getEmail(), usuario.getPerfis(), newRoles);
+            }
+        }
+        
+        log.info("Atualização de roles concluída para {} usuários", usuarios.size());
+    }
+
+    /**
+     * Atualiza as roles de um usuário específico
+     */
+    @Transactional
+    public void atualizarRoles(String email, String novaRole) {
+        var usuario = repositorioUsuario.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+        
+        // Cria novo conjunto de roles
+        Set<String> newRoles = new HashSet<>();
+        newRoles.add(novaRole);
+        if (!novaRole.equals("USER")) {
+            newRoles.add("USER"); // Todo usuário deve ter role USER
+        }
+        
+        // Atualiza as roles
+        usuario.setPerfis(newRoles);
+        repositorioUsuario.save(usuario);
+        
+        log.info("Roles do usuário {} atualizadas para: {}", email, newRoles);
+    }
+
+    private AuthenticationResponse buildAuthResponse(Usuario usuario, String token) {
+        return AuthenticationResponse.builder()
+            .token(token)
+            .name(usuario.getNome())
+            .email(usuario.getEmail())
+            .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
+            .build();
+    }
+
+    private void atualizarDadosLogin(Usuario usuario, HttpServletRequest request) {
+        usuario.setUltimoLoginIp(request.getRemoteAddr());
+        usuario.setUltimoLoginDispositivo(request.getHeader("User-Agent"));
+        usuario.setUltimoLoginData(LocalDateTime.now());
+        usuario.setTentativasLoginFalhadas(0);
+        
+        // Tenta obter localização do header X-Location ou usa "Local"
+        String localizacao = request.getHeader("X-Location");
+        usuario.setUltimoLoginLocalizacao(localizacao != null ? localizacao : "Local");
+        
+        repositorioUsuario.save(usuario);
+    }
+
+    private void validarDadosRegistro(RegisterRequest request) {
+        // Validar e-mail único
+        if (repositorioUsuario.findByEmail(request.getEmail()).isPresent()) {
+            throw new IllegalArgumentException("E-mail já cadastrado");
+        }
+        
+        // Validar senha
+        if (request.getPassword() == null || request.getPassword().length() < 8) {
+            throw new IllegalArgumentException("A senha deve ter no mínimo 8 caracteres");
+        }
+        
+        // Validar nome
+        if (request.getName() == null || request.getName().trim().isEmpty()) {
+            throw new IllegalArgumentException("O nome é obrigatório");
+        }
+    }
+
+    private Usuario criarNovoUsuario(RegisterRequest request) {
+        Set<String> perfis = new HashSet<>();
+        
+        // Define perfil baseado no email
+        if (request.getEmail().toLowerCase().contains("admin") || 
+            request.getEmail().toLowerCase().contains("administrador") ||
+            request.getEmail().toLowerCase().equals("admin@auth.com.br")) {
+            perfis.add("ADMIN");
+        } else {
+            perfis.add("USER");
+        }
+        
+        return Usuario.builder()
+            .nome(request.getName())
+            .email(request.getEmail())
+            .senha(passwordEncoder.encode(request.getPassword()))
+            .perfis(perfis)
+            .contaBloqueada(false)
+            .tentativasLoginFalhadas(0)
+            .autenticacaoDoisFatoresHabilitada(false)
+            .build();
+    }
+
+    public AuthenticationResponse register(RegisterRequest request, HttpServletRequest httpRequest) {
+        try {
+            // Validar dados
+            validarDadosRegistro(request);
+            
+            // Criar novo usuário
+            var usuario = criarNovoUsuario(request);
+            
+            // Salvar usuário
+            repositorioUsuario.save(usuario);
+            
+            // Gerar token JWT
+            var jwtToken = jwtService.generateToken(usuario);
+            
+            // Atualizar dados do primeiro login
+            atualizarDadosLogin(usuario, httpRequest);
+            
+            // Construir resposta
+            return buildAuthResponse(usuario, jwtToken);
+            
+        } catch (Exception e) {
+            log.error("Erro ao registrar usuário: {}", e.getMessage());
+            throw new RegistrationException("Erro ao registrar usuário: " + e.getMessage());
+        }
+    }
+
+    @Transactional
+    public void logout(String token) {
+        gerenciadorSessaoService.encerrarSessao(token);
     }
 } 

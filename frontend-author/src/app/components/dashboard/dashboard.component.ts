@@ -61,11 +61,18 @@ export class DashboardComponent implements OnInit, OnDestroy {
   checkSystemStatus(): void {
     const statusSub = this.apiService.getStatus().subscribe({
       next: (status) => {
-        this.systemStatus = status;
+        console.log('✅ Status recebido:', status);
+        this.systemStatus = status || 'Sistema operacional';
       },
       error: (error) => {
-        console.error('Erro ao verificar status:', error);
-        this.systemStatus = 'Erro ao verificar status';
+        console.error('❌ Erro ao verificar status:', error);
+        if (error.status === 0) {
+          this.systemStatus = 'API não disponível';
+        } else if (error.status === 401 || error.status === 403) {
+          this.systemStatus = 'Não autorizado - faça login novamente';
+        } else {
+          this.systemStatus = `Erro ${error.status}: ${error.statusText || 'Erro desconhecido'}`;
+        }
       }
     });
     this.subscription.add(statusSub);

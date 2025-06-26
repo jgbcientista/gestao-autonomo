@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @Entity
-@Table(name = "perfis_comportamentais_ia")
+@Table(name = "perfil_comportamental_ia")
 @Data
 @Builder
 @NoArgsConstructor
@@ -25,12 +25,45 @@ public class PerfilComportamentalIA {
     @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @Column(name = "score_anomalia", nullable = false)
-    private Double scoreAnomalia;
+    @Column(name = "ip_acesso", nullable = false)
+    private String ipAcesso;
+
+    @Column(name = "user_agent", nullable = false)
+    private String userAgent;
+
+    @Column(name = "data_hora_acesso", nullable = false)
+    private LocalDateTime dataHoraAcesso;
+
+    @Column(name = "horario_acesso")
+    private LocalDateTime horarioAcesso;
+
+    @Column(name = "dia_semana")
+    private String diaSemana;
+
+    @Column(name = "hora_dia")
+    private Integer horaDia;
+
+    @Column(name = "media_sessoes_diarias")
+    private Double mediaSessoesDiarias;
+
+    @Column(name = "desvio_padrao_horarios")
+    private Double desvioPadraoHorarios;
+
+    @Column(name = "localizacao_geografica")
+    private String localizacaoGeografica;
+
+    @Column(name = "dispositivo_usual")
+    private String dispositivoUsual;
+
+    @Column(name = "padrao_horario")
+    private String padraoHorario;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "classificacao_acesso", nullable = false)
     private ClassificacaoAcesso classificacaoAcesso;
+
+    @Column(name = "score_anomalia", nullable = false)
+    private Double scoreAnomalia;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "algoritmo_utilizado", nullable = false)
@@ -58,28 +91,6 @@ public class PerfilComportamentalIA {
     // Dados de contexto
     @Column(name = "endereco_ip")
     private String enderecoIp;
-
-    @Column(name = "user_agent")
-    private String userAgent;
-
-    @Column(name = "localizacao_geografica")
-    private String localizacaoGeografica;
-
-    @Column(name = "horario_acesso")
-    private LocalDateTime horarioAcesso;
-
-    @Column(name = "dia_semana")
-    private Integer diaSemana;
-
-    @Column(name = "hora_dia")
-    private Integer horaDia;
-
-    // Dados históricos para ML
-    @Column(name = "media_sessoes_diarias")
-    private Double mediaSessoesDiarias;
-
-    @Column(name = "desvio_padrao_horarios")
-    private Double desvioPadraoHorarios;
 
     @Column(name = "total_ips_distintos")
     private Integer totalIpsDistintos;
@@ -138,5 +149,15 @@ public class PerfilComportamentalIA {
         ENSEMBLE,
         NAIVE_BAYES,
         SVM
+    }
+
+    // Getters e setters específicos para manter compatibilidade
+    public void setHorarioAcesso(LocalDateTime horario) {
+        this.horarioAcesso = horario;
+        this.dataHoraAcesso = horario; // Mantém os dois campos sincronizados
+    }
+
+    public LocalDateTime getHorarioAcesso() {
+        return this.horarioAcesso != null ? this.horarioAcesso : this.dataHoraAcesso;
     }
 } 

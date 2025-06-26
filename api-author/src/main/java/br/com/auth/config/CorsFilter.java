@@ -26,13 +26,15 @@ public class CorsFilter implements Filter {
         if (origin != null && (
                 origin.equals("http://localhost:4200") ||
                 origin.equals("http://localhost:3000") ||
+                origin.equals("http://localhost:4202") ||
                 origin.equals("http://127.0.0.1:4200") ||
-                origin.equals("http://127.0.0.1:3000")
+                origin.equals("http://127.0.0.1:3000") ||
+                origin.equals("http://127.0.0.1:4202")
         )) {
             response.setHeader("Access-Control-Allow-Origin", origin);
         } else if (origin == null) {
             // Para requisições não-CORS (como do Postman)
-            response.setHeader("Access-Control-Allow-Origin", "http://localhost:4200");
+            response.setHeader("Access-Control-Allow-Origin", "http://localhost:4202");
         }
         
         response.setHeader("Access-Control-Allow-Credentials", "true");

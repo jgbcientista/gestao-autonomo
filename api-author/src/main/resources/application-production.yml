@@ -2,8 +2,6 @@
 # Copie este arquivo e ajuste os valores conforme sua rede real
 
 spring:
-  profiles:
-    active: production
   datasource:
     url: jdbc:postgresql://localhost:5432/auth_db_prod
     username: ${DB_USERNAME:postgres}

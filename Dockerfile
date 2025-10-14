@@ -4,27 +4,11 @@ FROM openjdk:17-jdk-slim
 # Definir diretório de trabalho
 WORKDIR /app
 
-# Copiar arquivos de configuração Maven
-COPY api-author/pom.xml .
-COPY api-author/.mvn .mvn
-COPY api-author/mvnw .
-COPY api-author/mvnw.cmd .
-COPY api-author/settings.xml .
-
-# Dar permissão de execução ao mvnw
-RUN chmod +x ./mvnw
-
-# Baixar dependências (camada de cache)
-RUN ./mvnw dependency:go-offline -B
-
-# Copiar código fonte
-COPY api-author/src ./src
-
-# Construir aplicação
-RUN ./mvnw clean package -DskipTests
+# Copiar o JAR já compilado
+COPY api-author/target/auth-service-1.0.0.jar app.jar
 
 # Expor porta da aplicação
 EXPOSE 8080
 
 # Comando para executar aplicação
-CMD ["java", "-jar", "target/*.jar"] 
+CMD ["java", "-jar", "app.jar"] 

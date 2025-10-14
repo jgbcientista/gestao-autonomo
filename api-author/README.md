@@ -312,9 +312,23 @@ Para documentação detalhada sobre a implementação, consulte:
 - **Alertas Automáticos**: Para transações suspeitas
 
 ## 🔌 **Portas**
-- **8081** - API REST
+- **8080** - API REST (mapeada para porta 8081 interna do container)
 - **5432** - PostgreSQL
 - **5050** - pgAdmin
+- **6379** - Redis
+- **4200** - Frontend Angular
+
+### ⚠️ Nota Importante sobre Portas
+A aplicação roda internamente na porta **8081** dentro do container Docker, mas é acessível externamente através da porta **8080** devido ao mapeamento de portas no `docker-compose.yml`:
+```yaml
+ports:
+  - "8080:8081"  # Porta host:Porta container
+```
+
+### 🌐 URLs de Acesso
+- **Swagger UI**: http://localhost:8080/swagger-ui/index.html
+- **API Docs**: http://localhost:8080/api-docs
+- **Health Check**: http://localhost:8080/health
 
 ## ✅ **Status Final**
 - ✅ Projeto reorganizado com estrutura Maven padrão  
@@ -325,6 +339,17 @@ Para documentação detalhada sobre a implementação, consulte:
 - ✅ **RECOMENDAÇÃO: USE DOCKER! 🐳**
 
 ## 🔄 **Funcionalidades Implementadas Recentemente**
+
+### ✅ Correção de Mapeamento de Portas Docker (14/10/2025)
+- **Problema**: Swagger e endpoints não estavam acessíveis (erro 404)
+- **Causa**: Aplicação rodando na porta 8081 dentro do container, mas docker-compose mapeava 8080:8080
+- **Solução**: Ajustado mapeamento de portas no `docker-compose.yml` para `8080:8081`
+- **Arquivo Modificado**: `docker-compose.yml` (linha 33)
+- **Resultado**: Swagger e todos os endpoints agora acessíveis em http://localhost:8080
+- **Impacto**: 
+  - ✅ Swagger UI funcionando corretamente
+  - ✅ Health check respondendo
+  - ✅ API REST totalmente acessível
 
 ### ✅ Correção do Placeholder JWT (2024)
 - **Problema**: Erro "Could not resolve placeholder 'jwt.secret'"

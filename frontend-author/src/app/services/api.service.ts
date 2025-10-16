@@ -8,7 +8,7 @@ import { AuthenticationRequest, AuthenticationResponse, RegisterRequest } from '
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:8081';
+  private baseUrl = 'http://localhost:8080';
   private isBrowser: boolean;
 
   constructor(

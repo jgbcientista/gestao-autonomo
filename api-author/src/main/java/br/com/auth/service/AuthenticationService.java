@@ -332,23 +332,40 @@ public class AuthenticationService implements IServicoAutenticacao {
     
     @Override
     public AuthenticationResponse autenticar(AuthenticationRequest requisicao) {
-        // Criar um HttpServletRequest mock com os dados necessários
-        HttpServletRequest mockRequest = new HttpServletRequestWrapper(null) {
-            @Override
-            public String getRemoteAddr() {
-                return "127.0.0.1"; // IP local padrão
+        try {
+            var usuario = repositorioUsuario.findByEmail(requisicao.getEmail())
+                    .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+            if (usuario.getAccountLocked() != null && usuario.getAccountLocked()) {
+                log.warn("Tentativa de login em conta bloqueada: {}", requisicao.getEmail());
+                throw new BadCredentialsException("Conta bloqueada. Tente novamente mais tarde.");
             }
 
-            @Override
-            public String getHeader(String name) {
-                if ("User-Agent".equals(name)) {
-                    return "Unknown"; // User-Agent padrão
-                }
-                return null;
-            }
-        };
+            // Autenticar usuário
+            authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                    requisicao.getEmail(),
+                    requisicao.getPassword()
+                )
+            );
+            
+            // Gerar token JWT
+            var jwtToken = jwtService.generateToken(usuario);
 
-        return authenticate(requisicao, mockRequest);
+            // Atualizar último login sem HttpServletRequest
+            usuario.setUltimoLoginData(LocalDateTime.now());
+            usuario.setUltimoLoginIp("127.0.0.1");
+            usuario.setUltimoLoginLocalizacao("Unknown");
+            usuario.setUltimoLoginDispositivo("Web");
+            repositorioUsuario.save(usuario);
+
+            log.info("Login bem-sucedido para usuário: {}", requisicao.getEmail());
+
+            return buildAuthResponse(usuario, jwtToken);
+        } catch (Exception e) {
+            log.error("Erro durante autenticação: {}", e.getMessage());
+            throw new BadCredentialsException("Falha na autenticação: " + e.getMessage());
+        }
     }
     
     @Override

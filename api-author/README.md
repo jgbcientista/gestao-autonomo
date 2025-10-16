@@ -3,6 +3,18 @@
 ## Descrição
 Serviço de autenticação e autorização baseado em JWT (JSON Web Token) para sistemas de micro-serviços.
 
+
+
+## DOCKER-COMPOSE
+# Reiniciar tudo
+cd ..
+docker-compose up -d
+
+# Reiniciar apenas um serviço
+docker-compose restart auth-service
+ 
+ 
+
 ## ⚠️ **PROBLEMAS CONHECIDOS E SOLUÇÕES**
 
 ### **Problema 1**: Erro "Could not resolve placeholder 'jwt.secret'"
@@ -561,3 +573,8 @@ POST /api/v1/auth/authenticate
 ## Licença
 
 Este projeto está sob a licença MIT. 
+
+
+
+
+

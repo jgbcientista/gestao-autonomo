@@ -1,0 +1,51 @@
+ Por que este projeto é importante e relevante para o mestrado em Engenharia de Sistemas do IFBA?
+ 
+🔍 1. Alinhamento com as Linhas de Pesquisa do PPGESP
+
+O projeto se alinha diretamente com temas como:
+
+Sistemas Inteligentes: por empregar machine learning (Scikit-learn);
+
+Engenharia de Software: arquitetura baseada em microsserviços com Angular e Spring Boot;
+
+Segurança da Informação e Sistemas Críticos: ao propor uma solução de autenticação robusta com Blockchain, MFA e IA;
+
+Infraestrutura Computacional: orquestração com Docker, monitoramento com Grafana e ELK Stack.
+
+Essa transversalidade atende aos pilares acadêmicos do programa e pode gerar publicações científicas, protótipos funcionais e impacto prático.
+
+🌍 2. Relevância Científica e Tecnológica
+O sistema proposto vai além da autenticação convencional, usando IA para tomar decisões em tempo real sobre o acesso.
+
+Registra eventos de segurança em Blockchain, promovendo transparência, rastreabilidade e integridade — ainda pouco explorado na academia brasileira.
+
+Prototipado com tecnologias modernas, oferece uma plataforma realista para validação experimental.
+
+🇧🇷 Impacto Regional e Nacional
+🌐 Segurança Digital como Prioridade Nacional
+O Brasil é um dos países mais atacados por phishing e vazamentos de credenciais, segundo a Kaspersky e o CERT.br.
+
+Órgãos públicos, universidades e empresas carecem de soluções inteligentes e auditáveis para proteção de sistemas.
+
+O projeto pode contribuir diretamente para instituições públicas (como o próprio IFBA) adotarem práticas mais modernas de autenticação.
+
+🏛️ Aplicações em Instituições Regionais
+Universidades, prefeituras, hospitais e startups podem adotar soluções baseadas nesse modelo.
+
+Como o sistema é containerizado (Docker), pode ser facilmente replicado em ambientes regionais com infraestrutura limitada.
+
+📚 Valor para o Mestrado e a Comunidade Acadêmica
+O projeto combina pesquisa aplicada e desenvolvimento experimental.
+
+Pode gerar artigos científicos, repositórios open source e contribuir com a formação de novos alunos.
+
+Também abre caminho para futuras dissertações em tópicos como:
+
+Computação Forense,
+
+Segurança em IoT,
+
+Autenticação Federada com Blockchain,
+
+Ethical AI.
+

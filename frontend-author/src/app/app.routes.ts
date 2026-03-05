@@ -9,18 +9,21 @@ import { SecurityAnalyticsComponent } from './components/security-analytics/secu
 import { SessionManagerComponent } from './components/session-manager/session-manager.component';
 import { SettingsComponent } from './components/settings/settings.component';
 import { SessionMonitorComponent } from './components/session-monitor/session-monitor.component';
+import { RelatoriosComponent } from './components/relatorios/relatorios.component';
+import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
   { path: 'login', component: LoginComponent },
   { path: 'register', component: RegisterComponent },
-  { path: 'dashboard', component: DashboardComponent },
-  { path: 'system-monitor', component: SystemMonitorComponent },
-  { path: 'trust-score', component: TrustScoreComponent },
-  { path: 'ai-analysis', component: AiAnalysisComponent },
-  { path: 'security-analytics', component: SecurityAnalyticsComponent },
-  { path: 'session-manager', component: SessionManagerComponent },
-  { path: 'settings', component: SettingsComponent },
-  { path: 'session-monitor', component: SessionMonitorComponent },
+  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'system-monitor', component: SystemMonitorComponent, canActivate: [authGuard] },
+  { path: 'trust-score', component: TrustScoreComponent, canActivate: [authGuard] },
+  { path: 'ai-analysis', component: AiAnalysisComponent, canActivate: [authGuard] },
+  { path: 'security-analytics', component: SecurityAnalyticsComponent, canActivate: [authGuard] },
+  { path: 'session-manager', component: SessionManagerComponent, canActivate: [authGuard] },
+  { path: 'settings', component: SettingsComponent, canActivate: [authGuard] },
+  { path: 'session-monitor', component: SessionMonitorComponent, canActivate: [authGuard] },
+  { path: 'relatorios', component: RelatoriosComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' }
 ];

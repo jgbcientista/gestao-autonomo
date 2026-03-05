@@ -28,6 +28,9 @@ import org.springframework.security.authentication.BadCredentialsException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletRequestWrapper;
 
+import br.com.auth.dto.PythonPredictionRequest;
+import br.com.auth.dto.PythonPredictionResponse;
+
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Map;
@@ -47,6 +50,8 @@ public class AuthenticationService implements IServicoAutenticacao {
     private final BlockchainService blockchainService;
     @Autowired(required = false)
     private JavaBlockchainService javaBlockchainService;
+    @Autowired(required = false)
+    private PythonAiService pythonAiService;
     private final ContextAnalysisService contextAnalysisService;
     private final AiContextAnalysisService aiContextAnalysisService;
     private final ServicoAnaliseComportamentalIA servicoAnaliseComportamentalIA;
@@ -128,13 +133,21 @@ public class AuthenticationService implements IServicoAutenticacao {
             // Registrar log de auditoria
             registrarLogAuditoria(usuario, "LOGIN_SUCCESS", httpRequest);
 
+            // Analise de risco via Python AI Service (com fallback para IA Java)
+            double riskScore = 0.8;
+            try {
+                riskScore = analyzeRiskWithPythonAi(usuario, httpRequest);
+            } catch (Exception e) {
+                log.warn("Fallback para IA Java: {}", e.getMessage());
+            }
+
             // Registrar no blockchain
             try {
                 Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(httpRequest.getRemoteAddr());
                 String locationStr = String.format("%s, %s", localizacao.get("cidade"), localizacao.get("pais"));
-                
-                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", 0.8, 
-                    httpRequest.getRemoteAddr(), 
+
+                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", riskScore,
+                    httpRequest.getRemoteAddr(),
                     locationStr,
                     httpRequest.getHeader("User-Agent"));
             } catch (Exception e) {
@@ -514,8 +527,8 @@ public class AuthenticationService implements IServicoAutenticacao {
         }
         
         // Validar senha
-        if (request.getPassword() == null || request.getPassword().length() < 8) {
-            throw new IllegalArgumentException("A senha deve ter no mínimo 8 caracteres");
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            throw new IllegalArgumentException("A senha deve ter no mínimo 6 caracteres");
         }
         
         // Validar nome
@@ -571,6 +584,34 @@ public class AuthenticationService implements IServicoAutenticacao {
             log.error("Erro ao registrar usuário: {}", e.getMessage());
             throw new RegistrationException("Erro ao registrar usuário: " + e.getMessage());
         }
+    }
+
+    /**
+     * Analisa risco via Python AI Service. Fallback retorna 0.8 (baixo risco).
+     */
+    private double analyzeRiskWithPythonAi(Usuario usuario, HttpServletRequest httpRequest) {
+        if (pythonAiService == null) {
+            return 0.8;
+        }
+        try {
+            PythonPredictionRequest aiRequest = pythonAiService.buildRequest(
+                    usuario.getId(),
+                    httpRequest.getRemoteAddr(),
+                    httpRequest.getHeader("User-Agent"),
+                    usuario.getTentativasLoginFalhadas() != null ? usuario.getTentativasLoginFalhadas() : 0,
+                    false,
+                    false
+            );
+            PythonPredictionResponse aiResponse = pythonAiService.predict(aiRequest);
+            if (aiResponse != null) {
+                log.info("Python AI risk_score={} risk_level={} decision={}",
+                        aiResponse.getRiskScore(), aiResponse.getRiskLevel(), aiResponse.getDecision());
+                return 1.0 - aiResponse.getRiskScore(); // Inverter: risk_score alto = trust score baixo
+            }
+        } catch (Exception e) {
+            log.warn("Python AI indisponivel, usando fallback: {}", e.getMessage());
+        }
+        return 0.8;
     }
 
     @Transactional

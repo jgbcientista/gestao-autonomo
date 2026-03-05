@@ -15,7 +15,7 @@ setx JWT_EXPIRATION "86400000"
 REM Configurações de Geolocalização
 setx OPENCAGE_API_KEY "sua_chave_api"
 
-REM Configurações de IA
+REM Configurações de IA (Python AI Service)
 setx AI_SERVICE_URL "http://localhost:5000"
 setx AI_SERVICE_ENABLED "false"
 
@@ -34,6 +34,15 @@ setx REDIS_PASSWORD "senha_redis"
 REM URL Base da Aplicação
 setx APP_BASE_URL "http://localhost:4200"
 
+REM Configurações Keycloak
+setx KEYCLOAK_URL "http://localhost:8180"
+setx KEYCLOAK_ISSUER_URI "http://localhost:8180/realms/auth-system"
+setx KEYCLOAK_JWK_SET_URI "http://localhost:8180/realms/auth-system/protocol/openid-connect/certs"
+
+REM Configurações ELK Stack
+setx LOGSTASH_HOST "logstash"
+setx LOGSTASH_PORT "5044"
+
 echo Variaveis de ambiente configuradas com sucesso!
 echo Por favor, feche e abra novamente o terminal para que as alteracoes tenham efeito.
-pause 
+pause

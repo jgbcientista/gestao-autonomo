@@ -283,9 +283,13 @@ spring:
 ai:
   service:
     enabled: true
+    timeout: 5000
 
 blockchain:
   enabled: false
+
+app:
+  base-url: ${APP_BASE_URL:http://localhost:4200}
 
 # Swagger habilitado no profile prod
 springdoc:
@@ -310,4 +314,35 @@ security:
     max-suspicious-sessions: 3
     min-trust-score: 0.3
     suspicious-locations-threshold: 2
-    check-interval: 60000 # 1 minuto 
+    check-interval: 60000 # 1 minuto
+
+---
+# Profile Keycloak - OAuth2 Resource Server
+spring:
+  config:
+    activate:
+      on-profile: keycloak
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/auth-system}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/auth-system/protocol/openid-connect/certs}
+
+keycloak:
+  realm: auth-system
+  auth-server-url: ${KEYCLOAK_URL:http://localhost:8180}
+
+---
+# Profile ELK - Logging centralizado
+spring:
+  config:
+    activate:
+      on-profile: elk
+
+logging:
+  level:
+    org.springframework.security: INFO
+    br.com.auth: INFO
+    org.web3j: INFO
+    org.hibernate.SQL: INFO

@@ -1,5 +1,5 @@
 # Build stage
-FROM maven:3.9-eclipse-temurin-17 AS build
+FROM maven:3.9-eclipse-temurin-21 AS build
 
 WORKDIR /app
 
@@ -17,7 +17,7 @@ COPY api-author/src ./src
 RUN mvn clean package -DskipTests -s settings.xml
 
 # Production stage
-FROM openjdk:17-jdk-slim
+FROM eclipse-temurin:21-jre
 
 WORKDIR /app
 
@@ -25,7 +25,7 @@ WORKDIR /app
 COPY --from=build /app/target/auth-service-1.0.0.jar app.jar
 
 # Expor porta da aplicação
-EXPOSE 8080
+EXPOSE 8081
 
 # Comando para executar aplicação
-CMD ["java", "-jar", "app.jar"] 
+CMD ["java", "-jar", "app.jar"]

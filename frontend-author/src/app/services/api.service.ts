@@ -3,12 +3,14 @@ import { isPlatformBrowser } from '@angular/common';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthenticationRequest, AuthenticationResponse, RegisterRequest } from '../models/auth.model';
+import { environment } from '../../environments/environment';
 
 @Injectable({
   providedIn: 'root'
 })
 export class ApiService {
-  private baseUrl = 'http://localhost:8080';
+  private baseUrl = environment.apiUrl;
+  private aiUrl = (environment as any).aiApiUrl || 'http://localhost:5000';
   private isBrowser: boolean;
 
   constructor(
@@ -99,11 +101,14 @@ export class ApiService {
   adjustTrustScore(email: string, ajuste: number, motivo: string): Observable<any> {
     console.log('⚖️ Ajustando Trust Score:', { email, ajuste, motivo });
     const headers = this.getHeaders();
-    
+
     return this.http.post<any>(
       `${this.baseUrl}/api/trust-score/ajustar/${email}`,
-      { ajuste, motivo },  // Enviando como objeto no body
-      { headers }
+      null,
+      {
+        headers,
+        params: { ajuste: ajuste.toString(), motivo }
+      }
     );
   }
 
@@ -186,6 +191,89 @@ export class ApiService {
       `${this.baseUrl}/api/v1/ia/calcular-score`,
       request,
       { headers: this.getHeaders() }
+    );
+  }
+
+  // === IA PYTHON (FastAPI) ===
+  getAiHealth(): Observable<any> {
+    return this.http.get<any>(`${this.aiUrl}/health`);
+  }
+
+  predictRisk(request: any): Observable<any> {
+    return this.http.post<any>(`${this.aiUrl}/predict`, request);
+  }
+
+  // === BLOCKCHAIN AUDITORIA ===
+  getBlockchainUserTransactions(userId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/blockchain/usuario/${userId}/transacoes`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getBlockchainTransactionByHash(hash: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/blockchain/transacao/${hash}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  verifyBlockchainIntegrity(hash: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/blockchain/transacao/${hash}/verificar`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getBlockchainHighRiskTransactions(limiteRisco: number = 0.7): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/blockchain/transacoes-alto-risco`,
+      {
+        headers: this.getHeaders(),
+        params: { limiteRisco: limiteRisco.toString() }
+      }
+    );
+  }
+
+  getBlockchainStatistics(): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/blockchain/estatisticas`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getBlockchainUserReport(userId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/blockchain/usuario/${userId}/relatorio`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // === GEOLOCALIZAÇÃO (EXTRAS) ===
+  geolocateIp(ip: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/geolocalizacao/ip/${ip}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  checkCountryRisk(codigoPais: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/geolocalizacao/pais/${codigoPais}/risco`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  calculateGeoDistance(lat1: number, lon1: number, lat2: number, lon2: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/geolocalizacao/distancia`,
+      {
+        headers: this.getHeaders(),
+        params: {
+          lat1: lat1.toString(), lon1: lon1.toString(),
+          lat2: lat2.toString(), lon2: lon2.toString()
+        }
+      }
     );
   }
 

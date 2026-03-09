@@ -4,14 +4,14 @@ FROM maven:3.9-eclipse-temurin-21 AS build
 WORKDIR /app
 
 # Copiar pom.xml e settings.xml
-COPY api-author/pom.xml .
-COPY api-author/settings.xml .
+COPY api-auditoria/pom.xml .
+COPY api-auditoria/settings.xml .
 
 # Baixar dependências
 RUN mvn dependency:go-offline -s settings.xml
 
 # Copiar código fonte
-COPY api-author/src ./src
+COPY api-auditoria/src ./src
 
 # Compilar aplicação
 RUN mvn clean package -DskipTests -s settings.xml

@@ -1,0 +1,504 @@
+<!-- Navbar moderna com glassmorphism -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="/dashboard">
+      <div class="brand-logo">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <span class="brand-text">AuthSystem</span>
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/system-monitor">
+            <i class="bi bi-display me-1"></i>Monitor
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/trust-score">
+            <i class="bi bi-bullseye me-1"></i>Trust Score
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" routerLink="/ai-analysis">
+            <i class="bi bi-cpu-fill me-1"></i>Análise IA
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/security-analytics">
+            <i class="bi bi-shield-lock me-1"></i>Analytics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/session-manager">
+            <i class="bi bi-person-gear me-1"></i>Sessões
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/relatorios">
+            <i class="bi bi-bar-chart-line me-1"></i>Relatórios
+          </a>
+        </li>
+      </ul>
+      
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header">
+              <div class="user-info">
+                <strong>{{ usuarioAtual.name }}</strong>
+                <small>{{ usuarioAtual.email }}</small>
+              </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" routerLink="/settings">
+                <i class="bi bi-gear me-2"></i>Configurações
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" (click)="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Background animado -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
+  </div>
+</div>
+
+<!-- Conteúdo Principal -->
+<main class="dashboard-main">
+  <div class="container-fluid">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="hero-content">
+            <div class="welcome-badge">
+              <i class="bi bi-cpu-fill me-2"></i>
+              {{ monitoramentoAtivo ? 'Monitor Ativo' : 'Monitor Pausado' }}
+            </div>
+            <h1 class="hero-title">
+              <span class="highlight">Análise Comportamental IA</span> 🧠
+            </h1>
+            <p class="hero-subtitle">
+              Monitoramento inteligente de padrões de acesso e detecção de anomalias em tempo real.
+            </p>
+            <div class="hero-actions">
+              <button 
+                class="btn btn-primary btn-lg me-3" 
+                [disabled]="loading" 
+                (click)="executarAnaliseCompleta()">
+                <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+                {{ loading ? 'Analisando...' : 'Nova Análise' }}
+              </button>
+              <button 
+                class="btn btn-outline-light btn-lg"
+                (click)="alternarMonitoramento()">
+                <i class="bi" [class.bi-play-fill]="!monitoramentoAtivo" [class.bi-pause-fill]="monitoramentoAtivo"></i>
+                {{ monitoramentoAtivo ? 'Pausar Monitor' : 'Iniciar Monitor' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="hero-visual">
+            <div class="ai-indicator">
+              <div class="indicator-circle">
+                <i class="bi bi-cpu-fill"></i>
+              </div>
+              <div class="pulse-rings" *ngIf="monitoramentoAtivo">
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+                <div class="pulse-ring"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Erro -->
+    <div class="row" *ngIf="error">
+      <div class="col-12">
+        <div class="alert alert-danger alert-modern">
+          <div class="alert-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <div class="alert-content">
+            <h5 class="alert-title">Erro ao carregar dados da análise de IA</h5>
+            <p class="alert-message">{{ error }}</p>
+            <button class="btn btn-outline-danger btn-sm" (click)="carregarDados()">
+              <i class="bi bi-arrow-clockwise me-1"></i>Tentar Novamente
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="row" *ngIf="loading && !perfilAtual">
+      <div class="col-12">
+        <div class="loading-card">
+          <div class="loading-content">
+            <div class="loading-spinner">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+              </div>
+            </div>
+            <h4>Executando análise comportamental...</h4>
+            <p>Por favor, aguarde enquanto processamos os dados com IA</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status atual e classificação -->
+    <section class="status-section" *ngIf="classificacaoAtual && !loading">
+      <div class="row">
+        <div class="col-12">
+          <div class="classification-card" [ngClass]="'classification-' + obterCorClassificacao(classificacaoAtual.classificacao)">
+            <div class="classification-icon">
+              {{ obterIconeClassificacao(classificacaoAtual.classificacao) }}
+            </div>
+            <div class="classification-content">
+              <h3 class="classification-title">{{ classificacaoAtual.classificacao }}</h3>
+              <p class="classification-description">{{ classificacaoAtual.descricao }}</p>
+              <div class="classification-details">
+                <span class="risk-badge">Nível de Risco: {{ classificacaoAtual.nivelRisco }}</span>
+                <span class="timestamp">{{ dataAtual | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Cards principais -->
+    <section class="analysis-section" *ngIf="!loading || perfilAtual">
+      <div class="row g-4">
+        
+        <!-- Perfil Comportamental -->
+        <div class="col-lg-6" *ngIf="perfilAtual">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-person-lines-fill me-2"></i>
+                  Perfil Comportamental
+                </h4>
+                <span class="card-timestamp">{{ perfilAtual.timestamp | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="profile-metrics">
+                <div class="metric-item">
+                  <label class="metric-label">Score Global de Anomalia</label>
+                  <div class="metric-progress">
+                    <div class="progress-bar-container">
+                      <div class="progress-bar" 
+                           [style.width.%]="(perfilAtual.scoreAnomaliaGlobal || 0) * 100"
+                           [ngClass]="(perfilAtual.scoreAnomaliaGlobal || 0) > 0.7 ? 'danger' : (perfilAtual.scoreAnomaliaGlobal || 0) > 0.4 ? 'warning' : 'success'">
+                      </div>
+                    </div>
+                    <span class="metric-value">{{ formatarScore(perfilAtual.scoreAnomaliaGlobal || 0) }}</span>
+                  </div>
+                </div>
+                
+                <div class="metric-item">
+                  <label class="metric-label">Confiabilidade da Análise</label>
+                  <div class="metric-progress">
+                    <div class="progress-bar-container">
+                      <div class="progress-bar info" 
+                           [style.width.%]="(perfilAtual.confiabilidade || 0) * 100">
+                      </div>
+                    </div>
+                    <span class="metric-value">{{ formatarPercentual(perfilAtual.confiabilidade || 0) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Scores comportamentais detalhados -->
+              <div class="behavioral-scores" *ngIf="perfilAtual.scoresComportamentais">
+                <h5 class="section-title">Scores Comportamentais</h5>
+                <div class="scores-grid">
+                  <div class="score-item" *ngFor="let score of perfilAtual.scoresComportamentais | keyvalue">
+                    <div class="score-info">
+                      <span class="score-label">{{ score.key | titlecase }}</span>
+                      <span class="score-value">{{ formatarScore(score.value) }}</span>
+                    </div>
+                    <div class="score-bar">
+                      <div class="score-fill" 
+                           [style.width.%]="score.value * 100"
+                           [ngClass]="score.value > 0.7 ? 'high-risk' : score.value > 0.4 ? 'medium-risk' : 'low-risk'">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modelos utilizados -->
+              <div class="models-section" *ngIf="perfilAtual.modelosUtilizados?.length">
+                <h5 class="section-title">Modelos de IA Utilizados</h5>
+                <div class="models-tags">
+                  <span class="model-tag" *ngFor="let modelo of perfilAtual.modelosUtilizados">
+                    <i class="bi bi-cpu me-1"></i>{{ modelo }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Scores de Algoritmos -->
+        <div class="col-lg-6" *ngIf="scoreAtual">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-graph-up me-2"></i>
+                  Scores de Algoritmos
+                </h4>
+                <button class="btn btn-outline-primary btn-sm" 
+                        [disabled]="calculandoScore" 
+                        (click)="calcularScoresDetalhados()">
+                  <i class="bi bi-calculator" [class.spin]="calculandoScore"></i>
+                  Recalcular
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="algorithms-grid">
+                <div class="algorithm-item">
+                  <div class="algorithm-info">
+                    <h6 class="algorithm-name">Isolation Forest</h6>
+                    <p class="algorithm-desc">Detecção de outliers</p>
+                  </div>
+                  <div class="algorithm-score">
+                    <div class="score-circle" [ngClass]="(scoreAtual.isolationForest || 0) > 0.7 ? 'high' : (scoreAtual.isolationForest || 0) > 0.4 ? 'medium' : 'low'">
+                      {{ formatarScore(scoreAtual.isolationForest || 0) }}
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="algorithm-item">
+                  <div class="algorithm-info">
+                    <h6 class="algorithm-name">Random Forest</h6>
+                    <p class="algorithm-desc">Classificação supervisionada</p>
+                  </div>
+                  <div class="algorithm-score">
+                    <div class="score-circle" [ngClass]="(scoreAtual.randomForest || 0) > 0.7 ? 'high' : (scoreAtual.randomForest || 0) > 0.4 ? 'medium' : 'low'">
+                      {{ formatarScore(scoreAtual.randomForest || 0) }}
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="algorithm-item">
+                  <div class="algorithm-info">
+                    <h6 class="algorithm-name">Deep Learning</h6>
+                    <p class="algorithm-desc">Redes neurais profundas</p>
+                  </div>
+                  <div class="algorithm-score">
+                    <div class="score-circle" [ngClass]="(scoreAtual.deepLearning || 0) > 0.7 ? 'high' : (scoreAtual.deepLearning || 0) > 0.4 ? 'medium' : 'low'">
+                      {{ formatarScore(scoreAtual.deepLearning || 0) }}
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="algorithm-item ensemble">
+                  <div class="algorithm-info">
+                    <h6 class="algorithm-name">Ensemble Score</h6>
+                    <p class="algorithm-desc">Combinação de algoritmos</p>
+                  </div>
+                  <div class="algorithm-score">
+                    <div class="score-circle ensemble-score" [ngClass]="(scoreAtual.ensemble || 0) > 0.7 ? 'high' : (scoreAtual.ensemble || 0) > 0.4 ? 'medium' : 'low'">
+                      {{ formatarScore(scoreAtual.ensemble || 0) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Estatísticas Gerais -->
+        <div class="col-lg-6" *ngIf="statisticas">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-pie-chart me-2"></i>
+                  Estatísticas Gerais
+                </h4>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="statistics-grid">
+                <div class="stat-item">
+                  <div class="stat-icon">
+                    <i class="bi bi-graph-up"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ statisticas.totalAnalises | number }}</div>
+                    <div class="stat-label">Total de Análises</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-icon">
+                    <i class="bi bi-exclamation-triangle"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ statisticas.totalAnomalias | number }}</div>
+                    <div class="stat-label">Anomalias Detectadas</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-icon">
+                    <i class="bi bi-percent"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ formatarPercentual(statisticas.taxaAcuracia || 0) }}</div>
+                    <div class="stat-label">Taxa de Acurácia</div>
+                  </div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-icon">
+                    <i class="bi bi-clock"></i>
+                  </div>
+                  <div class="stat-content">
+                    <div class="stat-number">{{ (statisticas.tempoMedioAnalise || 0) }}ms</div>
+                    <div class="stat-label">Tempo Médio</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Controles de IA -->
+        <div class="col-lg-6">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-gear-fill me-2"></i>
+                  Controles de IA
+                </h4>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="controls-section">
+                <div class="control-item">
+                  <div class="control-info">
+                    <h6 class="control-title">Treinamento de Modelos</h6>
+                    <p class="control-desc">Execute o retreinamento dos modelos com novos dados</p>
+                  </div>
+                  <button class="btn btn-warning" 
+                          [disabled]="treinandoModelos" 
+                          (click)="treinarModelos()">
+                    <i class="bi bi-arrow-repeat" [class.spin]="treinandoModelos"></i>
+                    {{ treinandoModelos ? 'Treinando...' : 'Treinar' }}
+                  </button>
+                </div>
+                
+                <div class="control-item" *ngIf="ultimoTreinamento">
+                  <div class="control-info">
+                    <h6 class="control-title">Último Treinamento</h6>
+                    <p class="control-desc">{{ ultimoTreinamento | date:'dd/MM/yyyy HH:mm:ss' }}</p>
+                  </div>
+                  <span class="badge bg-success">Concluído</span>
+                </div>
+
+                <div class="control-item">
+                  <div class="control-info">
+                    <h6 class="control-title">Monitoramento em Tempo Real</h6>
+                    <p class="control-desc">{{ monitoramentoAtivo ? 'Sistema monitorando comportamentos' : 'Monitoramento pausado' }}</p>
+                  </div>
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" 
+                           type="checkbox" 
+                           [checked]="monitoramentoAtivo"
+                           (change)="alternarMonitoramento()">
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Histórico de Análises -->
+    <section class="history-section" *ngIf="historicoAnalises.length > 0">
+      <div class="row">
+        <div class="col-12">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-clock-history me-2"></i>
+                  Histórico de Análises
+                </h4>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="history-timeline">
+                <div class="timeline-item" *ngFor="let analise of historicoAnalises; let i = index">
+                  <div class="timeline-marker" [ngClass]="(analise.scoreAnomaliaGlobal || 0) > 0.7 ? 'danger' : (analise.scoreAnomaliaGlobal || 0) > 0.4 ? 'warning' : 'success'">
+                    {{ i + 1 }}
+                  </div>
+                  <div class="timeline-content">
+                    <div class="timeline-header">
+                      <h6 class="timeline-title">Análise #{{ analise.id }}</h6>
+                      <span class="timeline-date">{{ analise.timestamp | date:'dd/MM/yyyy HH:mm' }}</span>
+                    </div>
+                    <div class="timeline-details">
+                      <span class="detail-item">
+                        <i class="bi bi-speedometer2 me-1"></i>
+                        Score: {{ formatarScore(analise.scoreAnomaliaGlobal || 0) }}
+                      </span>
+                      <span class="detail-item">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Confiabilidade: {{ formatarPercentual(analise.confiabilidade || 0) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>

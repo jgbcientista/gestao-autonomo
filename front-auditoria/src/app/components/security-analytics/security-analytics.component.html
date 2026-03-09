@@ -1,0 +1,561 @@
+<!-- Navbar moderna com glassmorphism -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/dashboard">
+      <div class="brand-logo">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <span class="brand-text">AuthSystem</span>
+    </a>
+    
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/system-monitor">
+            <i class="bi bi-display me-1"></i>Monitor
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/trust-score">
+            <i class="bi bi-bullseye me-1"></i>Trust Score
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/ai-analysis">
+            <i class="bi bi-cpu-fill me-1"></i>Análise IA
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" routerLink="/security-analytics">
+            <i class="bi bi-shield-lock me-1"></i>Analytics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/session-manager">
+            <i class="bi bi-person-gear me-1"></i>Sessões
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/relatorios">
+            <i class="bi bi-bar-chart-line me-1"></i>Relatórios
+          </a>
+        </li>
+      </ul>
+      
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header">
+              <div class="user-info">
+                <strong>{{ usuarioAtual.name }}</strong>
+                <small>{{ usuarioAtual.email }}</small>
+              </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" routerLink="/settings">
+                <i class="bi bi-gear me-2"></i>Configurações
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" (click)="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Background animado -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
+  </div>
+</div>
+
+<!-- Conteúdo Principal -->
+<main class="dashboard-main">
+  <div class="container-fluid">
+
+<div class="security-analytics-container">
+
+
+  <!-- Header com controles principais -->
+  <div class="analytics-header">
+    <div class="header-info">
+      <h2><i class="fas fa-shield-alt"></i> Analytics de Segurança</h2>
+      <p class="subtitle">Monitoramento e análise de riscos de segurança em tempo real</p>
+    </div>
+    <div class="header-controls">
+      <select class="form-select" [(ngModel)]="filtroRisco" (change)="aplicarFiltro()">
+        <option value="TODOS">Todos os Níveis</option>
+        <option value="BAIXO">Baixo Risco</option>
+        <option value="MEDIO">Médio Risco</option>
+        <option value="ALTO">Alto Risco</option>
+        <option value="CRITICO">Crítico</option>
+      </select>
+      
+      <select class="form-select" [(ngModel)]="periodo" (change)="aplicarFiltro()">
+        <option value="1h">Última Hora</option>
+        <option value="24h">Últimas 24h</option>
+        <option value="7d">Últimos 7 dias</option>
+        <option value="30d">Últimos 30 dias</option>
+      </select>
+      
+      <button 
+        class="btn" 
+        [class.btn-success]="monitoramentoAtivo"
+        [class.btn-outline-secondary]="!monitoramentoAtivo"
+        (click)="alternarMonitoramento()">
+        <i class="fas" [class.fa-play]="!monitoramentoAtivo" [class.fa-pause]="monitoramentoAtivo"></i>
+        {{ monitoramentoAtivo ? 'Pausar' : 'Monitorar' }}
+      </button>
+      
+      <button class="btn btn-primary" [disabled]="loading" (click)="carregarDados()">
+        <i class="fas fa-sync" [class.fa-spin]="loading"></i>
+        Atualizar
+      </button>
+    </div>
+  </div>
+
+  <!-- Navegação de visualizações -->
+  <div class="view-navigation">
+    <button 
+      class="nav-btn" 
+      [class.active]="visualizacaoAtiva === 'overview'"
+      (click)="alternarVisualizacao('overview')">
+      <i class="fas fa-tachometer-alt"></i> Visão Geral
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="visualizacaoAtiva === 'usuarios'"
+      (click)="alternarVisualizacao('usuarios')">
+      <i class="fas fa-users"></i> Usuários de Risco
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="visualizacaoAtiva === 'transacoes'"
+      (click)="alternarVisualizacao('transacoes')">
+      <i class="fas fa-exchange-alt"></i> Transações
+    </button>
+    <button 
+      class="nav-btn" 
+      [class.active]="visualizacaoAtiva === 'alertas'"
+      (click)="alternarVisualizacao('alertas')">
+      <i class="fas fa-exclamation-triangle"></i> 
+      Alertas 
+      <span class="badge" *ngIf="obterAlertasNaoLidos() > 0">{{ obterAlertasNaoLidos() }}</span>
+    </button>
+  </div>
+
+  <!-- Loading ou Error -->
+  <div *ngIf="loading && !metricas" class="loading-container">
+    <div class="spinner"></div>
+    <p>Carregando dados de segurança...</p>
+  </div>
+
+  <div *ngIf="error" class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle"></i>
+    {{ error }}
+  </div>
+
+  <!-- Status dos Dados -->
+  <div *ngIf="modoSimulado" class="alert alert-warning d-flex align-items-center mb-4">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    <span>⚠️ Dados simulados - Backend retorna dados ficticios (sistema em desenvolvimento)</span>
+  </div>
+  
+  <div *ngIf="!modoSimulado" class="alert alert-info d-flex align-items-center mb-4">
+    <i class="fas fa-database me-2"></i>
+    <span>📊 Dados carregados do banco de dados - Sistema conectado e funcionando</span>
+  </div>
+
+  <!-- Conteúdo principal -->
+  <div *ngIf="!loading || metricas" class="analytics-content">
+    
+    <!-- Visão Geral -->
+    <div *ngIf="visualizacaoAtiva === 'overview'" class="overview-content">
+      
+      <!-- Métricas principais -->
+      <div class="metrics-grid" *ngIf="metricas">
+        <div class="metric-card">
+          <div class="metric-icon success">
+            <i class="fas fa-users"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ metricas.totalUsuarios | number }}</h3>
+            <p>Total de Usuários</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon warning">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ metricas.usuariosAltoRisco | number }}</h3>
+            <p>Usuários Alto Risco</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon info">
+            <i class="fas fa-chart-line"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ formatarScore(metricas.pontuacaoRiscoMedia) }}</h3>
+            <p>Score Médio de Risco</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon" [class]="obterCorIntegridade(metricas.integridadeBlockchain)">
+            <i class="fas fa-link"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ metricas.integridadeBlockchain }}</h3>
+            <p>Integridade Blockchain</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon danger">
+            <i class="fas fa-ban"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ metricas.transacoesAltoRisco | number }}</h3>
+            <p>Transações Alto Risco</p>
+          </div>
+        </div>
+
+        <div class="metric-card">
+          <div class="metric-icon warning">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="metric-content">
+            <h3>{{ metricas.transacoesNaoVerificadas | number }}</h3>
+            <p>Não Verificadas</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Dashboard de atividades -->
+      <div class="dashboard-grid">
+        <!-- Atividades recentes -->
+        <div class="card activity-card">
+          <div class="card-header">
+            <h4><i class="fas fa-history"></i> Atividades Recentes</h4>
+          </div>
+          <div class="card-body">
+            <div class="activity-list">
+              <div class="activity-item" *ngFor="let atividade of atividadesRecentes">
+                <div class="activity-icon" [class]="'risk-' + atividade.risco.toLowerCase()">
+                  <i class="fas" 
+                     [class.fa-sign-in-alt]="atividade.tipo === 'LOGIN'"
+                     [class.fa-exclamation-triangle]="atividade.tipo === 'ANOMALIA'"
+                     [class.fa-ban]="atividade.tipo === 'BLOQUEIO'"
+                     [class.fa-key]="atividade.tipo === 'MFA'">
+                  </i>
+                </div>
+                <div class="activity-content">
+                  <p class="activity-description">{{ atividade.descricao }}</p>
+                  <small class="activity-time">{{ formatarData(atividade.timestamp) }}</small>
+                </div>
+                <div class="activity-risk">
+                  <span class="badge" [class]="'badge-' + obterCorRisco(atividade.risco)">
+                    {{ atividade.risco }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Distribuição de riscos -->
+        <div class="card risk-distribution-card">
+          <div class="card-header">
+            <h4><i class="fas fa-chart-pie"></i> Distribuição de Riscos</h4>
+          </div>
+          <div class="card-body">
+            <div class="risk-stats">
+              <div class="risk-stat">
+                <div class="risk-bar">
+                  <div class="risk-fill success" [style.width.%]="75"></div>
+                </div>
+                <div class="risk-info">
+                  <span class="risk-label">Baixo Risco</span>
+                  <span class="risk-count">75%</span>
+                </div>
+              </div>
+              
+              <div class="risk-stat">
+                <div class="risk-bar">
+                  <div class="risk-fill warning" [style.width.%]="15"></div>
+                </div>
+                <div class="risk-info">
+                  <span class="risk-label">Médio Risco</span>
+                  <span class="risk-count">15%</span>
+                </div>
+              </div>
+              
+              <div class="risk-stat">
+                <div class="risk-bar">
+                  <div class="risk-fill danger" [style.width.%]="10"></div>
+                </div>
+                <div class="risk-info">
+                  <span class="risk-label">Alto Risco</span>
+                  <span class="risk-count">10%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Usuários de Risco -->
+    <div *ngIf="visualizacaoAtiva === 'usuarios'" class="users-content">
+      <div class="card users-card">
+        <div class="card-header">
+          <h4><i class="fas fa-users"></i> Usuários de Alto Risco</h4>
+          <span class="user-count">{{ obterUsuariosAltoRiscoFiltrados().length }} usuários</span>
+        </div>
+        <div class="card-body">
+          <div class="users-table">
+            <div class="table-responsive">
+              <table class="table table-hover">
+                <thead>
+                  <tr>
+                    <th>Usuário</th>
+                    <th>Score de Risco</th>
+                    <th>Nível</th>
+                    <th>Atividades Suspeitas</th>
+                    <th>Último Login</th>
+                    <th>Status</th>
+                    <th>Ações</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let usuario of obterUsuariosAltoRiscoFiltrados()">
+                    <td>
+                      <div class="user-info">
+                        <div class="user-avatar">
+                          {{ usuario.emailUsuario.charAt(0).toUpperCase() }}
+                        </div>
+                        <div class="user-details">
+                          <strong>{{ usuario.emailUsuario }}</strong>
+                          <small>ID: {{ usuario.idUsuario }}</small>
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <div class="score-container">
+                        <div class="score-circle" [class]="obterCorRisco(usuario.nivelRisco)">
+                          {{ formatarScore(usuario.pontuacaoRiscoAtual) }}
+                        </div>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="badge" [class]="'badge-' + obterCorRisco(usuario.nivelRisco)">
+                        {{ obterIconeRisco(usuario.nivelRisco) }} {{ usuario.nivelRisco }}
+                      </span>
+                    </td>
+                    <td>{{ usuario.atividadesSuspeitas }}</td>
+                    <td>{{ formatarData(usuario.ultimoLoginData!) }}</td>
+                    <td>
+                      <span class="status-badge" 
+                            [class.blocked]="usuario.contaBloqueada"
+                            [class.active]="!usuario.contaBloqueada">
+                        {{ usuario.contaBloqueada ? 'Bloqueada' : 'Ativa' }}
+                      </span>
+                    </td>
+                    <td>
+                      <button class="btn btn-sm btn-outline-primary" 
+                              (click)="analisarUsuario(usuario.idUsuario)">
+                        <i class="fas fa-search"></i> Analisar
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transações -->
+    <div *ngIf="visualizacaoAtiva === 'transacoes'" class="transactions-content">
+      <div class="transactions-grid">
+        <!-- Transações de alto risco -->
+        <div class="card transactions-card">
+          <div class="card-header">
+            <h4><i class="fas fa-exclamation-triangle"></i> Transações de Alto Risco</h4>
+            <span class="transaction-count">{{ transacoesAltoRisco.length }} transações</span>
+          </div>
+          <div class="card-body">
+            <div class="transaction-list" *ngIf="transacoesAltoRisco.length > 0; else noTransactions">
+              <div class="transaction-item" *ngFor="let transacao of transacoesAltoRisco.slice(0, 10)">
+                <div class="transaction-info">
+                  <strong>{{ transacao.tipoOperacao }}</strong>
+                  <small>{{ transacao.hashTransacao.substring(0, 16) }}...</small>
+                </div>
+                <div class="transaction-score">
+                  <span class="score-badge danger">{{ formatarScore(transacao.scoreRisco) }}</span>
+                </div>
+                <div class="transaction-actions">
+                  <button class="btn btn-sm btn-outline-secondary" 
+                          (click)="verificarTransacao(transacao.hashTransacao)">
+                    <i class="fas fa-search"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <ng-template #noTransactions>
+              <div class="no-data">
+                <i class="fas fa-check-circle"></i>
+                <p>Nenhuma transação de alto risco encontrada</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+
+        <!-- Transações não verificadas -->
+        <div class="card transactions-card">
+          <div class="card-header">
+            <h4><i class="fas fa-clock"></i> Transações Não Verificadas</h4>
+            <span class="transaction-count">{{ transacoesNaoVerificadas.length }} transações</span>
+          </div>
+          <div class="card-body">
+            <div class="transaction-list" *ngIf="transacoesNaoVerificadas.length > 0; else noUnverified">
+              <div class="transaction-item" *ngFor="let transacao of transacoesNaoVerificadas.slice(0, 10)">
+                <div class="transaction-info">
+                  <strong>{{ transacao.tipoOperacao }}</strong>
+                  <small>{{ transacao.hashTransacao.substring(0, 16) }}...</small>
+                </div>
+                <div class="transaction-status">
+                  <span class="status-badge pending">{{ transacao.statusConfirmacao }}</span>
+                </div>
+                <div class="transaction-actions">
+                  <button class="btn btn-sm btn-primary" 
+                          (click)="verificarTransacao(transacao.hashTransacao)">
+                    <i class="fas fa-check"></i> Verificar
+                  </button>
+                </div>
+              </div>
+            </div>
+            <ng-template #noUnverified>
+              <div class="no-data">
+                <i class="fas fa-check-circle"></i>
+                <p>Todas as transações estão verificadas</p>
+              </div>
+            </ng-template>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alertas -->
+    <div *ngIf="visualizacaoAtiva === 'alertas'" class="alerts-content">
+      <div class="card alerts-card">
+        <div class="card-header">
+          <h4><i class="fas fa-bell"></i> Alertas de Segurança</h4>
+          <span class="alerts-count">{{ obterAlertasNaoLidos() }} não lidos</span>
+        </div>
+        <div class="card-body">
+          <div class="alerts-list">
+            <div class="alert-item" 
+                 *ngFor="let alerta of alertas"
+                 [class.unread]="!alerta.lida"
+                 [class]="'alert-' + alerta.tipo.toLowerCase()">
+              <div class="alert-icon">
+                <i class="fas" 
+                   [class.fa-times-circle]="alerta.tipo === 'ERROR'"
+                   [class.fa-exclamation-triangle]="alerta.tipo === 'WARNING'"
+                   [class.fa-info-circle]="alerta.tipo === 'INFO'"
+                   [class.fa-check-circle]="alerta.tipo === 'SUCCESS'">
+                </i>
+              </div>
+              <div class="alert-content">
+                <h5>{{ alerta.titulo }}</h5>
+                <p>{{ alerta.mensagem }}</p>
+                <small>{{ formatarData(alerta.timestamp) }}</small>
+              </div>
+              <div class="alert-actions">
+                <button class="btn btn-sm btn-outline-secondary" 
+                        *ngIf="!alerta.lida"
+                        (click)="marcarAlertaComoLida(alerta.id)">
+                  <i class="fas fa-check"></i> Marcar como Lido
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Análise de usuário selecionado -->
+    <div *ngIf="visualizacaoAtiva === 'usuario' && avaliacaoRiscoSelecionada" class="user-analysis">
+      <div class="card user-analysis-card">
+        <div class="card-header">
+          <h4><i class="fas fa-user-shield"></i> Análise Detalhada do Usuário</h4>
+          <button class="btn btn-sm btn-outline-secondary" 
+                  (click)="alternarVisualizacao('usuarios')">
+            <i class="fas fa-arrow-left"></i> Voltar
+          </button>
+        </div>
+        <div class="card-body">
+          <div class="user-analysis-grid">
+            <div class="analysis-section">
+              <h5>Informações Gerais</h5>
+              <div class="info-grid">
+                <div class="info-item">
+                  <label>Email:</label>
+                  <span>{{ avaliacaoRiscoSelecionada.emailUsuario }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Score de Risco:</label>
+                  <span class="score-value" [class]="obterCorRisco(avaliacaoRiscoSelecionada.nivelRisco)">
+                    {{ formatarScore(avaliacaoRiscoSelecionada.pontuacaoRiscoAtual) }}
+                  </span>
+                </div>
+                <div class="info-item">
+                  <label>Total de Logins:</label>
+                  <span>{{ avaliacaoRiscoSelecionada.totalLogins }}</span>
+                </div>
+                <div class="info-item">
+                  <label>Atividades Suspeitas:</label>
+                  <span>{{ avaliacaoRiscoSelecionada.atividadesSuspeitas }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  </div>

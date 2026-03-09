@@ -98,12 +98,12 @@ services:
     networks:
       - auth-network
     volumes:
-      - ./api-author/logs:/app/logs
+      - ./api-auditoria/logs:/app/logs
 
   # Frontend (Angular + Nginx)
   frontend:
     build:
-      context: ./frontend-author
+      context: ./front-auditoria
       dockerfile: Dockerfile.frontend
       args:
         CONFIGURATION: production

@@ -1,0 +1,792 @@
+<!-- Navbar moderna com glassmorphism -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="container-fluid">
+    <a class="navbar-brand" routerLink="/dashboard">
+      <div class="brand-logo">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <span class="brand-text">AuthSystem</span>
+    </a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/system-monitor">
+            <i class="bi bi-display me-1"></i>Monitor
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/trust-score">
+            <i class="bi bi-bullseye me-1"></i>Trust Score
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/ai-analysis">
+            <i class="bi bi-cpu-fill me-1"></i>Análise IA
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/security-analytics">
+            <i class="bi bi-shield-lock me-1"></i>Analytics
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/session-manager">
+            <i class="bi bi-person-gear me-1"></i>Sessões
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" routerLink="/relatorios">
+            <i class="bi bi-bar-chart-line me-1"></i>Relatórios
+          </a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header">
+              <div class="user-info">
+                <strong>{{ usuarioAtual.name }}</strong>
+                <small>{{ usuarioAtual.email }}</small>
+              </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" routerLink="/settings">
+                <i class="bi bi-gear me-2"></i>Configurações
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" href="#" (click)="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Background animado -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
+  </div>
+</div>
+
+<!-- Conteúdo Principal -->
+<main class="dashboard-main">
+  <div class="container-fluid">
+    <!-- Header -->
+    <div class="page-header">
+      <h2>Relatórios - Endpoints de Segurança</h2>
+      <span class="badge bg-info">7 Módulos</span>
+    </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs report-tabs">
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'trust-score'" (click)="setTab('trust-score')">Trust Score</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'ia-python'" (click)="setTab('ia-python')">IA Python</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'ia-comportamental'" (click)="setTab('ia-comportamental')">IA Comportamental</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'blockchain'" (click)="setTab('blockchain')">Blockchain</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'geolocalizacao'" (click)="setTab('geolocalizacao')">Geolocalizacao</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'metricas'" (click)="setTab('metricas')">Metricas</a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link" [class.active]="activeTab === 'usuarios'" (click)="setTab('usuarios')">
+        <i class="bi bi-people-fill me-1"></i>Usuários
+      </a>
+    </li>
+  </ul>
+
+  <!-- Tab Content -->
+  <div class="tab-content">
+
+    <!-- ==================== TRUST SCORE ==================== -->
+    <div *ngIf="activeTab === 'trust-score'" class="tab-pane-content">
+      <h4>Trust Score</h4>
+
+      <!-- Consultar Score -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/trust-score/usuario/&#123;email&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="Email do usuario" [(ngModel)]="tsEmail">
+            <button class="btn btn-primary" (click)="getTrustScore()" [disabled]="loading['ts-score'] || !tsEmail">
+              <span *ngIf="loading['ts-score']" class="spinner-border spinner-border-sm"></span>
+              Consultar
+            </button>
+          </div>
+          <div *ngIf="errors['ts-score']" class="alert alert-danger mt-2">{{ errors['ts-score'] }}</div>
+          <pre *ngIf="results['ts-score']" class="result-json">{{ formatJson(results['ts-score']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Estatísticas -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/trust-score/estatisticas</code>
+        </div>
+        <div class="endpoint-body">
+          <button class="btn btn-primary" (click)="getTrustScoreStats()" [disabled]="loading['ts-stats']">
+            <span *ngIf="loading['ts-stats']" class="spinner-border spinner-border-sm"></span>
+            Consultar
+          </button>
+          <div *ngIf="errors['ts-stats']" class="alert alert-danger mt-2">{{ errors['ts-stats'] }}</div>
+          <pre *ngIf="results['ts-stats']" class="result-json">{{ formatJson(results['ts-stats']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Simular Decisão -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/trust-score/decisao/&#123;email&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="Email do usuario" [(ngModel)]="tsDecisaoEmail">
+            <button class="btn btn-primary" (click)="simulateDecision()" [disabled]="loading['ts-decisao'] || !tsDecisaoEmail">
+              <span *ngIf="loading['ts-decisao']" class="spinner-border spinner-border-sm"></span>
+              Simular
+            </button>
+          </div>
+          <div *ngIf="errors['ts-decisao']" class="alert alert-danger mt-2">{{ errors['ts-decisao'] }}</div>
+          <pre *ngIf="results['ts-decisao']" class="result-json">{{ formatJson(results['ts-decisao']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Listar por Nível -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/trust-score/nivel/&#123;nivel&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <select class="form-select" [(ngModel)]="tsNivel">
+              <option value="CRITICO">CRITICO</option>
+              <option value="BAIXO">BAIXO</option>
+              <option value="MEDIO">MEDIO</option>
+              <option value="ALTO">ALTO</option>
+              <option value="MUITO_ALTO">MUITO_ALTO</option>
+            </select>
+            <button class="btn btn-primary" (click)="getUsersByLevel()" [disabled]="loading['ts-nivel']">
+              <span *ngIf="loading['ts-nivel']" class="spinner-border spinner-border-sm"></span>
+              Listar
+            </button>
+          </div>
+          <div *ngIf="errors['ts-nivel']" class="alert alert-danger mt-2">{{ errors['ts-nivel'] }}</div>
+          <pre *ngIf="results['ts-nivel']" class="result-json">{{ formatJson(results['ts-nivel']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Ajustar Score -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge post">POST</span>
+          <code>/api/trust-score/ajustar/&#123;email&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="row g-2 mb-2">
+            <div class="col-md-4">
+              <input type="text" class="form-control" placeholder="Email" [(ngModel)]="tsAjusteEmail">
+            </div>
+            <div class="col-md-3">
+              <input type="number" class="form-control" placeholder="Ajuste (+/-)" [(ngModel)]="tsAjusteValor">
+            </div>
+            <div class="col-md-3">
+              <input type="text" class="form-control" placeholder="Motivo" [(ngModel)]="tsAjusteMotivo">
+            </div>
+            <div class="col-md-2">
+              <button class="btn btn-warning w-100" (click)="adjustTrustScore()" [disabled]="loading['ts-ajuste'] || !tsAjusteEmail">
+                <span *ngIf="loading['ts-ajuste']" class="spinner-border spinner-border-sm"></span>
+                Ajustar
+              </button>
+            </div>
+          </div>
+          <div *ngIf="errors['ts-ajuste']" class="alert alert-danger mt-2">{{ errors['ts-ajuste'] }}</div>
+          <pre *ngIf="results['ts-ajuste']" class="result-json">{{ formatJson(results['ts-ajuste']) }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== IA PYTHON ==================== -->
+    <div *ngIf="activeTab === 'ia-python'" class="tab-pane-content">
+      <h4>IA Python (FastAPI)</h4>
+
+      <!-- Health -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/health</code>
+        </div>
+        <div class="endpoint-body">
+          <button class="btn btn-primary" (click)="getAiHealth()" [disabled]="loading['ai-health']">
+            <span *ngIf="loading['ai-health']" class="spinner-border spinner-border-sm"></span>
+            Health Check
+          </button>
+          <div *ngIf="errors['ai-health']" class="alert alert-danger mt-2">{{ errors['ai-health'] }}</div>
+          <pre *ngIf="results['ai-health']" class="result-json">{{ formatJson(results['ai-health']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Predict Risk -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge post">POST</span>
+          <code>/predict</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="row g-2 mb-2">
+            <div class="col-md-3">
+              <label class="form-label">Hora do dia (0-23)</label>
+              <input type="number" class="form-control" [(ngModel)]="aiHora" min="0" max="23">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Dia da semana (0-6)</label>
+              <input type="number" class="form-control" [(ngModel)]="aiDiaSemana" min="0" max="6">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Tentativas login/hora</label>
+              <input type="number" class="form-control" [(ngModel)]="aiTentativasRecentes" min="0">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Duracao sessao media (s)</label>
+              <input type="number" class="form-control" [(ngModel)]="aiTempoSessao" min="0">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label">Flags</label>
+              <div class="d-flex gap-3 flex-wrap">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="aiUsaVpn" id="vpn">
+                  <label class="form-check-label" for="vpn">VPN</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="aiUsaTor" id="tor">
+                  <label class="form-check-label" for="tor">Tor</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="aiPaisRisco" id="paisRisco">
+                  <label class="form-check-label" for="paisRisco">Pais Risco</label>
+                </div>
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" [(ngModel)]="aiNovoDispositivo" id="novoDisp">
+                  <label class="form-check-label" for="novoDisp">Novo Dispositivo</label>
+                </div>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-danger" (click)="predictRisk()" [disabled]="loading['ai-predict']">
+            <span *ngIf="loading['ai-predict']" class="spinner-border spinner-border-sm"></span>
+            Prever Risco
+          </button>
+          <div *ngIf="errors['ai-predict']" class="alert alert-danger mt-2">{{ errors['ai-predict'] }}</div>
+          <pre *ngIf="results['ai-predict']" class="result-json">{{ formatJson(results['ai-predict']) }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== IA COMPORTAMENTAL ==================== -->
+    <div *ngIf="activeTab === 'ia-comportamental'" class="tab-pane-content">
+      <h4>IA Comportamental (Java)</h4>
+
+      <!-- Analisar Usuário -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge post">POST</span>
+          <code>/api/v1/ia/analisar/&#123;userId&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="number" class="form-control" placeholder="User ID" [(ngModel)]="iaUserId" min="1">
+            <button class="btn btn-primary" (click)="analyzeUser()" [disabled]="loading['ia-analisar']">
+              <span *ngIf="loading['ia-analisar']" class="spinner-border spinner-border-sm"></span>
+              Analisar
+            </button>
+          </div>
+          <div *ngIf="errors['ia-analisar']" class="alert alert-danger mt-2">{{ errors['ia-analisar'] }}</div>
+          <pre *ngIf="results['ia-analisar']" class="result-json">{{ formatJson(results['ia-analisar']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Classificar Acesso -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge post">POST</span>
+          <code>/api/v1/ia/classificar/&#123;userId&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="number" class="form-control" placeholder="User ID" [(ngModel)]="iaClassUserId" min="1">
+            <button class="btn btn-primary" (click)="classifyAccess()" [disabled]="loading['ia-classificar']">
+              <span *ngIf="loading['ia-classificar']" class="spinner-border spinner-border-sm"></span>
+              Classificar
+            </button>
+          </div>
+          <div *ngIf="errors['ia-classificar']" class="alert alert-danger mt-2">{{ errors['ia-classificar'] }}</div>
+          <pre *ngIf="results['ia-classificar']" class="result-json">{{ formatJson(results['ia-classificar']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Histórico -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/ia/historico/&#123;userId&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="row g-2 mb-2">
+            <div class="col-md-5">
+              <input type="number" class="form-control" placeholder="User ID" [(ngModel)]="iaHistUserId" min="1">
+            </div>
+            <div class="col-md-4">
+              <input type="number" class="form-control" placeholder="Limite" [(ngModel)]="iaHistLimite" min="1" max="100">
+            </div>
+            <div class="col-md-3">
+              <button class="btn btn-primary w-100" (click)="getAnalysisHistory()" [disabled]="loading['ia-historico']">
+                <span *ngIf="loading['ia-historico']" class="spinner-border spinner-border-sm"></span>
+                Buscar
+              </button>
+            </div>
+          </div>
+          <div *ngIf="errors['ia-historico']" class="alert alert-danger mt-2">{{ errors['ia-historico'] }}</div>
+          <pre *ngIf="results['ia-historico']" class="result-json">{{ formatJson(results['ia-historico']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Estatísticas -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/ia/estatisticas</code>
+        </div>
+        <div class="endpoint-body">
+          <button class="btn btn-primary" (click)="getAnomalyStats()" [disabled]="loading['ia-estatisticas']">
+            <span *ngIf="loading['ia-estatisticas']" class="spinner-border spinner-border-sm"></span>
+            Consultar
+          </button>
+          <div *ngIf="errors['ia-estatisticas']" class="alert alert-danger mt-2">{{ errors['ia-estatisticas'] }}</div>
+          <pre *ngIf="results['ia-estatisticas']" class="result-json">{{ formatJson(results['ia-estatisticas']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Calcular Score Anomalia -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge post">POST</span>
+          <code>/api/v1/ia/calcular-score</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="mb-2">
+            <label class="form-label">Request JSON:</label>
+            <textarea class="form-control" rows="3" [(ngModel)]="iaScoreRequest" placeholder='{"hora": 14, "tentativas": 0, "novoDispositivo": false}'></textarea>
+          </div>
+          <button class="btn btn-warning" (click)="calculateAnomalyScore()" [disabled]="loading['ia-score']">
+            <span *ngIf="loading['ia-score']" class="spinner-border spinner-border-sm"></span>
+            Calcular
+          </button>
+          <div *ngIf="errors['ia-score']" class="alert alert-danger mt-2">{{ errors['ia-score'] }}</div>
+          <pre *ngIf="results['ia-score']" class="result-json">{{ formatJson(results['ia-score']) }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== BLOCKCHAIN ==================== -->
+    <div *ngIf="activeTab === 'blockchain'" class="tab-pane-content">
+      <h4>Blockchain</h4>
+
+      <!-- Transações por Usuário -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/blockchain/usuario/&#123;userId&#125;/transacoes</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="number" class="form-control" placeholder="User ID" [(ngModel)]="bcUserId" min="1">
+            <button class="btn btn-primary" (click)="getBlockchainUserTx()" [disabled]="loading['bc-user']">
+              <span *ngIf="loading['bc-user']" class="spinner-border spinner-border-sm"></span>
+              Buscar
+            </button>
+          </div>
+          <div *ngIf="errors['bc-user']" class="alert alert-danger mt-2">{{ errors['bc-user'] }}</div>
+          <pre *ngIf="results['bc-user']" class="result-json">{{ formatJson(results['bc-user']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Buscar por Hash -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/blockchain/transacao/&#123;hash&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="Hash da transacao" [(ngModel)]="bcHash">
+            <button class="btn btn-primary" (click)="getBlockchainByHash()" [disabled]="loading['bc-hash'] || !bcHash">
+              <span *ngIf="loading['bc-hash']" class="spinner-border spinner-border-sm"></span>
+              Buscar
+            </button>
+          </div>
+          <div *ngIf="errors['bc-hash']" class="alert alert-danger mt-2">{{ errors['bc-hash'] }}</div>
+          <pre *ngIf="results['bc-hash']" class="result-json">{{ formatJson(results['bc-hash']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Verificar Integridade -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/blockchain/transacao/&#123;hash&#125;/verificar</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="Hash para verificar" [(ngModel)]="bcVerifyHash">
+            <button class="btn btn-success" (click)="verifyBlockchainIntegrity()" [disabled]="loading['bc-verify'] || !bcVerifyHash">
+              <span *ngIf="loading['bc-verify']" class="spinner-border spinner-border-sm"></span>
+              Verificar
+            </button>
+          </div>
+          <div *ngIf="errors['bc-verify']" class="alert alert-danger mt-2">{{ errors['bc-verify'] }}</div>
+          <pre *ngIf="results['bc-verify']" class="result-json">{{ formatJson(results['bc-verify']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Alto Risco -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/blockchain/transacoes-alto-risco</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <span class="input-group-text">Limite Risco</span>
+            <input type="number" class="form-control" [(ngModel)]="bcLimiteRisco" min="0" max="1" step="0.1">
+            <button class="btn btn-danger" (click)="getBlockchainHighRisk()" [disabled]="loading['bc-risk']">
+              <span *ngIf="loading['bc-risk']" class="spinner-border spinner-border-sm"></span>
+              Buscar
+            </button>
+          </div>
+          <div *ngIf="errors['bc-risk']" class="alert alert-danger mt-2">{{ errors['bc-risk'] }}</div>
+          <pre *ngIf="results['bc-risk']" class="result-json">{{ formatJson(results['bc-risk']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Estatísticas -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/blockchain/estatisticas</code>
+        </div>
+        <div class="endpoint-body">
+          <button class="btn btn-primary" (click)="getBlockchainStats()" [disabled]="loading['bc-stats']">
+            <span *ngIf="loading['bc-stats']" class="spinner-border spinner-border-sm"></span>
+            Consultar
+          </button>
+          <div *ngIf="errors['bc-stats']" class="alert alert-danger mt-2">{{ errors['bc-stats'] }}</div>
+          <pre *ngIf="results['bc-stats']" class="result-json">{{ formatJson(results['bc-stats']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Relatório por Usuário -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/blockchain/usuario/&#123;userId&#125;/relatorio</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="number" class="form-control" placeholder="User ID" [(ngModel)]="bcReportUserId" min="1">
+            <button class="btn btn-info" (click)="getBlockchainReport()" [disabled]="loading['bc-report']">
+              <span *ngIf="loading['bc-report']" class="spinner-border spinner-border-sm"></span>
+              Gerar Relatorio
+            </button>
+          </div>
+          <div *ngIf="errors['bc-report']" class="alert alert-danger mt-2">{{ errors['bc-report'] }}</div>
+          <pre *ngIf="results['bc-report']" class="result-json">{{ formatJson(results['bc-report']) }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== GEOLOCALIZAÇÃO ==================== -->
+    <div *ngIf="activeTab === 'geolocalizacao'" class="tab-pane-content">
+      <h4>Geolocalizacao</h4>
+
+      <!-- Geolocalizar IP -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/geolocalizacao/ip/&#123;ip&#125;</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="Endereco IP (ex: 8.8.8.8)" [(ngModel)]="geoIp">
+            <button class="btn btn-primary" (click)="geolocateIp()" [disabled]="loading['geo-ip'] || !geoIp">
+              <span *ngIf="loading['geo-ip']" class="spinner-border spinner-border-sm"></span>
+              Geolocalizar
+            </button>
+          </div>
+          <div *ngIf="errors['geo-ip']" class="alert alert-danger mt-2">{{ errors['geo-ip'] }}</div>
+          <pre *ngIf="results['geo-ip']" class="result-json">{{ formatJson(results['geo-ip']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Verificar País de Risco -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/geolocalizacao/pais/&#123;codigo&#125;/risco</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="text" class="form-control" placeholder="Codigo pais (ex: BR, US, RU)" [(ngModel)]="geoCodigoPais" maxlength="3">
+            <button class="btn btn-warning" (click)="checkCountryRisk()" [disabled]="loading['geo-pais'] || !geoCodigoPais">
+              <span *ngIf="loading['geo-pais']" class="spinner-border spinner-border-sm"></span>
+              Verificar
+            </button>
+          </div>
+          <div *ngIf="errors['geo-pais']" class="alert alert-danger mt-2">{{ errors['geo-pais'] }}</div>
+          <pre *ngIf="results['geo-pais']" class="result-json">{{ formatJson(results['geo-pais']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Calcular Distância -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/geolocalizacao/distancia</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="row g-2 mb-2">
+            <div class="col-md-3">
+              <label class="form-label">Latitude 1</label>
+              <input type="number" class="form-control" [(ngModel)]="geoLat1" step="0.0001">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Longitude 1</label>
+              <input type="number" class="form-control" [(ngModel)]="geoLon1" step="0.0001">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Latitude 2</label>
+              <input type="number" class="form-control" [(ngModel)]="geoLat2" step="0.0001">
+            </div>
+            <div class="col-md-3">
+              <label class="form-label">Longitude 2</label>
+              <input type="number" class="form-control" [(ngModel)]="geoLon2" step="0.0001">
+            </div>
+          </div>
+          <button class="btn btn-info" (click)="calculateDistance()" [disabled]="loading['geo-dist']">
+            <span *ngIf="loading['geo-dist']" class="spinner-border spinner-border-sm"></span>
+            Calcular Distancia
+          </button>
+          <div *ngIf="errors['geo-dist']" class="alert alert-danger mt-2">{{ errors['geo-dist'] }}</div>
+          <pre *ngIf="results['geo-dist']" class="result-json">{{ formatJson(results['geo-dist']) }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== MÉTRICAS ==================== -->
+    <div *ngIf="activeTab === 'metricas'" class="tab-pane-content">
+      <h4>Metricas de Seguranca</h4>
+
+      <!-- Métricas Globais -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/relatorios/metricas-seguranca</code>
+        </div>
+        <div class="endpoint-body">
+          <button class="btn btn-primary" (click)="getSecurityMetrics()" [disabled]="loading['met-global']">
+            <span *ngIf="loading['met-global']" class="spinner-border spinner-border-sm"></span>
+            Consultar
+          </button>
+          <div *ngIf="errors['met-global']" class="alert alert-danger mt-2">{{ errors['met-global'] }}</div>
+          <pre *ngIf="results['met-global']" class="result-json">{{ formatJson(results['met-global']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Avaliação de Risco -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/relatorios/usuario/&#123;userId&#125;/avaliacao-risco</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="number" class="form-control" placeholder="User ID" [(ngModel)]="metricasUserId" min="1">
+            <button class="btn btn-danger" (click)="getRiskAssessment()" [disabled]="loading['met-risco']">
+              <span *ngIf="loading['met-risco']" class="spinner-border spinner-border-sm"></span>
+              Avaliar Risco
+            </button>
+          </div>
+          <div *ngIf="errors['met-risco']" class="alert alert-danger mt-2">{{ errors['met-risco'] }}</div>
+          <pre *ngIf="results['met-risco']" class="result-json">{{ formatJson(results['met-risco']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Padrão Comportamental -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/relatorios/usuario/&#123;userId&#125;/padrao-comportamento</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="number" class="form-control" placeholder="User ID" [(ngModel)]="metricasPadraoUserId" min="1">
+            <button class="btn btn-info" (click)="getBehaviorPattern()" [disabled]="loading['met-padrao']">
+              <span *ngIf="loading['met-padrao']" class="spinner-border spinner-border-sm"></span>
+              Consultar Padrao
+            </button>
+          </div>
+          <div *ngIf="errors['met-padrao']" class="alert alert-danger mt-2">{{ errors['met-padrao'] }}</div>
+          <pre *ngIf="results['met-padrao']" class="result-json">{{ formatJson(results['met-padrao']) }}</pre>
+        </div>
+      </div>
+
+      <!-- Transações Blockchain do Usuário -->
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/relatorios/usuario/&#123;userId&#125;/transacoes-blockchain</code>
+        </div>
+        <div class="endpoint-body">
+          <div class="input-group mb-2">
+            <input type="number" class="form-control" placeholder="User ID" [(ngModel)]="metricasBcUserId" min="1">
+            <button class="btn btn-primary" (click)="getMetricasBlockchain()" [disabled]="loading['met-bc']">
+              <span *ngIf="loading['met-bc']" class="spinner-border spinner-border-sm"></span>
+              Buscar
+            </button>
+          </div>
+          <div *ngIf="errors['met-bc']" class="alert alert-danger mt-2">{{ errors['met-bc'] }}</div>
+          <pre *ngIf="results['met-bc']" class="result-json">{{ formatJson(results['met-bc']) }}</pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== USUÁRIOS ==================== -->
+    <div *ngIf="activeTab === 'usuarios'" class="tab-pane-content">
+      <h4><i class="bi bi-people-fill me-2"></i>Relatório de Usuários</h4>
+
+      <div class="endpoint-card">
+        <div class="endpoint-header">
+          <span class="method-badge get">GET</span>
+          <code>/api/v1/relatorios/usuarios</code>
+        </div>
+        <div class="endpoint-body">
+          <button class="btn btn-primary mb-3" (click)="loadUsuarios()" [disabled]="loading['usuarios']">
+            <span *ngIf="loading['usuarios']" class="spinner-border spinner-border-sm me-1"></span>
+            <i *ngIf="!loading['usuarios']" class="bi bi-arrow-clockwise me-1"></i>
+            Carregar Usuários
+          </button>
+
+          <div *ngIf="errors['usuarios']" class="alert alert-danger">{{ errors['usuarios'] }}</div>
+
+          <div *ngIf="results['usuarios']" class="table-responsive">
+            <table class="table table-hover usuarios-table">
+              <thead>
+                <tr>
+                  <th>Nome</th>
+                  <th>Email</th>
+                  <th>Score</th>
+                  <th>Nível</th>
+                  <th>Último Login</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let u of results['usuarios']">
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="user-avatar-sm">
+                        <i class="bi bi-person-fill"></i>
+                      </div>
+                      <span class="fw-semibold">{{ u.nome }}</span>
+                    </div>
+                  </td>
+                  <td>{{ u.email }}</td>
+                  <td>
+                    <div *ngIf="u.scoreAtual !== null" class="d-flex align-items-center gap-2">
+                      <div class="progress flex-grow-1" style="height: 8px; min-width: 80px;">
+                        <div class="progress-bar"
+                             [style.width.%]="(u.scoreAtual * 100)"
+                             [class.bg-danger]="u.scoreAtual < 0.3"
+                             [class.bg-warning]="u.scoreAtual >= 0.3 && u.scoreAtual < 0.6"
+                             [class.bg-success]="u.scoreAtual >= 0.6">
+                        </div>
+                      </div>
+                      <small class="text-muted">{{ (u.scoreAtual * 100) | number:'1.0-0' }}%</small>
+                    </div>
+                    <span *ngIf="u.scoreAtual === null" class="text-muted">-</span>
+                  </td>
+                  <td>
+                    <span class="badge"
+                          [class.bg-danger]="u.nivelConfianca === 'MUITO_BAIXO'"
+                          [class.bg-warning]="u.nivelConfianca === 'BAIXO'"
+                          [class.bg-info]="u.nivelConfianca === 'MEDIO'"
+                          [class.bg-primary]="u.nivelConfianca === 'ALTO'"
+                          [class.bg-success]="u.nivelConfianca === 'MUITO_ALTO'"
+                          [class.bg-secondary]="u.nivelConfianca === 'N/A'">
+                      {{ u.nivelConfianca }}
+                    </span>
+                  </td>
+                  <td>
+                    <span *ngIf="u.ultimoLoginData">{{ u.ultimoLoginData | date:'dd/MM/yyyy HH:mm' }}</span>
+                    <span *ngIf="!u.ultimoLoginData" class="text-muted">Nunca</span>
+                  </td>
+                  <td>
+                    <span class="badge" [class.bg-success]="!u.contaBloqueada" [class.bg-danger]="u.contaBloqueada">
+                      {{ u.contaBloqueada ? 'Bloqueado' : 'Ativo' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+            <div class="text-muted mt-2">
+              <small>Total: {{ results['usuarios'].length }} usuário(s)</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+</main>

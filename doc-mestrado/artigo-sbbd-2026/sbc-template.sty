@@ -1,0 +1,89 @@
+% --------------------------------------------------------------------------
+% SBC LaTeX document style (sbc-template.sty)
+% Based on the official SBC Conferences Template v2017
+% --------------------------------------------------------------------------
+
+\NeedsTeXFormat{LaTeX2e}
+\ProvidesPackage{sbc-template}[2017/01/01 SBC Template]
+
+% Page layout
+\setlength{\topmargin}{0cm}
+\setlength{\headheight}{0cm}
+\setlength{\headsep}{0cm}
+\setlength{\oddsidemargin}{-0.5cm}
+\setlength{\evensidemargin}{-0.5cm}
+\setlength{\textwidth}{16cm}
+\setlength{\textheight}{23.5cm}
+\setlength{\topskip}{0cm}
+\setlength{\columnsep}{0.6cm}
+
+% No page numbers
+\pagestyle{empty}
+
+% Paragraph settings
+\setlength{\parindent}{0.6cm}
+\setlength{\parskip}{6pt}
+
+% Section formatting
+\renewcommand{\section}{\@startsection
+  {section}{1}{0mm}%
+  {-12pt plus -2pt minus -1pt}%
+  {6pt}%
+  {\large\bf}%
+}
+
+\renewcommand{\subsection}{\@startsection
+  {subsection}{2}{0mm}%
+  {-12pt plus -2pt minus -1pt}%
+  {6pt}%
+  {\normalsize\bf}%
+}
+
+\renewcommand{\subsubsection}{\@startsection
+  {subsubsection}{3}{0mm}%
+  {-12pt plus -2pt minus -1pt}%
+  {6pt}%
+  {\normalsize\bf}%
+}
+
+% Title formatting
+\renewcommand{\maketitle}{%
+  \begin{center}
+    {\Large\bf\@title\par}
+    \vspace{12pt}
+    {\@author\par}
+    \vspace{6pt}
+    {\small\@address\par}
+  \end{center}
+  \vspace{12pt}
+}
+
+% Abstract
+\renewenvironment{abstract}{%
+  \begin{center}
+    \begin{minipage}{0.92\textwidth}
+    \small
+    \noindent\textbf{Abstract.}
+}{%
+    \end{minipage}
+  \end{center}
+  \vspace{6pt}
+}
+
+% Address / Institution / Email commands (SBC standard)
+\newcommand{\address}[1]{\gdef\@address{#1}}
+\newcommand{\inst}[1]{\textsuperscript{#1}}
+\newcommand{\email}[1]{\texttt{#1}}
+\address{}
+
+% Resumo
+\newenvironment{resumo}{%
+  \begin{center}
+    \begin{minipage}{0.92\textwidth}
+    \small
+    \noindent\textbf{Resumo.}
+}{%
+    \end{minipage}
+  \end{center}
+  \vspace{6pt}
+}

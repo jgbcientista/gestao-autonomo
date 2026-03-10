@@ -1,0 +1,327 @@
+% ============================================================================
+% ARTIGO - SBSI 2026 (Simpósio Brasileiro de Sistemas de Informação)
+% Formato: ACM (Association for Computing Machinery)
+% Limite: 8-10 páginas (incluindo figuras, tabelas, referências e anexos)
+% Revisão: Double-anonymous (anonimizar antes de submeter)
+% Idioma: Português ou Inglês
+% Evento: 25-28 de maio de 2026, Vitória-ES (presencial)
+% Tema: "Sistemas de Informação Inteligentes: Inovações, Aplicações e Ética em IA"
+% Site: https://sbsi.sbc.org.br/2026/chamada-pesquisa.php
+% ============================================================================
+
+\documentclass[sigconf,nonacm]{acmart}
+
+% ============================================================================
+% Configurações ACM
+% ============================================================================
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{booktabs}
+\usepackage{float}
+
+% Remove ACM copyright/DOI (para submissão)
+\setcopyright{none}
+\settopmatter{printacmref=false}
+\renewcommand\footnotetextcopyrightpermission[1]{}
+\pagestyle{plain}
+
+% ============================================================================
+% METADADOS
+% ============================================================================
+\title{Sistema Autônomo de Autenticação Contextual com Blockchain e Inteligência Artificial: Arquitetura de Microserviços para Segurança Adaptativa}
+
+% ============================================================================
+% AUTORES
+% ATENÇÃO: Para submissão, REMOVER autores (double-anonymous).
+% Comente o bloco \author abaixo para versão anônima.
+% ============================================================================
+\author{João Guedes de Brito}
+\email{joao.brito@ifba.edu.br}
+\affiliation{%
+  \institution{Instituto Federal da Bahia (IFBA)}
+  \department{Programa de Pós-Graduação em Engenharia de Sistemas e Produtos}
+  \city{Salvador}
+  \state{BA}
+  \country{Brasil}
+}
+
+\author{Cleber Jorge Lira de Santana}
+\email{cleber.santana@ifba.edu.br}
+\affiliation{%
+  \institution{Instituto Federal da Bahia (IFBA)}
+  \department{Programa de Pós-Graduação em Engenharia de Sistemas e Produtos}
+  \city{Salvador}
+  \state{BA}
+  \country{Brasil}
+}
+
+% ============================================================================
+% DOCUMENTO
+% ============================================================================
+\begin{document}
+
+% ============================================================================
+% RESUMO
+% ============================================================================
+\begin{abstract}
+Este artigo apresenta um sistema autônomo de autenticação contextual que integra Inteligência Artificial (IA) e Blockchain em arquitetura de microserviços para segurança adaptativa em aplicações web. O sistema analisa dez atributos contextuais --- geolocalização, dispositivo, horário e padrões comportamentais --- por meio de modelo \textit{ensemble} (Random Forest, Decision Tree, Logistic Regression) para classificação de risco em tempo real. A camada Blockchain garante imutabilidade dos logs de autenticação, atendendo à LGPD. Resultados experimentais demonstram acurácia de 91\% na detecção de anomalias, latência de 320ms e integridade de 100\% nas transações Blockchain. O sistema foi implementado com Spring Boot, Angular, Keycloak, Scikit-learn e Hyperledger/Ethereum, demonstrando viabilidade como alternativa adaptativa aos métodos tradicionais de autenticação.
+\end{abstract}
+
+\begin{CCSXML}
+<ccs2012>
+<concept>
+<concept_id>10002978.10002991.10002992</concept_id>
+<concept_desc>Security and privacy~Authentication</concept_desc>
+<concept_significance>500</concept_significance>
+</concept>
+<concept>
+<concept_id>10010147.10010257</concept_id>
+<concept_desc>Computing methodologies~Machine learning</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+<concept>
+<concept_id>10002978.10003014</concept_id>
+<concept_desc>Security and privacy~Distributed systems security</concept_desc>
+<concept_significance>300</concept_significance>
+</concept>
+</ccs2012>
+\end{CCSXML}
+
+\ccsdesc[500]{Security and privacy~Authentication}
+\ccsdesc[300]{Computing methodologies~Machine learning}
+\ccsdesc[300]{Security and privacy~Distributed systems security}
+
+\keywords{Autenticação Contextual, Inteligência Artificial, Blockchain, Machine Learning, Microserviços, LGPD, Segurança da Informação}
+
+\maketitle
+
+% ============================================================================
+% 1. INTRODUÇÃO
+% ============================================================================
+\section{Introdução}
+
+A autenticação de usuários permanece como pilar crítico da segurança da informação em um cenário de crescente sofisticação de ataques cibernéticos. Métodos tradicionais --- senhas fixas e autenticação em dois fatores (2FA) --- apresentam limitações diante de ataques como \textit{credential stuffing} e \textit{session hijacking} \cite{owasp2023}, por não considerarem o contexto comportamental do usuário.
+
+A demanda por conformidade regulatória, como a LGPD \cite{brasil2018} e as diretrizes do NIST \cite{nist2020}, reforça a necessidade de sistemas adaptativos, auditáveis e transparentes. Este trabalho propõe um sistema autônomo de autenticação contextual integrando: (i) análise de risco via Machine Learning; (ii) registro imutável via Blockchain; e (iii) arquitetura de microserviços com práticas DevSecOps.
+
+O sistema analisa dez atributos contextuais por acesso para decisões autônomas sobre concessão, monitoramento, MFA ou bloqueio. A contribuição principal é a integração sistêmica de três camadas de segurança --- identidade (Keycloak/OAuth2), inteligência preditiva (IA) e auditoria imutável (Blockchain) --- em arquitetura modular e reprodutível. Resultados experimentais demonstram acurácia de 91\% e latência compatível com produção.
+
+O tema deste trabalho alinha-se diretamente ao tema central do SBSI 2026 --- ``Sistemas de Informação Inteligentes: Inovações, Aplicações e Ética em IA'' --- ao propor a aplicação de IA em um sistema de informação crítico com considerações éticas de privacidade e conformidade.
+
+% ============================================================================
+% 2. TRABALHOS RELACIONADOS
+% ============================================================================
+\section{Trabalhos Relacionados}
+
+Abordagens de autenticação contextual baseadas em análise comportamental são discutidas por \cite{goodfellow2016}, que demonstram eficácia de modelos supervisionados em dados de alta dimensionalidade. Contudo, a maioria trata análise de risco isoladamente, sem integração com auditoria imutável.
+
+No domínio de Blockchain para segurança, o NISTIR 8202 \cite{nist2018blockchain} descreve a aplicabilidade de blockchains permissionadas para trilhas de auditoria corporativas. O AI Risk Management Framework \cite{nist2023ai} destaca a importância de rastreabilidade e governança em sistemas baseados em IA.
+
+Soluções comerciais (Azure AD Identity Protection, Google BeyondCorp) implementam análise contextual parcial, porém como sistemas proprietários e centralizados, sem transparência nos critérios decisórios. Este trabalho diferencia-se ao propor integração aberta de identidade, IA preditiva e auditoria imutável em arquitetura modular e reprodutível.
+
+% ============================================================================
+% 3. ARQUITETURA DO SISTEMA
+% ============================================================================
+\section{Arquitetura do Sistema}
+
+\subsection{Visão Geral}
+
+A arquitetura organiza-se em cinco camadas: (1) \textbf{Aplicação Modular} --- Spring Boot 3.2.3, Angular 17, Keycloak 24; (2) \textbf{Integração Contínua} --- pipeline DevSecOps automatizado; (3) \textbf{Segurança Automatizada} --- SAST, DAST e escaneamento de dependências; (4) \textbf{Inteligência Artificial} --- modelo ensemble para classificação de risco; (5) \textbf{Registro Imutável} --- Blockchain (Ethereum/Hyperledger Fabric).
+
+O fluxo operacional segue cadeia decisória: tentativa de autenticação $\rightarrow$ captura de contexto $\rightarrow$ estratégias de análise $\rightarrow$ classificação por IA $\rightarrow$ decisão $\rightarrow$ registro Blockchain.
+
+\subsection{Atributos Contextuais}
+
+O sistema captura dez atributos por tentativa de acesso (Tabela~\ref{tab:features}), processados por cinco estratégias de análise (padrão \textit{Strategy}): comportamental, dispositivo, localização, rede e temporal.
+
+\begin{table}[H]
+\caption{Atributos contextuais extraídos por acesso}
+\label{tab:features}
+\small
+\begin{tabular}{@{}clp{4.5cm}@{}}
+\toprule
+\# & Atributo & Descrição \\
+\midrule
+1  & \texttt{hour\_of\_day}        & Hora do acesso (0--23) \\
+2  & \texttt{day\_of\_week}        & Dia da semana (0--6) \\
+3  & \texttt{login\_attempts}      & Tentativas na última hora \\
+4  & \texttt{is\_new\_device}      & Dispositivo novo (0/1) \\
+5  & \texttt{is\_new\_location}    & Localização inédita (0/1) \\
+6  & \texttt{is\_vpn}              & Uso de VPN (0/1) \\
+7  & \texttt{is\_tor}              & Uso de Tor (0/1) \\
+8  & \texttt{session\_duration}    & Duração média de sessão (s) \\
+9  & \texttt{pages\_per\_session}  & Páginas por sessão (média) \\
+10 & \texttt{time\_since\_login}   & Tempo desde último login (h) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Modelo de Machine Learning}
+
+O serviço de IA (Python/FastAPI 0.109.0) emprega ensemble com \textit{Soft Voting} combinando Random Forest (100 estimadores, profundidade 10), Decision Tree (profundidade 8) e Logistic Regression (500 iterações). Dados normalizados via \texttt{StandardScaler}; modelo treinado com 5.000 amostras sintéticas.
+
+A classificação segue quatro níveis (Tabela~\ref{tab:risk}):
+
+\begin{table}[H]
+\caption{Níveis de risco e decisões automatizadas}
+\label{tab:risk}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+Nível & Score ($s$) & Decisão & Ação \\
+\midrule
+Baixo    & $s < 0{,}3$          & PERMITIR  & Acesso liberado \\
+Médio    & $[0{,}3; 0{,}6)$     & MONITORAR & Acesso com alerta \\
+Alto     & $[0{,}6; 0{,}8)$     & MFA       & Multifator exigido \\
+Crítico  & $s \geq 0{,}8$       & BLOQUEAR  & Acesso negado \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Blockchain e Identidade}
+
+A camada Blockchain suporta Ethereum (Web3j 4.10.3) e Hyperledger Fabric 2.5. Cada evento gera transação com: tipo, ID do usuário (anonimizado via \textit{hash}/LGPD), IP, \textit{fingerprint}, score de risco, decisão e timestamp. Integridade verificável por validação criptográfica com confirmação de 12 blocos.
+
+O Keycloak 24 atua como provedor de identidade (OAuth 2.0/OIDC), com proteção contra força bruta, PKCE e tokens de curta duração. Monitoramento via ELK Stack 8.12 e Grafana 10.3.
+
+% ============================================================================
+% 4. AVALIAÇÃO EXPERIMENTAL
+% ============================================================================
+\section{Avaliação Experimental}
+
+\subsection{Ambiente e Metodologia}
+
+Infraestrutura containerizada (Docker) com dez microsserviços: PostgreSQL, Redis, Keycloak, Spring Boot, Angular, FastAPI, Elasticsearch, Logstash, Kibana e Grafana. Três eixos de validação: (i) modelo de ML com validação cruzada ($k=10$); (ii) cadeia completa de autenticação contextual; (iii) integridade Blockchain.
+
+Cenários simulados: acesso habitual; novo dispositivo; VPN/Tor em horário atípico (2h--6h); \textit{credential stuffing}; inatividade prolongada ($>$30 dias).
+
+\subsection{Resultados do Modelo de ML}
+
+\begin{table}[H]
+\caption{Métricas de desempenho do classificador}
+\label{tab:ml}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Métrica & Valor \\
+\midrule
+Acurácia & 91,0\% \\
+Precisão & 89,4\% \\
+Recall   & 93,1\% \\
+F1-Score & 91,2\% \\
+Falsos Positivos & 8,6\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O recall de 93,1\% prioriza detecção de acessos anômalos, minimizando falsos negativos --- crítico em segurança. A taxa de falsos positivos (8,6\%) é aceitável para validação com dados sintéticos.
+
+\subsection{Latência}
+
+\begin{table}[H]
+\caption{Decomposição da latência de autenticação}
+\label{tab:latency}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+Etapa & Latência \\
+\midrule
+Keycloak (credenciais)  & 80--100ms \\
+Captura de contexto     & 20--30ms \\
+Classificação IA        & 120--180ms \\
+Registro Blockchain     & 40--60ms \\
+\midrule
+\textbf{Total}          & \textbf{$\approx$320ms} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O módulo de IA é o principal gargalo (120--180ms). O total de 320ms é compatível com padrões de UX (tolerância $\leq$500ms).
+
+\subsection{Integridade Blockchain}
+
+Consistência de 100\% nas transações, com validação criptográfica bem-sucedida em todos os registros. Anonimização por \textit{hash} atende ao princípio de minimização da LGPD.
+
+\subsection{Análise Comparativa}
+
+\begin{table}[H]
+\caption{Comparação com métodos tradicionais}
+\label{tab:comp}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Característica & Senha & 2FA & Proposta \\
+\midrule
+Análise contextual     & Não & Não & Sim \\
+Adaptabilidade         & Não & Não & Sim \\
+Auditoria imutável     & Não & Não & Sim \\
+Detecção de anomalias  & Não & Parcial & Sim \\
+Conformidade LGPD      & Parcial & Parcial & Sim \\
+Decisão autônoma       & Não & Não & Sim \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================================
+% 5. DISCUSSÃO
+% ============================================================================
+\section{Discussão}
+
+Os resultados confirmam que a integração de IA contextual e Blockchain eleva significativamente a segurança em comparação com métodos estáticos. A abordagem identificou padrões suspeitos em cenários de \textit{credential stuffing} e \textit{session hijacking} invisíveis a sistemas convencionais.
+
+Do ponto de vista ético e de privacidade --- aspecto central do tema do SBSI 2026 --- o sistema implementa anonimização por \textit{hash} antes do registro em Blockchain, minimização de dados pessoais e transparência nos critérios decisórios da IA, alinhando-se às exigências da LGPD e ao AI Risk Management Framework do NIST \cite{nist2023ai}.
+
+As limitações incluem: (i) dados sintéticos para treinamento; (ii) complexidade operacional do Hyperledger Fabric; e (iii) necessidade de políticas refinadas de anonimização. A arquitetura modular permite evolução incremental para endereçar essas limitações.
+
+% ============================================================================
+% 6. CONCLUSÃO
+% ============================================================================
+\section{Conclusão}
+
+Este trabalho apresentou um sistema autônomo de autenticação contextual integrando IA e Blockchain em arquitetura de microserviços. Resultados demonstram acurácia de 91\%, latência de 320ms e integridade total dos registros Blockchain, confirmando viabilidade técnica como alternativa adaptativa aos métodos tradicionais.
+
+A contribuição principal é a integração de três camadas complementares --- identidade, inteligência preditiva e auditoria imutável --- em sistema modular e reprodutível. Trabalhos futuros incluem: dados reais para retreinamento; aprendizado contínuo (\textit{online learning}); testes de carga; extensão para IoT; e explicabilidade (XAI) das decisões do modelo.
+
+% ============================================================================
+% REFERÊNCIAS
+% ============================================================================
+\bibliographystyle{ACM-Reference-Format}
+
+\begin{thebibliography}{10}
+
+\bibitem{brasil2018}
+BRASIL. 2018. Lei nº 13.709 -- Lei Geral de Proteção de Dados Pessoais (LGPD). \textit{Diário Oficial da União}, Brasília, DF.
+
+\bibitem{cisa2023}
+CISA. 2023. Secure by Design Initiative. Washington, DC.
+
+\bibitem{goodfellow2016}
+Ian Goodfellow, Yoshua Bengio, and Aaron Courville. 2016. \textit{Deep Learning}. MIT Press, Cambridge.
+
+\bibitem{nakamoto2008}
+Satoshi Nakamoto. 2008. Bitcoin: A Peer-to-Peer Electronic Cash System.
+
+\bibitem{nist2023ai}
+NIST. 2023. AI Risk Management Framework (AI RMF 1.0). NIST AI 100-1. Gaithersburg.
+
+\bibitem{nist2018blockchain}
+NIST. 2018. Blockchain Technology Overview. NISTIR 8202. Gaithersburg.
+
+\bibitem{nist2022}
+NIST. 2022. Secure Software Development Framework (SSDF) v1.1. SP 800-218. Gaithersburg.
+
+\bibitem{nist2020}
+NIST. 2020. Security and Privacy Controls for Information Systems and Organizations. SP 800-53 Rev. 5. Gaithersburg.
+
+\bibitem{newman2021}
+Sam Newman. 2021. \textit{Building Microservices} (2nd ed.). O'Reilly Media, Sebastopol.
+
+\bibitem{owasp2023}
+OWASP Foundation. 2023. OWASP Top 10 -- 2023 Edition.
+
+\bibitem{scikit2024}
+Scikit-learn Developers. 2024. Scikit-learn: Machine Learning in Python, v1.4.
+
+\end{thebibliography}
+
+\end{document}

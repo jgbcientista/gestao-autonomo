@@ -24,7 +24,7 @@ import java.util.Arrays;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
-@Profile("!test & !keycloak")
+@Profile("!test & !keycloak & !dev")
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;

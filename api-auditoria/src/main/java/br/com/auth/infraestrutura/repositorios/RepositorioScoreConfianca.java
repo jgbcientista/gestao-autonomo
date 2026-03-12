@@ -17,7 +17,7 @@ public interface RepositorioScoreConfianca extends JpaRepository<ScoreConfianca,
     /**
      * Busca o score de confiança atual de um usuário
      */
-    Optional<ScoreConfianca> findByUsuario(Usuario usuario);
+    Optional<ScoreConfianca> findFirstByUsuarioOrderByIdDesc(Usuario usuario);
 
     /**
      * Busca o score de confiança por ID do usuário

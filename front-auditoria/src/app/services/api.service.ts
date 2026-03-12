@@ -87,6 +87,13 @@ export class ApiService {
   }
 
   // === SCORE DE CONFIANÇA ===
+  getUsuariosCadastrados(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/api/trust-score/usuarios`,
+      { headers: this.getHeaders() }
+    );
+  }
+
   getTrustScore(email: string): Observable<any> {
     console.log('📊 Buscando Trust Score para:', email);
     const headers = this.getHeaders();

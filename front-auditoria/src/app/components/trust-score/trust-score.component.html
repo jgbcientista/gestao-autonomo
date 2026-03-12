@@ -1,4 +1,4 @@
-<!-- Navbar moderna com glassmorphism -->
+<!-- Navbar -->
 <nav class="navbar navbar-expand-lg fixed-top modern-navbar">
   <div class="container-fluid">
     <a class="navbar-brand" routerLink="/dashboard">
@@ -7,11 +7,11 @@
       </div>
       <span class="brand-text">AuthSystem</span>
     </a>
-    
+
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
-    
+
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
         <li class="nav-item">
@@ -21,7 +21,7 @@
         </li>
         <li class="nav-item">
           <a class="nav-link active" routerLink="/trust-score">
-            <i class="bi bi-bullseye me-1"></i>Trust Score
+            <i class="bi bi-bullseye me-1"></i>Score de Confiança
           </a>
         </li>
         <li class="nav-item">
@@ -30,7 +30,7 @@
           </a>
         </li>
       </ul>
-      
+
       <ul class="navbar-nav">
         <li class="nav-item">
           <button class="btn btn-outline-primary btn-sm me-2" (click)="refreshData()" [disabled]="loading">
@@ -80,7 +80,7 @@
 <!-- Conteúdo Principal -->
 <main class="dashboard-main">
   <div class="container-fluid">
-    
+
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="row align-items-center">
@@ -91,10 +91,10 @@
               Score de Confiança
             </div>
             <h1 class="hero-title">
-              Score de Confiança 🎯
+              Score de Confiança
             </h1>
             <p class="hero-subtitle">
-              Monitoramento e análise do nível de confiabilidade dos usuários baseado em comportamento e histórico.
+              Selecione um usuário para visualizar o score de confiança calculado pelo motor de IA.
             </p>
           </div>
         </div>
@@ -117,6 +117,21 @@
 
 <div class="trust-score-container">
 
+  <!-- Seleção de Usuário -->
+  <div class="score-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
+    <h3 style="margin-bottom: 1rem;"><i class="bi bi-person-fill me-2"></i>Selecionar Usuário</h3>
+    <div class="form-group">
+      <select class="form-control" [(ngModel)]="selectedEmail" (change)="onUsuarioSelecionado()"
+              style="background: rgba(15, 23, 42, 0.6); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; padding: 0.6rem 1rem; font-size: 1rem;">
+        <option value="" style="background: #1e293b;">-- Selecione um usuário --</option>
+        <option *ngFor="let u of usuarios" [value]="u.email" style="background: #1e293b;">
+          {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+
   <!-- Loading -->
   <div *ngIf="loading" class="loading">
     <div class="spinner"></div>
@@ -125,7 +140,7 @@
 
   <!-- Error -->
   <div *ngIf="error" class="error-card">
-    <span class="error-icon">⚠️</span>
+    <span class="error-icon">&#9888;</span>
     <div>
       <h3>Erro</h3>
       <p>{{ error }}</p>
@@ -133,18 +148,18 @@
   </div>
 
   <!-- Score Details -->
-  <div *ngIf="trustScore" class="score-details">
+  <div *ngIf="trustScore && !loading" class="score-details">
     <div class="score-grid">
       <!-- Score Principal -->
       <div class="score-card main-score">
         <h3>Score Atual</h3>
         <div class="score-circle">
           <div class="score-text">
-            <span class="score-number">{{ trustScore.scoreAtual | number:'1.2-2' }}</span>
+            <span class="score-number" [style.color]="getScoreColor(trustScore.scoreAtual)">{{ trustScore.scoreAtual | number:'1.2-2' }}</span>
             <span class="score-max">/1.00</span>
           </div>
           <div class="score-bar">
-            <div class="score-fill" [style.width.%]="trustScore.scoreAtual * 100"></div>
+            <div class="score-fill" [style.width.%]="trustScore.scoreAtual * 100" [style.background]="getScoreColor(trustScore.scoreAtual)"></div>
           </div>
         </div>
         <div class="score-info">
@@ -152,14 +167,54 @@
           <p><strong>Score Base:</strong> {{ trustScore.scoreBase | number:'1.2-2' }}</p>
           <p><strong>Fator Ajuste:</strong> {{ trustScore.fatorAjuste | number:'1.2-2' }}</p>
           <p *ngIf="trustScore.emObservacao" class="observation">
-            <span class="warning">⚠️ Em Observação</span>
+            <span class="warning">Em Observação</span>
           </p>
         </div>
       </div>
 
-      <!-- Estatísticas -->
+      <!-- Análise Contextual -->
+      <div class="score-card" style="grid-column: 1 / -1; border: 1px solid rgba(99, 102, 241, 0.5); background: rgba(15, 23, 42, 0.85);">
+        <h3 style="color: #e2e8f0;"><i class="bi bi-lightbulb-fill me-2" style="color: #a78bfa;"></i>Análise Contextual do Score</h3>
+        <p style="color: #f1f5f9; font-size: 0.95rem; line-height: 1.8; margin: 1rem 0 0;">
+          {{ getDescricaoContextual() }}
+        </p>
+      </div>
+
+      <!-- Decisão Automática do Sistema -->
+      <div class="score-card" *ngIf="decisaoSimulada" style="border: 2px solid" [style.borderColor]="getDecisaoColor(decisaoSimulada.decisaoSimulada)">
+        <h3>Decisão Automática do Sistema</h3>
+        <div style="text-align: center; padding: 1rem 0;">
+          <div style="font-size: 3rem; margin-bottom: 0.5rem;">{{ getDecisaoIcon(decisaoSimulada.decisaoSimulada) }}</div>
+          <div style="font-size: 1.3rem; font-weight: bold;" [style.color]="getDecisaoColor(decisaoSimulada.decisaoSimulada)">
+            {{ getDecisaoLabel(decisaoSimulada.decisaoSimulada) }}
+          </div>
+          <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 0.5rem;">
+            Baseado no score atual de {{ decisaoSimulada.scoreAtual | number:'1.2-2' }}
+          </div>
+        </div>
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(148, 163, 184, 0.2);">
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+            <span style="color: #94a3b8;">Confiável:</span>
+            <span>{{ decisaoSimulada.observacoes?.confiavel ? '&#10004; Sim' : '&#10060; N&#227;o' }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+            <span style="color: #94a3b8;">Requer MFA:</span>
+            <span>{{ decisaoSimulada.observacoes?.requerMfa ? '&#128274; Sim' : '&#128275; N&#227;o' }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
+            <span style="color: #94a3b8;">Deve Bloquear:</span>
+            <span>{{ decisaoSimulada.observacoes?.deveBloquear ? '&#128683; Sim' : '&#10004; N&#227;o' }}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <span style="color: #94a3b8;">Em Observação:</span>
+            <span>{{ decisaoSimulada.observacoes?.emObservacao ? '&#128065; Sim' : '&#10060; N&#227;o' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estatísticas do Usuário -->
       <div class="score-card statistics">
-        <h3>Estatísticas</h3>
+        <h3>Estatísticas do Usuário</h3>
         <div class="stat-item">
           <span class="stat-label">Logins Sucesso:</span>
           <span class="stat-value success">{{ trustScore.estatisticas.totalLoginsSucesso }}</span>
@@ -178,57 +233,37 @@
         </div>
       </div>
 
-      <!-- Decisões -->
-      <div class="score-card decisions">
-        <h3>Decisões de Segurança</h3>
-        <div class="decision-item">
-          <span class="decision-label">Confiável:</span>
-          <span class="decision-value" [class.active]="trustScore.decisoes.confiavel">
-            {{ trustScore.decisoes.confiavel ? '✅ Sim' : '❌ Não' }}
-          </span>
-        </div>
-        <div class="decision-item">
-          <span class="decision-label">Requer MFA:</span>
-          <span class="decision-value" [class.active]="trustScore.decisoes.requerMfa">
-            {{ trustScore.decisoes.requerMfa ? '🔐 Sim' : '🔓 Não' }}
-          </span>
-        </div>
-        <div class="decision-item">
-          <span class="decision-label">Deve Bloquear:</span>
-          <span class="decision-value danger" [class.active]="trustScore.decisoes.deveBloquear">
-            {{ trustScore.decisoes.deveBloquear ? '🚫 Sim' : '✅ Não' }}
-          </span>
-        </div>
-      </div>
-
       <!-- Ajuste Manual -->
       <div class="score-card manual-adjustment">
-        <h3>Ajuste Manual</h3>
+        <h3>Ajuste Manual do Score</h3>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1rem;">
+          Simule cenários ajustando o score manualmente. Valores negativos diminuem a confiança.
+        </p>
         <form (ngSubmit)="adjustScore()" class="adjustment-form">
           <div class="form-group">
             <label for="adjustmentValue">Valor do Ajuste (-1.0 a 1.0):</label>
-            <input 
-              type="number" 
+            <input
+              type="number"
               id="adjustmentValue"
               [(ngModel)]="adjustmentValue"
               name="adjustmentValue"
-              min="-1" 
-              max="1" 
+              min="-1"
+              max="1"
               step="0.1"
               class="form-control">
           </div>
           <div class="form-group">
             <label for="adjustmentReason">Motivo do Ajuste:</label>
-            <textarea 
+            <textarea
               id="adjustmentReason"
               [(ngModel)]="adjustmentReason"
               name="adjustmentReason"
               rows="3"
-              placeholder="Descreva o motivo do ajuste..."
+              placeholder="Ex: Acesso de localização nãousual, dispositivo desconhecido..."
               class="form-control"></textarea>
           </div>
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             class="btn btn-primary"
             [disabled]="loading || !adjustmentReason">
             Aplicar Ajuste
@@ -238,84 +273,138 @@
     </div>
   </div>
 
+  <!-- Como o Score é Calculado -->
+  <div class="score-details" style="margin-top: 2rem; margin-bottom: 2rem;">
+    <div class="score-card" style="grid-column: 1 / -1;">
+      <h3><i class="bi bi-calculator me-2"></i>Como o Score é Calculado</h3>
+      <p style="color: #475569; margin-bottom: 1.5rem;">
+        O score final é uma média ponderada de 4 fatores contextuais, variando de 0.00 (não confiável) a 1.00 (totalmente confiável).
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; margin-bottom: 1.5rem;">
+        <!-- Fator 1 -->
+        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 1.2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 1.5rem;">&#128202;</span>
+            <span style="background: rgba(59, 130, 246, 0.3); color: #1e40af; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Peso: 40%</span>
+          </div>
+          <h4 style="color: #1e293b; margin: 0.5rem 0 0.3rem; font-weight: 700;">Histórico de Sucesso</h4>
+          <p style="color: #475569; font-size: 0.85rem; margin: 0;">Taxa de logins bem-sucedidos vs total de tentativas. Quanto maior o histórico positivo, maior o score.</p>
+        </div>
+
+        <!-- Fator 2 -->
+        <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 1.2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 1.5rem;">&#129302;</span>
+            <span style="background: rgba(168, 85, 247, 0.3); color: #6b21a8; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Peso: 30%</span>
+          </div>
+          <h4 style="color: #1e293b; margin: 0.5rem 0 0.3rem; font-weight: 700;">Análise de IA</h4>
+          <p style="color: #475569; font-size: 0.85rem; margin: 0;">Ensemble de modelos (Isolation Forest, Random Forest, Deep Learning). Inversamente proporcional ao score de anomalia.</p>
+        </div>
+
+        <!-- Fator 3 -->
+        <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 1.2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 1.5rem;">&#128336;</span>
+            <span style="background: rgba(34, 197, 94, 0.3); color: #166534; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Peso: 20%</span>
+          </div>
+          <h4 style="color: #1e293b; margin: 0.5rem 0 0.3rem; font-weight: 700;">Comportamento Recente</h4>
+          <p style="color: #475569; font-size: 0.85rem; margin: 0;">Consistência nos últimos 7 dias: IPs, dispositivos e horários. Menos variação = mais confiança.</p>
+        </div>
+
+        <!-- Fator 4 -->
+        <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 1.2rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+            <span style="font-size: 1.5rem;">&#127760;</span>
+            <span style="background: rgba(251, 191, 36, 0.3); color: #92400e; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Peso: 10%</span>
+          </div>
+          <h4 style="color: #1e293b; margin: 0.5rem 0 0.3rem; font-weight: 700;">Fatores Externos</h4>
+          <p style="color: #475569; font-size: 0.85rem; margin: 0;">Tempo desde último login e status da conta. Usuários ativos e verificados recebem bônus.</p>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div style="background: rgba(30, 41, 59, 0.08); border: 1px solid rgba(71, 85, 105, 0.3); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
+        <h4 style="color: #1e293b; margin: 0 0 0.8rem; font-weight: 700;">Fórmula do Cálculo</h4>
+        <code style="color: #1e40af; font-size: 0.95rem; display: block; text-align: center; padding: 0.5rem; font-weight: 600;">
+          Score = (Histórico x 0.4) + (IA x 0.3) + (Recente x 0.2) + (Externos x 0.1) + Fator de Ajuste
+        </code>
+      </div>
+
+      <!-- Thresholds -->
+      <div style="background: rgba(30, 41, 59, 0.08); border: 1px solid rgba(71, 85, 105, 0.3); border-radius: 12px; padding: 1.2rem;">
+        <h4 style="color: #1e293b; margin: 0 0 0.8rem; font-weight: 700;">Limiares de Decisão Automática</h4>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <div style="flex: 1; min-width: 150px; text-align: center; padding: 0.8rem; background: rgba(34, 197, 94, 0.15); border-radius: 8px;">
+            <div style="font-size: 1.3rem; font-weight: bold; color: #166534;">&#8805; 0.70</div>
+            <div style="color: #475569; font-size: 0.85rem;">Confiável</div>
+            <div style="color: #166534; font-size: 0.8rem; font-weight: 600;">Acesso Permitido</div>
+          </div>
+          <div style="flex: 1; min-width: 150px; text-align: center; padding: 0.8rem; background: rgba(251, 191, 36, 0.15); border-radius: 8px;">
+            <div style="font-size: 1.3rem; font-weight: bold; color: #92400e;">0.50 - 0.69</div>
+            <div style="color: #475569; font-size: 0.85rem;">Suspeito</div>
+            <div style="color: #92400e; font-size: 0.8rem; font-weight: 600;">Exige MFA</div>
+          </div>
+          <div style="flex: 1; min-width: 150px; text-align: center; padding: 0.8rem; background: rgba(239, 68, 68, 0.15); border-radius: 8px;">
+            <div style="font-size: 1.3rem; font-weight: bold; color: #991b1b;">&lt; 0.20</div>
+            <div style="color: #475569; font-size: 0.85rem;">Não Confiável</div>
+            <div style="color: #991b1b; font-size: 0.8rem; font-weight: 600;">Acesso Bloqueado</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Estatísticas Gerais -->
   <div *ngIf="statistics" class="general-stats">
-    <h3>📈 Estatísticas Gerais do Sistema</h3>
+    <h3>Estatísticas Gerais do Sistema</h3>
     <div class="stats-grid">
       <div class="stat-card">
-        <div class="stat-icon">📊</div>
+        <div class="stat-icon">&#128202;</div>
         <div class="stat-info">
           <h4>Score Médio Geral</h4>
           <p class="stat-number info">{{ statistics.scoreMedioGeral | number:'1.2-2' }}</p>
         </div>
       </div>
-      
+
       <div class="stat-card">
-        <div class="stat-icon">👥</div>
+        <div class="stat-icon">&#128101;</div>
         <div class="stat-info">
           <h4>Usuários Confiáveis</h4>
           <p class="stat-number success">{{ statistics.totalUsuariosConfiaveis }}</p>
         </div>
       </div>
-      
+
       <div class="stat-card">
-        <div class="stat-icon">⚠️</div>
+        <div class="stat-icon">&#9888;</div>
         <div class="stat-info">
           <h4>Score Baixo</h4>
           <p class="stat-number warning">{{ statistics.usuariosScoreBaixo }}</p>
         </div>
       </div>
-      
+
       <div class="stat-card">
-        <div class="stat-icon">👁️</div>
+        <div class="stat-icon">&#128065;</div>
         <div class="stat-info">
           <h4>Em Observação</h4>
           <p class="stat-number info">{{ statistics.usuariosEmObservacao }}</p>
         </div>
       </div>
     </div>
-
-        <!-- Distribuição por Níveis -->
-    <div *ngIf="statistics?.distribuicaoNiveis" class="level-distribution">
-      <h4>Distribuição por Níveis</h4>
-      <div class="level-bars">
-        <div class="level-bar">
-          <span class="level-name">Alto</span>
-          <div class="level-progress">
-            <div class="level-fill" style="width: 70%"></div>
-          </div>
-          <span class="level-count">70</span>
-        </div>
-        <div class="level-bar">
-          <span class="level-name">Médio</span>
-          <div class="level-progress">
-            <div class="level-fill" style="width: 20%"></div>
-          </div>
-          <span class="level-count">20</span>
-        </div>
-        <div class="level-bar">
-          <span class="level-name">Baixo</span>
-          <div class="level-progress">
-            <div class="level-fill" style="width: 10%"></div>
-          </div>
-          <span class="level-count">10</span>
-        </div>
-      </div>
-    </div>
   </div>
 
-  <!-- Últimas Atualizações -->
+  <!-- Informações Recentes -->
   <div *ngIf="trustScore" class="recent-updates">
     <h3>Informações Recentes</h3>
     <div class="update-item">
-      <span class="update-icon">📅</span>
+      <span class="update-icon">&#128197;</span>
       <div class="update-info">
         <h4>Última Atualização</h4>
         <p>{{ trustScore.ultimaAtualizacao | date:'medium' }}</p>
       </div>
     </div>
     <div *ngIf="trustScore.motivoAlteracao" class="update-item">
-      <span class="update-icon">📝</span>
+      <span class="update-icon">&#128221;</span>
       <div class="update-info">
         <h4>Motivo da Última Alteração</h4>
         <p>{{ trustScore.motivoAlteracao }}</p>
@@ -324,3 +413,5 @@
   </div>
 
   </div>
+  </div>
+</main>

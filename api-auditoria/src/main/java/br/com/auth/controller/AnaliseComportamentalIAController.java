@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -29,8 +30,9 @@ public class AnaliseComportamentalIAController {
     private final RepositorioUsuario repositorioUsuario;
 
     @PostMapping("/analisar/{usuarioId}")
-    @Operation(summary = "Analisar comportamento do usuário", 
+    @Operation(summary = "Analisar comportamento do usuário",
                description = "Executa análise comportamental completa usando algoritmos de IA")
+    @Transactional
     public ResponseEntity<PerfilComportamentalIA> analisarComportamento(
             @Parameter(description = "ID do usuário") @PathVariable Long usuarioId,
             @RequestBody DadosContextoRequest contexto,
@@ -156,8 +158,9 @@ public class AnaliseComportamentalIAController {
     }
 
     @GetMapping("/historico/{usuarioId}")
-    @Operation(summary = "Obter histórico de análises", 
+    @Operation(summary = "Obter histórico de análises",
                description = "Retorna histórico de análises comportamentais do usuário")
+    @Transactional(readOnly = true)
     public ResponseEntity<List<PerfilComportamentalIA>> obterHistorico(
             @Parameter(description = "ID do usuário") @PathVariable Long usuarioId,
             @Parameter(description = "Limite de registros") @RequestParam(defaultValue = "10") int limite) {

@@ -46,7 +46,7 @@ public class ServicoScoreConfianca {
      */
     @Transactional
     public ScoreConfianca obterOuCriarScore(Usuario usuario) {
-        Optional<ScoreConfianca> scoreExistente = repositorioScoreConfianca.findByUsuario(usuario);
+        Optional<ScoreConfianca> scoreExistente = repositorioScoreConfianca.findFirstByUsuarioOrderByIdDesc(usuario);
         
         if (scoreExistente.isPresent()) {
             return scoreExistente.get();

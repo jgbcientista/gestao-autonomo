@@ -13,6 +13,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import br.com.auth.dominio.entidades.LogAuditoria;
+import br.com.auth.infraestrutura.repositorios.RepositorioLogAuditoria;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,6 +33,38 @@ public class ControladorScoreConfianca {
     private final ServicoScoreConfianca servicoScoreConfianca;
     private final RepositorioScoreConfianca repositorioScoreConfianca;
     private final RepositorioUsuario repositorioUsuario;
+    private final RepositorioLogAuditoria repositorioLogAuditoria;
+
+    @GetMapping("/usuarios")
+    @Operation(summary = "Lista todos os usuários com scores", description = "Retorna lista de usuários com nome, email e score de confiança")
+    public ResponseEntity<List<Map<String, Object>>> listarUsuarios() {
+        try {
+            List<Usuario> usuarios = repositorioUsuario.findAll();
+            List<Map<String, Object>> lista = usuarios.stream()
+                .map(u -> {
+                    Map<String, Object> item = new HashMap<>();
+                    item.put("id", u.getId());
+                    item.put("nome", u.getName());
+                    item.put("email", u.getEmail());
+
+                    // Incluir score de confiança
+                    ScoreConfianca score = servicoScoreConfianca.obterOuCriarScore(u);
+                    item.put("scoreAtual", score.getScoreAtual());
+                    item.put("nivelConfianca", score.getNivelConfianca());
+                    item.put("emObservacao", score.getEmObservacao());
+                    item.put("confiavel", score.isConfiavel());
+                    item.put("requerMfa", score.requerMfa());
+                    item.put("deveBloquear", score.deveBloquear());
+
+                    return item;
+                })
+                .toList();
+            return ResponseEntity.ok(lista);
+        } catch (Exception e) {
+            log.error("Erro ao listar usuários", e);
+            return ResponseEntity.badRequest().body(List.of());
+        }
+    }
 
     @GetMapping("/usuario/{email}")
     @Operation(summary = "Obtém o score de confiança de um usuário", description = "Retorna o score atual de confiança do usuário")
@@ -202,6 +237,70 @@ public class ControladorScoreConfianca {
             log.error("Erro ao limpar observações expiradas", e);
             return ResponseEntity.badRequest()
                 .body(Map.of("erro", "Erro ao limpar observações: " + e.getMessage()));
+        }
+    }
+
+    @PostMapping("/recalcular-todos")
+    @Operation(summary = "Recalcula scores de todos os usuários", description = "Recalcula os scores de confiança baseado no histórico de logs")
+    public ResponseEntity<Map<String, Object>> recalcularTodos() {
+        try {
+            List<Usuario> usuarios = repositorioUsuario.findAll();
+            Map<String, Object> resultados = new HashMap<>();
+
+            for (Usuario usuario : usuarios) {
+                try {
+                    // Sincronizar contadores a partir dos logs de auditoria
+                    List<LogAuditoria> logs = repositorioLogAuditoria.findByUsuario(usuario);
+                    long loginsSucesso = logs.stream().filter(LogAuditoria::isSucesso).count();
+                    long loginsFalha = logs.stream().filter(l -> !l.isSucesso()).count();
+
+                    ScoreConfianca score = servicoScoreConfianca.obterOuCriarScore(usuario);
+                    score.setTotalLoginsSucesso((int) loginsSucesso);
+                    score.setTotalLoginsSuspeitos((int) loginsFalha);
+                    repositorioScoreConfianca.save(score);
+
+                    // Contar localizações distintas para calcular anomalia
+                    long locDistintas = logs.stream()
+                        .map(LogAuditoria::getLocalizacao)
+                        .filter(l -> l != null)
+                        .distinct()
+                        .count();
+
+                    // Score de anomalia: mais localizações = mais anomalia
+                    double scoreAnomalia = Math.min(1.0, locDistintas / 30.0);
+
+                    // Criar perfil IA
+                    br.com.auth.dominio.entidades.PerfilComportamentalIA perfil =
+                        br.com.auth.dominio.entidades.PerfilComportamentalIA.builder()
+                            .usuario(usuario)
+                            .ipAcesso(usuario.getUltimoLoginIp() != null ? usuario.getUltimoLoginIp() : "127.0.0.1")
+                            .userAgent("Recalculo automatico")
+                            .dataHoraAcesso(java.time.LocalDateTime.now())
+                            .classificacaoAcesso(scoreAnomalia > 0.7
+                                ? br.com.auth.dominio.entidades.PerfilComportamentalIA.ClassificacaoAcesso.ANOMALO
+                                : br.com.auth.dominio.entidades.PerfilComportamentalIA.ClassificacaoAcesso.ESPERADO)
+                            .scoreAnomalia(scoreAnomalia)
+                            .build();
+
+                    score = servicoScoreConfianca.calcularScore(usuario, perfil);
+
+                    Map<String, Object> info = new HashMap<>();
+                    info.put("scoreAtual", score.getScoreAtual());
+                    info.put("nivelConfianca", score.getNivelConfianca().name());
+                    info.put("totalLoginsSucesso", score.getTotalLoginsSucesso());
+                    info.put("localizacoesDistintas", locDistintas);
+                    info.put("scoreAnomalia", scoreAnomalia);
+                    resultados.put(usuario.getEmail(), info);
+                } catch (Exception e) {
+                    resultados.put(usuario.getEmail(), Map.of("erro", e.getMessage()));
+                }
+            }
+
+            return ResponseEntity.ok(resultados);
+        } catch (Exception e) {
+            log.error("Erro ao recalcular scores", e);
+            return ResponseEntity.badRequest()
+                .body(Map.of("erro", "Erro ao recalcular: " + e.getMessage()));
         }
     }
 

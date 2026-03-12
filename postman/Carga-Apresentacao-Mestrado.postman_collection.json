@@ -1,0 +1,414 @@
+{
+	"info": {
+		"_postman_id": "auth-system-carga-mestrado",
+		"name": "Carga Apresentação Mestrado - Sistema Autenticação IA",
+		"description": "Collection para executar carga de dados durante a apresentação do mestrado.\n\nOrdem de execução:\n1. Registrar Usuários (5 requests)\n2. Recalcular Scores\n3. Ajustar Scores (variedade)\n4. Verificar Dados",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8081"
+		},
+		{
+			"key": "senha",
+			"value": "123456"
+		}
+	],
+	"item": [
+		{
+			"name": "1 - Registrar Usuarios",
+			"item": [
+				{
+					"name": "1.1 Registrar Joao Guedes",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Joao Guedes\",\n  \"email\": \"joaoguedesdebrito@gmail.com\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/autenticacao/registrar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "autenticacao", "registrar"]
+						}
+					}
+				},
+				{
+					"name": "1.2 Registrar Maria Silva",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Maria Silva\",\n  \"email\": \"maria.silva@empresa.com\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/autenticacao/registrar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "autenticacao", "registrar"]
+						}
+					}
+				},
+				{
+					"name": "1.3 Registrar Carlos Santos",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Carlos Santos\",\n  \"email\": \"carlos.santos@empresa.com\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/autenticacao/registrar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "autenticacao", "registrar"]
+						}
+					}
+				},
+				{
+					"name": "1.4 Registrar Ana Oliveira",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Ana Oliveira\",\n  \"email\": \"ana.oliveira@empresa.com\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/autenticacao/registrar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "autenticacao", "registrar"]
+						}
+					}
+				},
+				{
+					"name": "1.5 Registrar Carlos Souza",
+					"request": {
+						"method": "POST",
+						"header": [
+							{"key": "Content-Type", "value": "application/json"}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"Carlos Souza\",\n  \"email\": \"carlos.souza@empresa.com\",\n  \"password\": \"123456\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/autenticacao/registrar",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "autenticacao", "registrar"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "2 - Logins Joao Guedes (60)",
+			"item": [
+				{"name": "Login 01 - Sao Paulo SP","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"177.45.128.10\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Sao Paulo, SP, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 02 - Rio de Janeiro RJ","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"200.158.12.45\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15\",\"location\":\"Rio de Janeiro, RJ, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 03 - Salvador BA","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"189.75.33.201\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/122.0.6261.64 Mobile\",\"location\":\"Salvador, BA, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 04 - Belo Horizonte MG","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"170.84.15.67\",\"userAgent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Belo Horizonte, MG, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 05 - Curitiba PR","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"186.215.80.99\",\"userAgent\":\"Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Firefox/123.0\",\"location\":\"Curitiba, PR, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 06 - Recife PE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"187.62.44.128\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/122.0.2365.52\",\"location\":\"Recife, PE, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 07 - Porto Alegre RS","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"191.177.55.12\",\"userAgent\":\"Mozilla/5.0 (iPad; CPU OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Porto Alegre, RS, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 08 - Fortaleza CE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"177.71.88.34\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Samsung Galaxy S24) Chrome/122.0.0.0 Mobile\",\"location\":\"Fortaleza, CE, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 09 - Brasilia DF","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"170.82.100.55\",\"userAgent\":\"Mozilla/5.0 (Windows NT 11.0; Win64; x64) Chrome/121.0.0.0\",\"location\":\"Brasilia, DF, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 10 - Manaus AM","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"177.139.22.78\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) Chrome/122.0.0.0\",\"location\":\"Manaus, AM, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 11 - Belem PA","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"200.149.67.89\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Belem, PA, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 12 - Goiania GO","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"187.19.33.44\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15\",\"location\":\"Goiania, GO, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 13 - New York US","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"72.14.192.10\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/122.0.6261.64 Mobile\",\"location\":\"New York, NY, US\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 14 - London UK","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"51.15.120.40\",\"userAgent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"London, UK\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 15 - Tokyo JP","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"103.5.140.70\",\"userAgent\":\"Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Firefox/123.0\",\"location\":\"Tokyo, JP\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 16 - Moscow RU","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"95.213.120.90\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/122.0.2365.52\",\"location\":\"Moscow, RU\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 17 - Buenos Aires AR","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"181.44.33.100\",\"userAgent\":\"Mozilla/5.0 (iPad; CPU OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Buenos Aires, AR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 18 - Dubai AE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"94.200.33.180\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Samsung Galaxy S24) Chrome/122.0.0.0 Mobile\",\"location\":\"Dubai, AE\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 19 - Sydney AU","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"103.4.120.160\",\"userAgent\":\"Mozilla/5.0 (Windows NT 11.0; Win64; x64) Chrome/121.0.0.0\",\"location\":\"Sydney, AU\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 20 - Mumbai IN","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"joaoguedesdebrito@gmail.com\",\"password\":\"123456\",\"ipAddress\":\"49.37.55.170\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) Chrome/122.0.0.0\",\"location\":\"Mumbai, IN\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}}
+			]
+		},
+		{
+			"name": "3 - Logins Maria Silva (20)",
+			"item": [
+				{"name": "Login 01 - Sao Paulo SP","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"177.45.128.10\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Sao Paulo, SP, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 02 - Rio de Janeiro RJ","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"200.158.12.45\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15\",\"location\":\"Rio de Janeiro, RJ, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 03 - Salvador BA","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"189.75.33.201\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/122.0.6261.64 Mobile\",\"location\":\"Salvador, BA, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 04 - Curitiba PR","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"186.215.80.99\",\"userAgent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Curitiba, PR, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 05 - Brasilia DF","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"170.82.100.55\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/122.0.2365.52\",\"location\":\"Brasilia, DF, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 06 - Fortaleza CE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"177.71.88.34\",\"userAgent\":\"Mozilla/5.0 (iPad; CPU OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Fortaleza, CE, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 07 - Manaus AM","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"177.139.22.78\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Samsung Galaxy S24) Chrome/122.0.0.0 Mobile\",\"location\":\"Manaus, AM, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 08 - Recife PE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"187.62.44.128\",\"userAgent\":\"Mozilla/5.0 (Windows NT 11.0; Win64; x64) Chrome/121.0.0.0\",\"location\":\"Recife, PE, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 09 - Porto Alegre RS","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"191.177.55.12\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) Chrome/122.0.0.0\",\"location\":\"Porto Alegre, RS, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 10 - Goiania GO","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"187.19.33.44\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Goiania, GO, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 11 - New York US","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"72.14.192.10\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/122.0.6261.64 Mobile\",\"location\":\"New York, NY, US\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 12 - London UK","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"51.15.120.40\",\"userAgent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"London, UK\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 13 - Paris FR","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"91.134.200.50\",\"userAgent\":\"Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Firefox/123.0\",\"location\":\"Paris, FR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 14 - Tokyo JP","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"103.5.140.70\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/122.0.2365.52\",\"location\":\"Tokyo, JP\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 15 - Beijing CN","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"116.228.55.80\",\"userAgent\":\"Mozilla/5.0 (iPad; CPU OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Beijing, CN\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 16 - Moscow RU","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"95.213.120.90\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Samsung Galaxy S24) Chrome/122.0.0.0 Mobile\",\"location\":\"Moscow, RU\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 17 - Buenos Aires AR","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"181.44.33.100\",\"userAgent\":\"Mozilla/5.0 (Windows NT 11.0; Win64; x64) Chrome/121.0.0.0\",\"location\":\"Buenos Aires, AR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 18 - Dubai AE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"94.200.33.180\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) Chrome/122.0.0.0\",\"location\":\"Dubai, AE\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 19 - Cape Town ZA","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"41.185.66.33\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Cape Town, ZA\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 20 - Seoul KR","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"maria.silva@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"121.165.99.240\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15\",\"location\":\"Seoul, KR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}}
+			]
+		},
+		{
+			"name": "4 - Logins Carlos Santos (15)",
+			"item": [
+				{"name": "Login 01 - Sao Paulo SP","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"177.45.128.10\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Sao Paulo, SP, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 02 - Salvador BA","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"189.75.33.201\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/122.0.6261.64 Mobile\",\"location\":\"Salvador, BA, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 03 - Brasilia DF","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"170.82.100.55\",\"userAgent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Brasilia, DF, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 04 - Manaus AM","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"177.139.22.78\",\"userAgent\":\"Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Firefox/123.0\",\"location\":\"Manaus, AM, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 05 - Recife PE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"187.62.44.128\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/122.0.2365.52\",\"location\":\"Recife, PE, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 06 - New York US","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"72.14.192.10\",\"userAgent\":\"Mozilla/5.0 (iPad; CPU OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"New York, NY, US\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 07 - London UK","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"51.15.120.40\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Samsung Galaxy S24) Chrome/122.0.0.0 Mobile\",\"location\":\"London, UK\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 08 - Tokyo JP","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"103.5.140.70\",\"userAgent\":\"Mozilla/5.0 (Windows NT 11.0; Win64; x64) Chrome/121.0.0.0\",\"location\":\"Tokyo, JP\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 09 - Moscow RU","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"95.213.120.90\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) Chrome/122.0.0.0\",\"location\":\"Moscow, RU\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 10 - Buenos Aires AR","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"181.44.33.100\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Buenos Aires, AR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 11 - Beijing CN","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"116.228.55.80\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15\",\"location\":\"Beijing, CN\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 12 - Dubai AE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"94.200.33.180\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/122.0.6261.64 Mobile\",\"location\":\"Dubai, AE\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 13 - Sydney AU","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"103.4.120.160\",\"userAgent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Sydney, AU\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 14 - Lagos NG","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"105.112.44.190\",\"userAgent\":\"Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Firefox/123.0\",\"location\":\"Lagos, NG\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 15 - Cairo EG","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.santos@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"41.44.55.200\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/122.0.2365.52\",\"location\":\"Cairo, EG\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}}
+			]
+		},
+		{
+			"name": "5 - Logins Ana Oliveira (10)",
+			"item": [
+				{"name": "Login 01 - Sao Paulo SP","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"177.45.128.10\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Sao Paulo, SP, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 02 - Rio de Janeiro RJ","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"200.158.12.45\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) Safari/605.1.15\",\"location\":\"Rio de Janeiro, RJ, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 03 - Salvador BA","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"189.75.33.201\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/122.0.6261.64 Mobile\",\"location\":\"Salvador, BA, BR\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 04 - New York US","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"72.14.192.10\",\"userAgent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"New York, NY, US\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 05 - London UK","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"51.15.120.40\",\"userAgent\":\"Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Firefox/123.0\",\"location\":\"London, UK\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 06 - Tokyo JP","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"103.5.140.70\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/122.0.2365.52\",\"location\":\"Tokyo, JP\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 07 - Moscow RU","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"95.213.120.90\",\"userAgent\":\"Mozilla/5.0 (iPad; CPU OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Moscow, RU\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 08 - Beijing CN","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"116.228.55.80\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Samsung Galaxy S24) Chrome/122.0.0.0 Mobile\",\"location\":\"Beijing, CN\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 09 - Lagos NG","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"105.112.44.190\",\"userAgent\":\"Mozilla/5.0 (Windows NT 11.0; Win64; x64) Chrome/121.0.0.0\",\"location\":\"Lagos, NG\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 10 - Cairo EG","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"ana.oliveira@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"41.44.55.200\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) Chrome/122.0.0.0\",\"location\":\"Cairo, EG\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}}
+			]
+		},
+		{
+			"name": "6 - Logins Carlos Souza (10)",
+			"item": [
+				{"name": "Login 01 - Moscow RU","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"95.213.120.90\",\"userAgent\":\"Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Firefox/123.0\",\"location\":\"Moscow, RU\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 02 - Beijing CN","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"116.228.55.80\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/122.0.0.0\",\"location\":\"Beijing, CN\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 03 - Lagos NG","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"105.112.44.190\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Pixel 8) Chrome/122.0.6261.64 Mobile\",\"location\":\"Lagos, NG\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 04 - Cairo EG","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"41.44.55.200\",\"userAgent\":\"Mozilla/5.0 (iPhone; CPU iPhone OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Cairo, EG\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 05 - Jakarta ID","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"36.91.55.22\",\"userAgent\":\"Mozilla/5.0 (Windows NT 10.0; Win64; x64) Edge/122.0.2365.52\",\"location\":\"Jakarta, ID\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 06 - Bangkok TH","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"171.97.33.250\",\"userAgent\":\"Mozilla/5.0 (iPad; CPU OS 17_3) Mobile/15E148 Safari/604.1\",\"location\":\"Bangkok, TH\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 07 - Lima PE","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"190.42.88.120\",\"userAgent\":\"Mozilla/5.0 (Linux; Android 14; Samsung Galaxy S24) Chrome/122.0.0.0 Mobile\",\"location\":\"Lima, PE\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 08 - Bogota CO","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"181.135.44.130\",\"userAgent\":\"Mozilla/5.0 (Windows NT 11.0; Win64; x64) Chrome/121.0.0.0\",\"location\":\"Bogota, CO\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 09 - Mexico City MX","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"189.203.77.140\",\"userAgent\":\"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_3) Chrome/122.0.0.0\",\"location\":\"Mexico City, MX\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}},
+				{"name": "Login 10 - Warsaw PL","request": {"method": "POST","header": [{"key": "Content-Type", "value": "application/json"}],"body": {"mode": "raw","raw": "{\"email\":\"carlos.souza@empresa.com\",\"password\":\"123456\",\"ipAddress\":\"83.28.99.66\",\"userAgent\":\"Mozilla/5.0 (X11; Linux x86_64; rv:123.0) Firefox/123.0\",\"location\":\"Warsaw, PL\"}"},"url": {"raw": "{{baseUrl}}/api/v1/autenticacao/entrar","host": ["{{baseUrl}}"],"path": ["api","v1","autenticacao","entrar"]}}}
+			]
+		},
+		{
+			"name": "7 - Recalcular e Ajustar Scores",
+			"item": [
+				{
+					"name": "7.1 Recalcular Todos os Scores",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/recalcular-todos",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "recalcular-todos"]
+						}
+					}
+				},
+				{
+					"name": "7.2 Ajustar Joao - Score Alto (confiavel)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/ajustar/joaoguedesdebrito@gmail.com?ajuste=0.45&motivo=Usuario principal com historico consistente",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "ajustar", "joaoguedesdebrito@gmail.com"],
+							"query": [
+								{"key": "ajuste", "value": "0.45"},
+								{"key": "motivo", "value": "Usuario principal com historico consistente"}
+							]
+						}
+					}
+				},
+				{
+					"name": "7.3 Ajustar Maria - Score Medio-Alto",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/ajustar/maria.silva@empresa.com?ajuste=0.35&motivo=Comportamento regular com acessos variados",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "ajustar", "maria.silva@empresa.com"],
+							"query": [
+								{"key": "ajuste", "value": "0.35"},
+								{"key": "motivo", "value": "Comportamento regular com acessos variados"}
+							]
+						}
+					}
+				},
+				{
+					"name": "7.4 Ajustar Carlos Santos - Score Medio (MFA)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/ajustar/carlos.santos@empresa.com?ajuste=0.15&motivo=Acessos de localizacoes suspeitas detectados",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "ajustar", "carlos.santos@empresa.com"],
+							"query": [
+								{"key": "ajuste", "value": "0.15"},
+								{"key": "motivo", "value": "Acessos de localizacoes suspeitas detectados"}
+							]
+						}
+					}
+				},
+				{
+					"name": "7.5 Ajustar Ana - Score Baixo (suspeita)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/ajustar/ana.oliveira@empresa.com?ajuste=-0.1&motivo=Multiplas tentativas de acesso de IPs estrangeiros",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "ajustar", "ana.oliveira@empresa.com"],
+							"query": [
+								{"key": "ajuste", "value": "-0.1"},
+								{"key": "motivo", "value": "Multiplas tentativas de acesso de IPs estrangeiros"}
+							]
+						}
+					}
+				},
+				{
+					"name": "7.6 Ajustar Carlos Souza - Score Muito Baixo (bloqueio)",
+					"request": {
+						"method": "POST",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/ajustar/carlos.souza@empresa.com?ajuste=-0.25&motivo=Atividade altamente suspeita - possivel comprometimento",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "ajustar", "carlos.souza@empresa.com"],
+							"query": [
+								{"key": "ajuste", "value": "-0.25"},
+								{"key": "motivo", "value": "Atividade altamente suspeita - possivel comprometimento"}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "8 - Verificar Dados",
+			"item": [
+				{
+					"name": "8.1 Listar Todos Usuarios com Scores",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/usuarios",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "usuarios"]
+						}
+					}
+				},
+				{
+					"name": "8.2 Estatisticas Gerais",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/estatisticas",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "estatisticas"]
+						}
+					}
+				},
+				{
+					"name": "8.3 Score Joao Guedes",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/usuario/joaoguedesdebrito@gmail.com",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "usuario", "joaoguedesdebrito@gmail.com"]
+						}
+					}
+				},
+				{
+					"name": "8.4 Decisao Simulada - Joao",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/decisao/joaoguedesdebrito@gmail.com",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "decisao", "joaoguedesdebrito@gmail.com"]
+						}
+					}
+				},
+				{
+					"name": "8.5 Decisao Simulada - Carlos Souza (bloqueio)",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/trust-score/decisao/carlos.souza@empresa.com",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "trust-score", "decisao", "carlos.souza@empresa.com"]
+						}
+					}
+				},
+				{
+					"name": "8.6 Estatisticas IA",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/ia/estatisticas",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "ia", "estatisticas"]
+						}
+					}
+				},
+				{
+					"name": "8.7 Historico Analises IA - Joao",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/api/v1/ia/historico/1?limite=5",
+							"host": ["{{baseUrl}}"],
+							"path": ["api", "v1", "ia", "historico", "1"],
+							"query": [{"key": "limite", "value": "5"}]
+						}
+					}
+				},
+				{
+					"name": "8.8 Transacoes Blockchain - Joao",
+					"request": {
+						"method": "GET",
+						"header": [{"key": "Content-Type", "value": "application/json"}],
+						"url": {
+							"raw": "{{baseUrl}}/blockchain/auditoria/usuario/1",
+							"host": ["{{baseUrl}}"],
+							"path": ["blockchain", "auditoria", "usuario", "1"]
+						}
+					}
+				}
+			]
+		}
+	]
+}

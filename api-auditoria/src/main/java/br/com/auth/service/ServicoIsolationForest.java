@@ -2,7 +2,9 @@ package br.com.auth.service;
 
 import br.com.auth.dominio.entidades.PerfilComportamentalIA;
 import br.com.auth.dominio.interfaces.IServicoAnaliseComportamentalIA.DadosFeatures;
+import br.com.auth.infraestrutura.repositorios.RepositorioPerfilComportamentalIA;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -11,6 +13,9 @@ import java.util.concurrent.ThreadLocalRandom;
 @Service
 @Slf4j
 public class ServicoIsolationForest {
+
+    @Autowired
+    private RepositorioPerfilComportamentalIA repositorioPerfilIA;
 
     private List<IsolationTree> floresta;
     private static final int NUMERO_ARVORES = 100;
@@ -38,31 +43,129 @@ public class ServicoIsolationForest {
 
     public void treinarModelo() {
         log.info("Iniciando treinamento do modelo Isolation Forest");
-        
+
         try {
-            // Simular dados de treinamento (em produção viria do banco)
-            List<double[]> dadosTreinamento = gerarDadosTreinamentoSimulados();
-            
+            List<double[]> dadosTreinamento;
+            List<double[]> dadosReais = gerarDadosTreinamentoReais();
+            int totalReais = dadosReais.size();
+            int totalSimulados = 0;
+
+            if (totalReais >= 50) {
+                dadosTreinamento = dadosReais;
+                log.info("Usando {} amostras reais do banco de dados para treinamento.", totalReais);
+            } else {
+                dadosTreinamento = new ArrayList<>(dadosReais);
+                int amostrasSimuladasNecessarias = 200 - totalReais;
+                List<double[]> dadosSimulados = gerarDadosTreinamentoSimulados();
+                // Pegar apenas a quantidade necessária de dados simulados
+                totalSimulados = Math.min(amostrasSimuladasNecessarias, dadosSimulados.size());
+                dadosTreinamento.addAll(dadosSimulados.subList(0, totalSimulados));
+                log.info("Dados reais insuficientes ({} amostras). Suplementando com {} amostras simuladas. Total: {} amostras.",
+                        totalReais, totalSimulados, dadosTreinamento.size());
+            }
+
             floresta = new ArrayList<>();
-            
+
             for (int i = 0; i < NUMERO_ARVORES; i++) {
                 // Amostragem aleatória dos dados
                 List<double[]> amostra = selecionarAmostraAleatoria(dadosTreinamento, TAMANHO_AMOSTRA);
-                
+
                 // Criar e treinar árvore de isolamento
                 IsolationTree arvore = new IsolationTree();
                 arvore.treinar(amostra);
-                
+
                 floresta.add(arvore);
             }
-            
+
             modeloTreinado = true;
-            log.info("Modelo Isolation Forest treinado com sucesso. {} árvores criadas.", NUMERO_ARVORES);
-            
+            log.info("Modelo Isolation Forest treinado com sucesso. {} árvores criadas. Dados reais: {}, Dados simulados: {}.",
+                    NUMERO_ARVORES, totalReais, totalSimulados);
+
         } catch (Exception e) {
             log.error("Erro no treinamento do modelo Isolation Forest", e);
             throw new RuntimeException("Erro no treinamento do Isolation Forest", e);
         }
+    }
+
+    private List<double[]> gerarDadosTreinamentoReais() {
+        List<double[]> dados = new ArrayList<>();
+
+        try {
+            List<PerfilComportamentalIA> perfis = repositorioPerfilIA.findAll();
+            log.info("Encontrados {} perfis comportamentais no banco de dados.", perfis.size());
+
+            for (PerfilComportamentalIA perfil : perfis) {
+                double[] amostra = new double[14];
+
+                // [0] horaAcesso
+                if (perfil.getHoraDia() != null) {
+                    amostra[0] = perfil.getHoraDia();
+                } else if (perfil.getDataHoraAcesso() != null) {
+                    amostra[0] = perfil.getDataHoraAcesso().getHour();
+                } else {
+                    amostra[0] = 12.0;
+                }
+
+                // [1] diaSemana
+                amostra[1] = converterDiaSemanaParaNumero(perfil.getDiaSemana());
+
+                // [2] frequenciaAcessoSemanal
+                amostra[2] = perfil.getFrequenciaAcessoScore() != null ? perfil.getFrequenciaAcessoScore() * 10 : 5.0;
+
+                // [3] ipJaUtilizado
+                amostra[3] = (perfil.getTotalIpsDistintos() != null && perfil.getTotalIpsDistintos() <= 3) ? 1.0 : 0.0;
+
+                // [4] dispositivoJaUtilizado
+                amostra[4] = (perfil.getTotalDispositivosDistintos() != null && perfil.getTotalDispositivosDistintos() <= 2) ? 1.0 : 0.0;
+
+                // [5] localizacaoJaUtilizada
+                amostra[5] = perfil.getPadraoLocalizacaoScore() != null ? (perfil.getPadraoLocalizacaoScore() > 0.5 ? 1.0 : 0.0) : 1.0;
+
+                // [6] distanciaLocalizacaoHabitualKm (não armazenado no perfil, default 0)
+                amostra[6] = 0.0;
+
+                // [7] diferencaHorarioHabitualHoras
+                amostra[7] = perfil.getDesvioPadraoHorarios() != null ? perfil.getDesvioPadraoHorarios() : 0.0;
+
+                // [8] tempoDesdeUltimoAcessoHoras (não armazenado, default 8)
+                amostra[8] = 8.0;
+
+                // [9] mediaSessoesDiarias
+                amostra[9] = perfil.getMediaSessoesDiarias() != null ? perfil.getMediaSessoesDiarias() : 3.0;
+
+                // [10] desvioPadraoHorarios
+                amostra[10] = perfil.getDesvioPadraoHorarios() != null ? perfil.getDesvioPadraoHorarios() : 2.0;
+
+                // [11] totalIpsDistintos
+                amostra[11] = perfil.getTotalIpsDistintos() != null ? perfil.getTotalIpsDistintos() : 1;
+
+                // [12] totalDispositivosDistintos
+                amostra[12] = perfil.getTotalDispositivosDistintos() != null ? perfil.getTotalDispositivosDistintos() : 1;
+
+                // [13] padroesNavegacaoScore
+                amostra[13] = perfil.getSequenciaNavegacaoScore() != null ? perfil.getSequenciaNavegacaoScore() : 0.5;
+
+                dados.add(amostra);
+            }
+        } catch (Exception e) {
+            log.warn("Erro ao buscar dados reais do banco de dados. Retornando lista vazia.", e);
+        }
+
+        return dados;
+    }
+
+    private double converterDiaSemanaParaNumero(String diaSemana) {
+        if (diaSemana == null) return 3.0;
+        return switch (diaSemana.toUpperCase()) {
+            case "SEGUNDA", "MONDAY" -> 1.0;
+            case "TERCA", "TERÇA", "TUESDAY" -> 2.0;
+            case "QUARTA", "WEDNESDAY" -> 3.0;
+            case "QUINTA", "THURSDAY" -> 4.0;
+            case "SEXTA", "FRIDAY" -> 5.0;
+            case "SABADO", "SÁBADO", "SATURDAY" -> 6.0;
+            case "DOMINGO", "SUNDAY" -> 7.0;
+            default -> 3.0;
+        };
     }
 
     public void ajustarComFeedback(PerfilComportamentalIA perfil, boolean acessoLegitimo) {

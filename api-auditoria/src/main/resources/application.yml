@@ -286,7 +286,7 @@ ai:
     timeout: 5000
 
 blockchain:
-  enabled: false
+  enabled: true
 
 app:
   base-url: ${APP_BASE_URL:http://localhost:4200}

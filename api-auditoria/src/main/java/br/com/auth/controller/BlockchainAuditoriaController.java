@@ -1,7 +1,9 @@
 package br.com.auth.controller;
 
 import br.com.auth.dominio.entidades.TransacaoBlockchain;
+import br.com.auth.infraestrutura.repositorios.RepositorioTransacaoBlockchain;
 import br.com.auth.service.BlockchainService;
+import br.com.auth.service.HyperledgerFabricService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -33,6 +35,8 @@ import java.util.Optional;
 public class BlockchainAuditoriaController {
 
     private final BlockchainService blockchainService;
+    private final RepositorioTransacaoBlockchain repositorioTransacaoBlockchain;
+    private final org.springframework.beans.factory.ObjectProvider<HyperledgerFabricService> hyperledgerFabricServiceProvider;
 
     @Operation(summary = "Buscar transação por hash", 
                description = "Consulta uma transação específica pelo seu hash")
@@ -82,8 +86,8 @@ public class BlockchainAuditoriaController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fim) {
         
         log.debug("Buscando transações entre {} e {}", inicio, fim);
-        
-        List<TransacaoBlockchain> transacoes = blockchainService.getUnverifiedTransactions();
+
+        List<TransacaoBlockchain> transacoes = repositorioTransacaoBlockchain.findByCriadoEmBetween(inicio, fim);
         return ResponseEntity.ok(transacoes);
     }
 
@@ -268,12 +272,22 @@ public class BlockchainAuditoriaController {
     public ResponseEntity<Map<String, Object>> obterInfoHyperledger() {
         try {
             log.debug("Obtendo informações da rede Hyperledger Fabric");
-            Map<String, Object> info = Map.of("status", "SIMULACAO", "hyperledger", "indisponivel");
-            return ResponseEntity.ok(info);
+
+            HyperledgerFabricService hyperledgerService = hyperledgerFabricServiceProvider.getIfAvailable();
+            if (hyperledgerService != null) {
+                Map<String, Object> info = hyperledgerService.getNetworkInfo();
+                return ResponseEntity.ok(info);
+            } else {
+                Map<String, Object> info = new HashMap<>();
+                info.put("status", "INDISPONIVEL");
+                info.put("hyperledger", "Serviço não habilitado (blockchain.enabled=false)");
+                info.put("timestamp", LocalDateTime.now().toString());
+                return ResponseEntity.ok(info);
+            }
         } catch (Exception e) {
             log.error("Erro ao obter informações do Hyperledger", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("erro", "Erro ao obter informações do Hyperledger", 
+                    .body(Map.of("erro", "Erro ao obter informações do Hyperledger",
                                "detalhes", e.getMessage()));
         }
     }
@@ -285,7 +299,15 @@ public class BlockchainAuditoriaController {
     public ResponseEntity<Map<String, Object>> testarConectividadeHyperledger() {
         try {
             log.debug("Testando conectividade com Hyperledger Fabric");
-            boolean conectado = false; // Hyperledger temporariamente desabilitado
+            HyperledgerFabricService hyperledgerService = hyperledgerFabricServiceProvider.getIfAvailable();
+            boolean conectado = false;
+            if (hyperledgerService != null) {
+                try {
+                    conectado = hyperledgerService.testConnectivity().get();
+                } catch (Exception ex) {
+                    log.warn("Falha no teste de conectividade Hyperledger: {}", ex.getMessage());
+                }
+            }
             return ResponseEntity.ok(Map.of(
                 "conectado", conectado,
                 "timestamp", LocalDateTime.now(),

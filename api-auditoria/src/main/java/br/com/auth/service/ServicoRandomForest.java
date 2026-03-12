@@ -2,15 +2,21 @@ package br.com.auth.service;
 
 import br.com.auth.dominio.entidades.PerfilComportamentalIA;
 import br.com.auth.dominio.interfaces.IServicoAnaliseComportamentalIA.DadosFeatures;
+import br.com.auth.infraestrutura.repositorios.RepositorioPerfilComportamentalIA;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @Slf4j
 public class ServicoRandomForest {
+
+    @Autowired
+    private RepositorioPerfilComportamentalIA repositorioPerfilIA;
 
     private List<ArvoreDecisao> floresta;
     private static final int NUMERO_ARVORES = 50;
@@ -36,30 +42,54 @@ public class ServicoRandomForest {
 
     public void treinarModelo() {
         log.info("Iniciando treinamento do modelo Random Forest");
-        
+
         try {
-            // Simular dados de treinamento com labels
-            List<DadoTreinamento> dadosTreinamento = gerarDadosTreinamentoComLabels();
-            
+            // Tentar obter dados reais do banco de dados
+            List<DadoTreinamento> dadosReais = gerarDadosTreinamentoReais();
+            int quantidadeReais = dadosReais.size();
+            int quantidadeSimulados = 0;
+
+            List<DadoTreinamento> dadosTreinamento;
+
+            if (quantidadeReais >= 50) {
+                // Dados reais suficientes, usar apenas dados reais
+                dadosTreinamento = dadosReais;
+                log.info("Usando {} amostras reais do banco de dados para treinamento.", quantidadeReais);
+            } else {
+                // Dados reais insuficientes, suplementar com dados simulados
+                dadosTreinamento = new ArrayList<>(dadosReais);
+                int totalDesejado = Math.max(200, quantidadeReais);
+                quantidadeSimulados = totalDesejado - quantidadeReais;
+
+                List<DadoTreinamento> dadosSimulados = gerarDadosTreinamentoComLabels();
+                // Pegar apenas a quantidade necessária de dados simulados
+                dadosTreinamento.addAll(dadosSimulados.subList(0, Math.min(quantidadeSimulados, dadosSimulados.size())));
+                quantidadeSimulados = dadosTreinamento.size() - quantidadeReais;
+
+                log.info("Dados reais insuficientes ({} amostras). Suplementando com {} amostras simuladas. Total: {} amostras.",
+                    quantidadeReais, quantidadeSimulados, dadosTreinamento.size());
+            }
+
             floresta = new ArrayList<>();
-            
+
             for (int i = 0; i < NUMERO_ARVORES; i++) {
                 // Bootstrap sampling
                 List<DadoTreinamento> amostraBootstrap = criarAmostraBootstrap(dadosTreinamento);
-                
+
                 // Feature sampling
                 List<Integer> featuresEscolhidas = selecionarFeaturesAleatorias(14);
-                
+
                 // Criar e treinar árvore
                 ArvoreDecisao arvore = new ArvoreDecisao(featuresEscolhidas);
                 arvore.treinar(amostraBootstrap);
-                
+
                 floresta.add(arvore);
             }
-            
+
             modeloTreinado = true;
-            log.info("Modelo Random Forest treinado com sucesso. {} árvores criadas.", NUMERO_ARVORES);
-            
+            log.info("Modelo Random Forest treinado com sucesso. {} árvores criadas. Dados reais: {}, Dados simulados: {}.",
+                NUMERO_ARVORES, quantidadeReais, quantidadeSimulados);
+
         } catch (Exception e) {
             log.error("Erro no treinamento do modelo Random Forest", e);
             throw new RuntimeException("Erro no treinamento do Random Forest", e);
@@ -160,6 +190,90 @@ public class ServicoRandomForest {
             features.totalDispositivosDistintos().doubleValue(),
             features.padroesNavegacaoScore()
         };
+    }
+
+    private List<DadoTreinamento> gerarDadosTreinamentoReais() {
+        List<DadoTreinamento> dados = new ArrayList<>();
+
+        try {
+            List<PerfilComportamentalIA> perfis = repositorioPerfilIA.findAll();
+            log.debug("Encontrados {} perfis comportamentais no banco de dados.", perfis.size());
+
+            for (PerfilComportamentalIA perfil : perfis) {
+                try {
+                    double[] features = new double[14];
+
+                    // [0] horaAcesso
+                    if (perfil.getHoraDia() != null) {
+                        features[0] = perfil.getHoraDia();
+                    } else if (perfil.getDataHoraAcesso() != null) {
+                        features[0] = perfil.getDataHoraAcesso().getHour();
+                    } else {
+                        features[0] = 12.0;
+                    }
+
+                    // [1] diaSemana
+                    features[1] = converterDiaSemanaParaNumero(perfil.getDiaSemana());
+
+                    // [2] frequenciaAcessoSemanal
+                    features[2] = perfil.getFrequenciaAcessoScore() != null ? perfil.getFrequenciaAcessoScore() * 10 : 5.0;
+
+                    // [3] ipJaUtilizado
+                    features[3] = (perfil.getTotalIpsDistintos() != null && perfil.getTotalIpsDistintos() <= 3) ? 1.0 : 0.0;
+
+                    // [4] dispositivoJaUtilizado
+                    features[4] = (perfil.getTotalDispositivosDistintos() != null && perfil.getTotalDispositivosDistintos() <= 2) ? 1.0 : 0.0;
+
+                    // [5] localizacaoJaUtilizada
+                    features[5] = perfil.getPadraoLocalizacaoScore() != null ? (perfil.getPadraoLocalizacaoScore() > 0.5 ? 1.0 : 0.0) : 1.0;
+
+                    // [6] distanciaLocalizacaoHabitualKm
+                    features[6] = 0.0;
+
+                    // [7] diferencaHorarioHabitualHoras
+                    features[7] = perfil.getDesvioPadraoHorarios() != null ? perfil.getDesvioPadraoHorarios() : 0.0;
+
+                    // [8] tempoDesdeUltimoAcessoHoras
+                    features[8] = 8.0;
+
+                    // [9] mediaSessoesDiarias
+                    features[9] = perfil.getMediaSessoesDiarias() != null ? perfil.getMediaSessoesDiarias() : 3.0;
+
+                    // [10] desvioPadraoHorarios
+                    features[10] = perfil.getDesvioPadraoHorarios() != null ? perfil.getDesvioPadraoHorarios() : 2.0;
+
+                    // [11] totalIpsDistintos
+                    features[11] = perfil.getTotalIpsDistintos() != null ? perfil.getTotalIpsDistintos() : 1;
+
+                    // [12] totalDispositivosDistintos
+                    features[12] = perfil.getTotalDispositivosDistintos() != null ? perfil.getTotalDispositivosDistintos() : 1;
+
+                    // [13] padroesNavegacaoScore
+                    features[13] = perfil.getSequenciaNavegacaoScore() != null ? perfil.getSequenciaNavegacaoScore() : 0.5;
+
+                    // Label: true = anomalia (qualquer classificação diferente de ESPERADO)
+                    boolean ehAnomalo = perfil.getClassificacaoAcesso() != PerfilComportamentalIA.ClassificacaoAcesso.ESPERADO;
+
+                    dados.add(new DadoTreinamento(features, ehAnomalo));
+                } catch (Exception e) {
+                    log.warn("Erro ao converter perfil {} para dado de treinamento: {}", perfil.getId(), e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Erro ao buscar dados reais do banco de dados: {}. Será usado fallback com dados simulados.", e.getMessage());
+        }
+
+        return dados;
+    }
+
+    private double converterDiaSemanaParaNumero(String diaSemana) {
+        if (diaSemana == null) return 3.0;
+        try {
+            DayOfWeek dayOfWeek = DayOfWeek.valueOf(diaSemana);
+            return dayOfWeek.getValue();
+        } catch (IllegalArgumentException e) {
+            return 3.0;
+        }
     }
 
     private List<DadoTreinamento> gerarDadosTreinamentoComLabels() {

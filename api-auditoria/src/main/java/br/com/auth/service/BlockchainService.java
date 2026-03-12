@@ -108,12 +108,16 @@ public class BlockchainService {
             String dataHash = createDataHash(usuario, eventType, decision, riskScore, ipAddress, location, deviceFingerprint);
             log.info("Hash dos dados criado: {}", dataHash);
 
+            // Gerar hash da transação antes de salvar
+            String txHashInicial = "0x" + dataHash.replace("0x", "").substring(0, 64);
+
             // Registra localmente primeiro
             TransacaoBlockchain transacao = TransacaoBlockchain.builder()
                     .tipoEvento(eventType)
                     .usuarioId(usuario.getId())
                     .usuarioEmail(usuario.getEmail())
                     .hashDados(dataHash)
+                    .hashTransacao(txHashInicial)
                     .enderecoIp(ipAddress)
                     .localizacao(location)
                     .impressaoDigitalDispositivo(deviceFingerprint)

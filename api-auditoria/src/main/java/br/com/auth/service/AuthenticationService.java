@@ -374,6 +374,18 @@ public class AuthenticationService implements IServicoAutenticacao {
 
             log.info("Login bem-sucedido para usuário: {}", requisicao.getEmail());
 
+            // Registrar no blockchain
+            try {
+                String ipAddress = requisicao.getIpAddress() != null ? requisicao.getIpAddress() : "127.0.0.1";
+                String location = requisicao.getLocation() != null ? requisicao.getLocation() : "Unknown";
+                String deviceFingerprint = requisicao.getUserAgent() != null ? requisicao.getUserAgent() : "Web";
+
+                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", 0.0,
+                    ipAddress, location, deviceFingerprint);
+            } catch (Exception blockchainEx) {
+                log.error("Erro ao registrar evento no blockchain: {}", blockchainEx.getMessage(), blockchainEx);
+            }
+
             return buildAuthResponse(usuario, jwtToken);
         } catch (Exception e) {
             log.error("Erro durante autenticação: {}", e.getMessage());

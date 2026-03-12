@@ -14,17 +14,16 @@ import { TrustScore } from '../../models/system.model';
   styleUrls: ['./trust-score.component.scss']
 })
 export class TrustScoreComponent implements OnInit {
-  
+
   trustScore: TrustScore | null = null;
   statistics: any = null;
   usersByLevel: any = null;
   loading = false;
   error: string | null = null;
-  modoSimulado = false;
-  
+
   // Usuário atual para menu
   usuarioAtual: any = null;
-  
+
   // Ajuste manual
   adjustmentValue = 0;
   adjustmentReason = '';
@@ -37,27 +36,16 @@ export class TrustScoreComponent implements OnInit {
 
   ngOnInit(): void {
     this.usuarioAtual = this.authService.getCurrentUser();
-    console.log('👤 Usuário atual:', this.usuarioAtual);
-    
+
     if (!this.usuarioAtual) {
-      console.warn('⚠️ Usuário não autenticado');
       this.router.navigate(['/login']);
       return;
-    }
-
-    if (this.usuarioAtual.role !== 'ADMIN') {
-      console.warn('⚠️ Usuário não é ADMIN:', this.usuarioAtual.role);
-      this.modoSimulado = true;
-    } else {
-      console.log('✅ Usuário ADMIN confirmado');
-      this.modoSimulado = false;
     }
 
     this.loadTrustScoreData();
   }
 
   refreshData(): void {
-    console.log('🔄 Atualizando dados...');
     this.loadTrustScoreData();
   }
 
@@ -66,24 +54,20 @@ export class TrustScoreComponent implements OnInit {
     this.error = null;
 
     if (!this.usuarioAtual?.email) {
-      this.error = 'Usuário não autenticado';
+      this.error = 'Usuario nao autenticado';
       this.loading = false;
       return;
     }
 
-    console.log('📊 Carregando dados para:', this.usuarioAtual.email);
-    console.log('🔒 Modo simulado:', this.modoSimulado);
-
     // Carrega score do usuário atual
     this.apiService.getTrustScore(this.usuarioAtual.email).subscribe({
       next: (score) => {
-        console.log('✅ Score recebido:', score);
         this.trustScore = score;
         this.loading = false;
       },
       error: (err) => {
-        console.error('❌ Erro ao carregar score:', err);
-        this.error = 'Erro ao carregar score de confiança: ' + (err.message || err);
+        console.error('Erro ao carregar score:', err);
+        this.error = 'Erro ao carregar score de confianca. Verifique sua conexao com o servidor.';
         this.loading = false;
       }
     });
@@ -91,71 +75,48 @@ export class TrustScoreComponent implements OnInit {
     // Carrega estatísticas gerais
     this.apiService.getTrustScoreStatistics().subscribe({
       next: (stats) => {
-        console.log('📈 Estatísticas recebidas:', stats);
         this.statistics = stats;
       },
       error: (err) => {
-        console.error('❌ Erro ao carregar estatísticas:', err);
-        this.error = 'Erro ao carregar estatísticas: ' + (err.message || err);
+        console.error('Erro ao carregar estatisticas:', err);
+        this.error = 'Erro ao carregar estatisticas. Verifique sua conexao com o servidor.';
       }
     });
   }
 
   adjustScore(): void {
     if (!this.usuarioAtual?.email || !this.adjustmentReason) {
-      console.warn('⚠️ Dados inválidos para ajuste');
       return;
     }
-
-    if (this.modoSimulado) {
-      console.warn('⚠️ Ajuste não permitido em modo simulado');
-      this.error = 'Ajuste não permitido em modo simulado';
-      return;
-    }
-
-    console.log('⚖️ Iniciando ajuste de score:', {
-      email: this.usuarioAtual.email,
-      valor: this.adjustmentValue,
-      motivo: this.adjustmentReason
-    });
 
     this.loading = true;
-    
+
     this.apiService.adjustTrustScore(
-      this.usuarioAtual.email, 
-      this.adjustmentValue, 
+      this.usuarioAtual.email,
+      this.adjustmentValue,
       this.adjustmentReason
     ).subscribe({
       next: (result) => {
-        console.log('✅ Score ajustado:', result);
         this.loadTrustScoreData();
         this.adjustmentValue = 0;
         this.adjustmentReason = '';
       },
       error: (err) => {
-        console.error('❌ Erro ao ajustar score:', err);
-        this.error = 'Erro ao ajustar score: ' + (err.message || err);
+        console.error('Erro ao ajustar score:', err);
+        this.error = 'Erro ao ajustar score. Verifique sua conexao com o servidor.';
         this.loading = false;
       }
     });
   }
 
   loadUsersByLevel(level: string): void {
-    if (this.modoSimulado) {
-      console.warn('⚠️ Carregamento por nível não permitido em modo simulado');
-      return;
-    }
-
-    console.log('👥 Carregando usuários do nível:', level);
-    
     this.apiService.getUsersByTrustLevel(level).subscribe({
       next: (users) => {
-        console.log('✅ Usuários recebidos:', users);
         this.usersByLevel = users;
       },
       error: (err) => {
-        console.error('❌ Erro ao carregar usuários:', err);
-        this.error = 'Erro ao carregar usuários: ' + (err.message || err);
+        console.error('Erro ao carregar usuarios:', err);
+        this.error = 'Erro ao carregar usuarios. Verifique sua conexao com o servidor.';
       }
     });
   }

@@ -20,11 +20,6 @@
           </a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" routerLink="/system-monitor">
-            <i class="bi bi-display me-1"></i>Monitor
-          </a>
-        </li>
-        <li class="nav-item">
           <a class="nav-link" routerLink="/trust-score">
             <i class="bi bi-bullseye me-1"></i>Trust Score
           </a>
@@ -32,21 +27,6 @@
         <li class="nav-item">
           <a class="nav-link active" routerLink="/ai-analysis">
             <i class="bi bi-cpu-fill me-1"></i>Análise IA
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/security-analytics">
-            <i class="bi bi-shield-lock me-1"></i>Analytics
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/session-manager">
-            <i class="bi bi-person-gear me-1"></i>Sessões
-          </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" routerLink="/relatorios">
-            <i class="bi bi-bar-chart-line me-1"></i>Relatórios
           </a>
         </li>
       </ul>
@@ -67,11 +47,6 @@
               </div>
             </li>
             <li><hr class="dropdown-divider"></li>
-            <li>
-              <a class="dropdown-item" routerLink="/settings">
-                <i class="bi bi-gear me-2"></i>Configurações
-              </a>
-            </li>
             <li>
               <a class="dropdown-item" href="#" (click)="logout()">
                 <i class="bi bi-box-arrow-right me-2"></i>Sair
@@ -343,6 +318,251 @@
                   <div class="algorithm-score">
                     <div class="score-circle ensemble-score" [ngClass]="(scoreAtual.ensemble || 0) > 0.7 ? 'high' : (scoreAtual.ensemble || 0) > 0.4 ? 'medium' : 'low'">
                       {{ formatarScore(scoreAtual.ensemble || 0) }}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Como o Score Funciona -->
+        <div class="col-12">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-info-circle me-2"></i>
+                  Como a Decisao de Autenticacao Funciona
+                </h4>
+                <button class="btn btn-outline-primary btn-sm" (click)="mostrarDetalhesFeatures = !mostrarDetalhesFeatures">
+                  <i class="bi" [class.bi-chevron-down]="!mostrarDetalhesFeatures" [class.bi-chevron-up]="mostrarDetalhesFeatures"></i>
+                  {{ mostrarDetalhesFeatures ? 'Ocultar' : 'Ver Detalhes' }}
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <!-- Fluxo de decisao -->
+              <div class="decision-flow mb-4">
+                <div class="flow-step">
+                  <div class="flow-icon bg-primary">
+                    <i class="bi bi-box-arrow-in-right"></i>
+                  </div>
+                  <div class="flow-content">
+                    <h6>1. Login</h6>
+                    <small>Usuario faz login no sistema</small>
+                  </div>
+                </div>
+                <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+                <div class="flow-step">
+                  <div class="flow-icon bg-info">
+                    <i class="bi bi-collection"></i>
+                  </div>
+                  <div class="flow-content">
+                    <h6>2. Coleta</h6>
+                    <small>14 features sao coletadas</small>
+                  </div>
+                </div>
+                <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+                <div class="flow-step">
+                  <div class="flow-icon bg-warning">
+                    <i class="bi bi-cpu"></i>
+                  </div>
+                  <div class="flow-content">
+                    <h6>3. Analise IA</h6>
+                    <small>3 modelos calculam o score</small>
+                  </div>
+                </div>
+                <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+                <div class="flow-step">
+                  <div class="flow-icon bg-success">
+                    <i class="bi bi-shield-check"></i>
+                  </div>
+                  <div class="flow-content">
+                    <h6>4. Decisao</h6>
+                    <small>Permitir, MFA ou Bloquear</small>
+                  </div>
+                </div>
+                <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+                <div class="flow-step">
+                  <div class="flow-icon bg-secondary">
+                    <i class="bi bi-link-45deg"></i>
+                  </div>
+                  <div class="flow-content">
+                    <h6>5. Blockchain</h6>
+                    <small>Registro imutavel</small>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Limiares de decisao -->
+              <div class="decision-thresholds mb-4">
+                <h5 class="section-title mb-3">Limiares de Decisao</h5>
+                <div class="thresholds-grid">
+                  <div class="threshold-item threshold-safe">
+                    <div class="threshold-range">0.0 - 0.3</div>
+                    <div class="threshold-label">PERMITIDO</div>
+                    <div class="threshold-desc">Login normal, acesso liberado</div>
+                    <div class="threshold-bar">
+                      <div class="threshold-fill" style="width: 30%; background: #28a745;"></div>
+                    </div>
+                  </div>
+                  <div class="threshold-item threshold-warning">
+                    <div class="threshold-range">0.3 - 0.7</div>
+                    <div class="threshold-label">SUSPEITO</div>
+                    <div class="threshold-desc">Pode exigir autenticacao MFA</div>
+                    <div class="threshold-bar">
+                      <div class="threshold-fill" style="width: 70%; background: #ffc107;"></div>
+                    </div>
+                  </div>
+                  <div class="threshold-item threshold-danger">
+                    <div class="threshold-range">0.7 - 1.0</div>
+                    <div class="threshold-label">NEGADO</div>
+                    <div class="threshold-desc">Acesso bloqueado automaticamente</div>
+                    <div class="threshold-bar">
+                      <div class="threshold-fill" style="width: 100%; background: #dc3545;"></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Features detalhadas (expandivel) -->
+              <div class="features-detail" *ngIf="mostrarDetalhesFeatures">
+                <h5 class="section-title mb-3">14 Features Coletadas a Cada Login</h5>
+                <div class="features-grid">
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-clock"></i></div>
+                    <div class="feature-content">
+                      <h6>Hora do Acesso</h6>
+                      <small>3h da manha e mais suspeito que 14h</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-calendar-week"></i></div>
+                    <div class="feature-content">
+                      <h6>Dia da Semana</h6>
+                      <small>Domingo vs dia util altera o risco</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
+                    <div class="feature-content">
+                      <h6>Frequencia Semanal</h6>
+                      <small>Aumento subito de acessos e anomalo</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-hdd-network"></i></div>
+                    <div class="feature-content">
+                      <h6>IP Conhecido?</h6>
+                      <small>IP novo aumenta o nivel de risco</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-laptop"></i></div>
+                    <div class="feature-content">
+                      <h6>Dispositivo Conhecido?</h6>
+                      <small>Navegador/SO novo eleva o risco</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-geo-alt"></i></div>
+                    <div class="feature-content">
+                      <h6>Localizacao Conhecida?</h6>
+                      <small>Cidade nova gera alerta</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-signpost-split"></i></div>
+                    <div class="feature-content">
+                      <h6>Distancia da Localizacao Habitual</h6>
+                      <small>SP para Recife = alerta de risco</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-alarm"></i></div>
+                    <div class="feature-content">
+                      <h6>Diferenca do Horario Habitual</h6>
+                      <small>Sempre loga as 9h, tentou as 3h = suspeito</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-hourglass-split"></i></div>
+                    <div class="feature-content">
+                      <h6>Tempo Desde Ultimo Acesso</h6>
+                      <small>30 dias sem logar e volta = suspeito</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-bar-chart-steps"></i></div>
+                    <div class="feature-content">
+                      <h6>Media de Sessoes Diarias</h6>
+                      <small>Padrao de uso normal do usuario</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-distribute-vertical"></i></div>
+                    <div class="feature-content">
+                      <h6>Desvio Padrao dos Horarios</h6>
+                      <small>Consistencia do comportamento</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-diagram-3"></i></div>
+                    <div class="feature-content">
+                      <h6>Total de IPs Distintos</h6>
+                      <small>Muitos IPs diferentes = maior risco</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-phone"></i></div>
+                    <div class="feature-content">
+                      <h6>Total de Dispositivos Distintos</h6>
+                      <small>Muitos devices = maior risco</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-cursor"></i></div>
+                    <div class="feature-content">
+                      <h6>Score de Navegacao</h6>
+                      <small>Padrao de uso dentro do sistema</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Pesos dos modelos -->
+                <div class="model-weights mt-4">
+                  <h5 class="section-title mb-3">Peso dos Modelos no Score Final (Ensemble)</h5>
+                  <div class="weights-grid">
+                    <div class="weight-item">
+                      <div class="weight-header">
+                        <span class="weight-name">Isolation Forest</span>
+                        <span class="weight-percent">40%</span>
+                      </div>
+                      <div class="weight-bar">
+                        <div class="weight-fill" style="width: 40%; background: linear-gradient(90deg, #667eea, #764ba2);"></div>
+                      </div>
+                      <small class="weight-desc">Detecta anomalias sem labels. Identifica ataques nunca vistos antes.</small>
+                    </div>
+                    <div class="weight-item">
+                      <div class="weight-header">
+                        <span class="weight-name">Random Forest</span>
+                        <span class="weight-percent">30%</span>
+                      </div>
+                      <div class="weight-bar">
+                        <div class="weight-fill" style="width: 30%; background: linear-gradient(90deg, #f093fb, #f5576c);"></div>
+                      </div>
+                      <small class="weight-desc">Classificador supervisionado. Aprende com historico normal vs anomalo.</small>
+                    </div>
+                    <div class="weight-item">
+                      <div class="weight-header">
+                        <span class="weight-name">Deep Learning</span>
+                        <span class="weight-percent">30%</span>
+                      </div>
+                      <div class="weight-bar">
+                        <div class="weight-fill" style="width: 30%; background: linear-gradient(90deg, #4facfe, #00f2fe);"></div>
+                      </div>
+                      <small class="weight-desc">Rede neural com 4 camadas. Captura padroes complexos nao-lineares.</small>
                     </div>
                   </div>
                 </div>

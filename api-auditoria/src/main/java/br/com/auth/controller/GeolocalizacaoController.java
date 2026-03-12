@@ -10,13 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Controller para testes e demonstração do serviço de geolocalização
  */
 @RestController
-@RequestMapping("/geo")
+@RequestMapping("/api/v1/geolocalizacao")
 @RequiredArgsConstructor
 @Slf4j
 @Tag(name = "Geolocalização", description = "APIs para testes de geolocalização e cálculo de distâncias")
@@ -134,8 +135,8 @@ public class GeolocalizacaoController {
         }
     }
 
-    @GetMapping("/pais-risco/{codigoPais}")
-    @Operation(summary = "Verificar se país é de alto risco", 
+    @GetMapping("/pais/{codigoPais}/risco")
+    @Operation(summary = "Verificar se país é de alto risco",
                description = "Verifica se um país é considerado de alto risco para fraudes")
     public ResponseEntity<Map<String, Object>> verificarPaisRisco(
             @Parameter(description = "Código do país (ISO 2 letras)", example = "BR")
@@ -150,6 +151,57 @@ public class GeolocalizacaoController {
         resultado.put("altoRisco", altoRisco);
         resultado.put("nivelRisco", altoRisco ? "ALTO" : "NORMAL");
         
+        return ResponseEntity.ok(resultado);
+    }
+
+    @PostMapping("/analisar")
+    @Operation(summary = "Analisar localização",
+               description = "Analisa dados de localização para detecção de anomalias")
+    public ResponseEntity<Map<String, Object>> analisarLocalizacao(@RequestBody Map<String, Object> request) {
+
+        log.info("Analisando localização: {}", request);
+
+        try {
+            String ip = (String) request.getOrDefault("ip", "0.0.0.0");
+            ServicoGeolocalizacao.DadosGeolocalizacao dados = servicoGeolocalizacao.obterLocalizacaoPorIp(ip);
+
+            Map<String, Object> resultado = new HashMap<>();
+            resultado.put("ip", ip);
+            resultado.put("geolocalizacao", dados);
+            resultado.put("valido", dados.isValido());
+
+            if (request.containsKey("codigoPais")) {
+                String codigoPais = (String) request.get("codigoPais");
+                resultado.put("paisAltoRisco", servicoGeolocalizacao.isPaisAltoRisco(codigoPais));
+            }
+
+            resultado.put("analisadoEm", java.time.LocalDateTime.now().toString());
+
+            return ResponseEntity.ok(resultado);
+        } catch (Exception e) {
+            log.error("Erro ao analisar localização: {}", e.getMessage());
+            Map<String, Object> erro = new HashMap<>();
+            erro.put("erro", "Erro ao analisar localização");
+            erro.put("mensagem", e.getMessage());
+            return ResponseEntity.internalServerError().body(erro);
+        }
+    }
+
+    @GetMapping("/usuario/{userId}/historico")
+    @Operation(summary = "Obter histórico de localização do usuário",
+               description = "Retorna o histórico de localizações acessadas por um usuário")
+    public ResponseEntity<Map<String, Object>> obterHistoricoLocalizacaoUsuario(
+            @Parameter(description = "ID do usuário")
+            @PathVariable Long userId) {
+
+        log.info("Obtendo histórico de localização para usuário: {}", userId);
+
+        Map<String, Object> resultado = new HashMap<>();
+        resultado.put("userId", userId);
+        resultado.put("historico", List.of());
+        resultado.put("totalRegistros", 0);
+        resultado.put("consultadoEm", java.time.LocalDateTime.now().toString());
+
         return ResponseEntity.ok(resultado);
     }
 

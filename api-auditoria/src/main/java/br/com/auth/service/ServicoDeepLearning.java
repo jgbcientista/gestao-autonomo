@@ -2,15 +2,21 @@ package br.com.auth.service;
 
 import br.com.auth.dominio.entidades.PerfilComportamentalIA;
 import br.com.auth.dominio.interfaces.IServicoAnaliseComportamentalIA.DadosFeatures;
+import br.com.auth.infraestrutura.repositorios.RepositorioPerfilComportamentalIA;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.DayOfWeek;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @Slf4j
 public class ServicoDeepLearning {
+
+    @Autowired
+    private RepositorioPerfilComportamentalIA repositorioPerfilIA;
 
     private RedeNeural redeNeural;
     private boolean modeloTreinado = false;
@@ -41,20 +47,41 @@ public class ServicoDeepLearning {
 
     public void treinarModelo() {
         log.info("Iniciando treinamento do modelo Deep Learning");
-        
+
         try {
-            // Gerar dados de treinamento
-            List<DadoTreinamento> dadosTreinamento = gerarDadosTreinamento();
-            
+            // Tentar obter dados reais do banco de dados
+            List<DadoTreinamento> dadosReais = gerarDadosTreinamentoReais();
+            List<DadoTreinamento> dadosTreinamento;
+
+            if (dadosReais.size() >= 50) {
+                // Dados reais suficientes para treinar
+                dadosTreinamento = new ArrayList<>(dadosReais);
+                log.info("Usando {} amostras reais do banco de dados para treinamento Deep Learning", dadosReais.size());
+
+                if (dadosReais.size() < 200) {
+                    // Complementar com dados simulados para atingir pelo menos 200
+                    int simuladosNecessarios = 200 - dadosReais.size();
+                    List<DadoTreinamento> dadosSimulados = gerarDadosTreinamentoSimulados(simuladosNecessarios);
+                    dadosTreinamento.addAll(dadosSimulados);
+                    log.info("Complementando com {} amostras simuladas (total: {} reais + {} simulados = {})",
+                        simuladosNecessarios, dadosReais.size(), simuladosNecessarios, dadosTreinamento.size());
+                }
+            } else {
+                // Dados reais insuficientes, usar dados simulados
+                log.info("Dados reais insuficientes ({} amostras). Usando dados simulados para treinamento Deep Learning",
+                    dadosReais.size());
+                dadosTreinamento = gerarDadosTreinamento();
+            }
+
             // Inicializar rede neural
             redeNeural = new RedeNeural(INPUT_SIZE, HIDDEN1_SIZE, HIDDEN2_SIZE, HIDDEN3_SIZE, OUTPUT_SIZE);
-            
+
             // Treinar modelo
             treinarRedeNeural(dadosTreinamento);
-            
+
             modeloTreinado = true;
             log.info("Modelo Deep Learning treinado com sucesso");
-            
+
         } catch (Exception e) {
             log.error("Erro no treinamento do modelo Deep Learning", e);
             throw new RuntimeException("Erro no treinamento do Deep Learning", e);
@@ -125,10 +152,140 @@ public class ServicoDeepLearning {
         return normalized;
     }
 
+    private List<DadoTreinamento> gerarDadosTreinamentoReais() {
+        List<DadoTreinamento> dados = new ArrayList<>();
+
+        try {
+            List<PerfilComportamentalIA> perfis = repositorioPerfilIA.findAll();
+            log.info("Encontrados {} perfis comportamentais no banco de dados para treinamento Deep Learning", perfis.size());
+
+            for (PerfilComportamentalIA perfil : perfis) {
+                try {
+                    double[] features = new double[14];
+
+                    // [0] horaAcesso
+                    features[0] = perfil.getHoraDia() != null ? perfil.getHoraDia()
+                        : (perfil.getDataHoraAcesso() != null ? perfil.getDataHoraAcesso().getHour() : 12.0);
+
+                    // [1] diaSemana
+                    features[1] = converterDiaSemanaParaNumero(perfil.getDiaSemana());
+
+                    // [2] frequenciaAcessoSemanal
+                    features[2] = perfil.getFrequenciaAcessoScore() != null ? perfil.getFrequenciaAcessoScore() * 10 : 5.0;
+
+                    // [3] ipJaUtilizado
+                    features[3] = (perfil.getTotalIpsDistintos() != null && perfil.getTotalIpsDistintos() <= 3) ? 1.0 : 0.0;
+
+                    // [4] dispositivoJaUtilizado
+                    features[4] = (perfil.getTotalDispositivosDistintos() != null && perfil.getTotalDispositivosDistintos() <= 2) ? 1.0 : 0.0;
+
+                    // [5] localizacaoJaUtilizada
+                    features[5] = perfil.getPadraoLocalizacaoScore() != null ? (perfil.getPadraoLocalizacaoScore() > 0.5 ? 1.0 : 0.0) : 1.0;
+
+                    // [6] distanciaLocalizacaoHabitualKm
+                    features[6] = 0.0;
+
+                    // [7] diferencaHorarioHabitualHoras
+                    features[7] = perfil.getDesvioPadraoHorarios() != null ? perfil.getDesvioPadraoHorarios() : 0.0;
+
+                    // [8] tempoDesdeUltimoAcessoHoras
+                    features[8] = 8.0;
+
+                    // [9] mediaSessoesDiarias
+                    features[9] = perfil.getMediaSessoesDiarias() != null ? perfil.getMediaSessoesDiarias() : 3.0;
+
+                    // [10] desvioPadraoHorarios
+                    features[10] = perfil.getDesvioPadraoHorarios() != null ? perfil.getDesvioPadraoHorarios() : 2.0;
+
+                    // [11] totalIpsDistintos
+                    features[11] = perfil.getTotalIpsDistintos() != null ? perfil.getTotalIpsDistintos() : 1;
+
+                    // [12] totalDispositivosDistintos
+                    features[12] = perfil.getTotalDispositivosDistintos() != null ? perfil.getTotalDispositivosDistintos() : 1;
+
+                    // [13] padroesNavegacaoScore
+                    features[13] = perfil.getSequenciaNavegacaoScore() != null ? perfil.getSequenciaNavegacaoScore() : 0.5;
+
+                    // Label: 1.0 para anômalo, 0.0 para esperado
+                    double label = perfil.getClassificacaoAcesso() != PerfilComportamentalIA.ClassificacaoAcesso.ESPERADO ? 1.0 : 0.0;
+
+                    dados.add(new DadoTreinamento(normalizarInput(features), label));
+                } catch (Exception e) {
+                    log.warn("Erro ao converter perfil {} para dado de treinamento Deep Learning: {}", perfil.getId(), e.getMessage());
+                }
+            }
+        } catch (Exception e) {
+            log.error("Erro ao buscar dados reais para treinamento Deep Learning", e);
+        }
+
+        return dados;
+    }
+
+    private double converterDiaSemanaParaNumero(String diaSemana) {
+        if (diaSemana == null) return 3.0;
+        try {
+            DayOfWeek day = DayOfWeek.valueOf(diaSemana.toUpperCase());
+            return day.getValue(); // 1 (MONDAY) a 7 (SUNDAY)
+        } catch (IllegalArgumentException e) {
+            return 3.0; // Valor padrão (quarta-feira)
+        }
+    }
+
+    private List<DadoTreinamento> gerarDadosTreinamentoSimulados(int quantidade) {
+        List<DadoTreinamento> dados = new ArrayList<>();
+        Random random = new Random();
+
+        for (int i = 0; i < quantidade; i++) {
+            double[] features = new double[14];
+            double label;
+
+            // 75% dados normais, 25% anômalos
+            if (random.nextDouble() < 0.75) {
+                // Comportamento normal
+                features[0] = 8 + random.nextGaussian() * 2;
+                features[1] = 1 + random.nextInt(5);
+                features[2] = 5 + Math.abs(random.nextGaussian() * 3);
+                features[3] = 1.0;
+                features[4] = 1.0;
+                features[5] = 1.0;
+                features[6] = Math.abs(random.nextGaussian() * 15);
+                features[7] = Math.abs(random.nextGaussian() * 1.5);
+                features[8] = 2 + Math.abs(random.nextGaussian() * 10);
+                features[9] = 3 + Math.abs(random.nextGaussian() * 1.5);
+                features[10] = 1.5 + Math.abs(random.nextGaussian() * 0.8);
+                features[11] = 1 + random.nextInt(3);
+                features[12] = 1 + random.nextInt(2);
+                features[13] = 0.4 + random.nextDouble() * 0.3;
+                label = 0.0;
+            } else {
+                // Comportamento anômalo
+                features[0] = random.nextInt(24);
+                features[1] = random.nextInt(7) + 1;
+                features[2] = random.nextDouble() * 4;
+                features[3] = random.nextDouble() < 0.3 ? 1.0 : 0.0;
+                features[4] = random.nextDouble() < 0.3 ? 1.0 : 0.0;
+                features[5] = random.nextDouble() < 0.2 ? 1.0 : 0.0;
+                features[6] = random.nextDouble() * 800;
+                features[7] = random.nextDouble() * 10;
+                features[8] = random.nextDouble() * 150;
+                features[9] = random.nextDouble() * 2;
+                features[10] = random.nextDouble() * 10;
+                features[11] = random.nextInt(12) + 1;
+                features[12] = random.nextInt(6) + 1;
+                features[13] = random.nextDouble();
+                label = 1.0;
+            }
+
+            dados.add(new DadoTreinamento(normalizarInput(features), label));
+        }
+
+        return dados;
+    }
+
     private List<DadoTreinamento> gerarDadosTreinamento() {
         List<DadoTreinamento> dados = new ArrayList<>();
         Random random = new Random();
-        
+
         // Gerar 5000 amostras para treinamento
         for (int i = 0; i < 5000; i++) {
             double[] features = new double[14];

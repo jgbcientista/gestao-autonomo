@@ -15,6 +15,7 @@ import { TrustScore } from '../../models/system.model';
 })
 export class TrustScoreComponent implements OnInit {
 
+  Math = Math;
   trustScore: TrustScore | null = null;
   statistics: any = null;
   loading = false;

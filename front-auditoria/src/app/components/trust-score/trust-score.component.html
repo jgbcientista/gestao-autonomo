@@ -77,7 +77,7 @@
   </div>
 </div>
 
-<!-- Conteúdo Principal -->
+<!-- Conteudo Principal -->
 <main class="dashboard-main">
   <div class="container-fluid">
 
@@ -90,9 +90,7 @@
               <i class="bi bi-bullseye me-2"></i>
               Score de Confiança
             </div>
-            <h1 class="hero-title">
-              Score de Confiança
-            </h1>
+            <h1 class="hero-title">Score de Confiança</h1>
             <p class="hero-subtitle">
               Selecione um usuário para visualizar o score de confiança calculado pelo motor de IA.
             </p>
@@ -115,303 +113,332 @@
       </div>
     </section>
 
-<div class="trust-score-container">
+    <div class="ts-container">
 
-  <!-- Seleção de Usuário -->
-  <div class="score-card" style="margin-bottom: 1.5rem; padding: 1.5rem;">
-    <h3 style="margin-bottom: 1rem;"><i class="bi bi-person-fill me-2"></i>Selecionar Usuário</h3>
-    <div class="form-group">
-      <select class="form-control" [(ngModel)]="selectedEmail" (change)="onUsuarioSelecionado()"
-              style="background: rgba(15, 23, 42, 0.6); color: #e2e8f0; border: 1px solid rgba(148, 163, 184, 0.3); border-radius: 8px; padding: 0.6rem 1rem; font-size: 1rem;">
-        <option value="" style="background: #1e293b;">-- Selecione um usuário --</option>
-        <option *ngFor="let u of usuarios" [value]="u.email" style="background: #1e293b;">
-          {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
-        </option>
-      </select>
+      <!-- Selecao de Usuario -->
+      <div class="ts-card ts-select-user">
+        <div class="ts-card-header">
+          <i class="bi bi-person-fill"></i>
+          <h3>Selecionar Usuário</h3>
+        </div>
+        <select class="ts-select" [(ngModel)]="selectedEmail" (change)="onUsuarioSelecionado()">
+          <option value="">-- Selecione um usuário --</option>
+          <option *ngFor="let u of usuarios" [value]="u.email">
+            {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="ts-loading">
+        <div class="ts-spinner"></div>
+        <p>Carregando dados do score...</p>
+      </div>
+
+      <!-- Error -->
+      <div *ngIf="error" class="ts-error">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+          <h4>Erro</h4>
+          <p>{{ error }}</p>
+        </div>
+      </div>
+
+      <!-- Score Details -->
+      <div *ngIf="trustScore && !loading" class="ts-content">
+
+        <!-- Linha 1: Score Gauge + Decisao + Estatisticas -->
+        <div class="ts-row-top">
+
+          <!-- Score Gauge -->
+          <div class="ts-card ts-gauge-card">
+            <div class="ts-card-header">
+              <i class="bi bi-speedometer2"></i>
+              <h3>Score Atual</h3>
+            </div>
+            <div class="ts-gauge">
+              <svg viewBox="0 0 200 130" class="ts-gauge-svg">
+                <defs>
+                  <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" style="stop-color:#ef4444"/>
+                    <stop offset="35%" style="stop-color:#f59e0b"/>
+                    <stop offset="65%" style="stop-color:#3b82f6"/>
+                    <stop offset="100%" style="stop-color:#10b981"/>
+                  </linearGradient>
+                </defs>
+                <!-- Track -->
+                <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="#e2e8f0" stroke-width="14" stroke-linecap="round"/>
+                <!-- Fill -->
+                <path d="M 20 110 A 80 80 0 0 1 180 110" fill="none" stroke="url(#gaugeGrad)" stroke-width="14" stroke-linecap="round"
+                      [attr.stroke-dasharray]="251.3"
+                      [attr.stroke-dashoffset]="251.3 - (trustScore.scoreAtual * 251.3)"/>
+                <!-- Needle -->
+                <line x1="100" y1="110" [attr.x2]="100 + 65 * Math.cos(Math.PI - trustScore.scoreAtual * Math.PI)" [attr.y2]="110 - 65 * Math.sin(Math.PI - trustScore.scoreAtual * Math.PI)" stroke="#1e293b" stroke-width="2.5" stroke-linecap="round"/>
+                <circle cx="100" cy="110" r="5" fill="#1e293b"/>
+              </svg>
+              <div class="ts-gauge-value" [style.color]="getScoreColor(trustScore.scoreAtual)">
+                {{ trustScore.scoreAtual | number:'1.2-2' }}
+              </div>
+              <div class="ts-gauge-label">{{ trustScore.nivelConfianca }}</div>
+            </div>
+            <div class="ts-gauge-details">
+              <div class="ts-detail-row">
+                <span class="ts-detail-label">Score Base</span>
+                <span class="ts-detail-value">{{ trustScore.scoreBase | number:'1.2-2' }}</span>
+              </div>
+              <div class="ts-detail-row">
+                <span class="ts-detail-label">Fator Ajuste</span>
+                <span class="ts-detail-value" [class.ts-positive]="trustScore.fatorAjuste > 0" [class.ts-negative]="trustScore.fatorAjuste < 0">
+                  {{ trustScore.fatorAjuste > 0 ? '+' : '' }}{{ trustScore.fatorAjuste | number:'1.2-2' }}
+                </span>
+              </div>
+              <div *ngIf="trustScore.emObservacao" class="ts-observation-badge">
+                <i class="bi bi-eye-fill"></i> Em Observação
+              </div>
+            </div>
+          </div>
+
+          <!-- Decisao Automatica -->
+          <div class="ts-card ts-decision-card" *ngIf="decisaoSimulada">
+            <div class="ts-card-header">
+              <i class="bi bi-robot"></i>
+              <h3>Decisão Automática</h3>
+            </div>
+            <div class="ts-decision-display">
+              <div class="ts-decision-icon" [style.background]="getDecisaoColor(decisaoSimulada.decisaoSimulada) + '20'" [style.color]="getDecisaoColor(decisaoSimulada.decisaoSimulada)">
+                {{ getDecisaoIcon(decisaoSimulada.decisaoSimulada) }}
+              </div>
+              <div class="ts-decision-label" [style.color]="getDecisaoColor(decisaoSimulada.decisaoSimulada)">
+                {{ getDecisaoLabel(decisaoSimulada.decisaoSimulada) }}
+              </div>
+              <div class="ts-decision-sub">Baseado no score de {{ decisaoSimulada.scoreAtual | number:'1.2-2' }}</div>
+            </div>
+            <div class="ts-decision-flags">
+              <div class="ts-flag" [class.ts-flag-active]="decisaoSimulada.observacoes?.confiavel" [class.ts-flag-inactive]="!decisaoSimulada.observacoes?.confiavel">
+                <i class="bi" [class.bi-check-circle-fill]="decisaoSimulada.observacoes?.confiavel" [class.bi-x-circle-fill]="!decisaoSimulada.observacoes?.confiavel"></i>
+                Confiável
+              </div>
+              <div class="ts-flag" [class.ts-flag-warning]="decisaoSimulada.observacoes?.requerMfa" [class.ts-flag-inactive]="!decisaoSimulada.observacoes?.requerMfa">
+                <i class="bi" [class.bi-lock-fill]="decisaoSimulada.observacoes?.requerMfa" [class.bi-unlock-fill]="!decisaoSimulada.observacoes?.requerMfa"></i>
+                Requer MFA
+              </div>
+              <div class="ts-flag" [class.ts-flag-danger]="decisaoSimulada.observacoes?.deveBloquear" [class.ts-flag-inactive]="!decisaoSimulada.observacoes?.deveBloquear">
+                <i class="bi" [class.bi-shield-x]="decisaoSimulada.observacoes?.deveBloquear" [class.bi-shield-check]="!decisaoSimulada.observacoes?.deveBloquear"></i>
+                Bloqueio
+              </div>
+              <div class="ts-flag" [class.ts-flag-warning]="decisaoSimulada.observacoes?.emObservacao" [class.ts-flag-inactive]="!decisaoSimulada.observacoes?.emObservacao">
+                <i class="bi" [class.bi-eye-fill]="decisaoSimulada.observacoes?.emObservacao" [class.bi-eye-slash-fill]="!decisaoSimulada.observacoes?.emObservacao"></i>
+                Observação
+              </div>
+            </div>
+          </div>
+
+          <!-- Estatisticas -->
+          <div class="ts-card ts-stats-card">
+            <div class="ts-card-header">
+              <i class="bi bi-bar-chart-fill"></i>
+              <h3>Estatísticas</h3>
+            </div>
+            <div class="ts-stats-list">
+              <div class="ts-stat-row">
+                <div class="ts-stat-icon ts-stat-success"><i class="bi bi-check-lg"></i></div>
+                <div class="ts-stat-info">
+                  <span class="ts-stat-label">Logins Sucesso</span>
+                  <span class="ts-stat-number ts-text-success">{{ trustScore.estatisticas.totalLoginsSucesso }}</span>
+                </div>
+              </div>
+              <div class="ts-stat-row">
+                <div class="ts-stat-icon ts-stat-warning"><i class="bi bi-exclamation-lg"></i></div>
+                <div class="ts-stat-info">
+                  <span class="ts-stat-label">Logins Suspeitos</span>
+                  <span class="ts-stat-number ts-text-warning">{{ trustScore.estatisticas.totalLoginsSuspeitos }}</span>
+                </div>
+              </div>
+              <div class="ts-stat-row">
+                <div class="ts-stat-icon ts-stat-danger"><i class="bi bi-x-lg"></i></div>
+                <div class="ts-stat-info">
+                  <span class="ts-stat-label">Bloqueios</span>
+                  <span class="ts-stat-number ts-text-danger">{{ trustScore.estatisticas.totalBloqueios }}</span>
+                </div>
+              </div>
+              <div class="ts-stat-row">
+                <div class="ts-stat-icon ts-stat-info"><i class="bi bi-key-fill"></i></div>
+                <div class="ts-stat-info">
+                  <span class="ts-stat-label">MFA Exigido</span>
+                  <span class="ts-stat-number ts-text-info">{{ trustScore.estatisticas.totalMfaExigido }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Analise Contextual (full width) -->
+        <div class="ts-card ts-contextual">
+          <div class="ts-card-header">
+            <i class="bi bi-lightbulb-fill" style="color: #f59e0b;"></i>
+            <h3>Análise Contextual do Score</h3>
+          </div>
+          <p class="ts-contextual-text">{{ getDescricaoContextual() }}</p>
+        </div>
+
+        <!-- Ajuste Manual -->
+        <div class="ts-card ts-adjust-card">
+          <div class="ts-card-header">
+            <i class="bi bi-sliders"></i>
+            <h3>Ajuste Manual do Score</h3>
+          </div>
+          <p class="ts-adjust-desc">Simule cenários ajustando o score manualmente. Valores negativos diminuem a confiança.</p>
+          <form (ngSubmit)="adjustScore()" class="ts-adjust-form">
+            <div class="ts-form-row">
+              <div class="ts-form-group">
+                <label>Valor do Ajuste (-1.0 a 1.0)</label>
+                <input type="number" [(ngModel)]="adjustmentValue" name="adjustmentValue" min="-1" max="1" step="0.1" class="ts-input">
+              </div>
+              <div class="ts-form-group ts-form-grow">
+                <label>Motivo do Ajuste</label>
+                <input type="text" [(ngModel)]="adjustmentReason" name="adjustmentReason" placeholder="Ex: Acesso de localização não usual, dispositivo desconhecido..." class="ts-input">
+              </div>
+              <button type="submit" class="ts-btn-adjust" [disabled]="loading || !adjustmentReason">
+                <i class="bi bi-check2-circle me-1"></i> Aplicar
+              </button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+
+      <!-- Como o Score e Calculado -->
+      <div class="ts-card ts-calc-card">
+        <div class="ts-card-header">
+          <i class="bi bi-calculator"></i>
+          <h3>Como o Score é Calculado</h3>
+        </div>
+        <p class="ts-calc-desc">O score final é uma média ponderada de 4 fatores contextuais, variando de 0.00 (não confiável) a 1.00 (totalmente confiável).</p>
+
+        <div class="ts-factors-grid">
+          <div class="ts-factor ts-factor-blue">
+            <div class="ts-factor-header">
+              <span class="ts-factor-icon">&#128202;</span>
+              <span class="ts-factor-badge ts-badge-blue">40%</span>
+            </div>
+            <h4>Histórico de Sucesso</h4>
+            <p>Taxa de logins bem-sucedidos vs total de tentativas. Quanto maior o histórico positivo, maior o score.</p>
+          </div>
+
+          <div class="ts-factor ts-factor-purple">
+            <div class="ts-factor-header">
+              <span class="ts-factor-icon">&#129302;</span>
+              <span class="ts-factor-badge ts-badge-purple">30%</span>
+            </div>
+            <h4>Análise de IA</h4>
+            <p>Ensemble de modelos (Isolation Forest, Random Forest, Deep Learning). Inversamente proporcional ao score de anomalia.</p>
+          </div>
+
+          <div class="ts-factor ts-factor-green">
+            <div class="ts-factor-header">
+              <span class="ts-factor-icon">&#128336;</span>
+              <span class="ts-factor-badge ts-badge-green">20%</span>
+            </div>
+            <h4>Comportamento Recente</h4>
+            <p>Consistência nos últimos 7 dias: IPs, dispositivos e horários. Menos variação = mais confiança.</p>
+          </div>
+
+          <div class="ts-factor ts-factor-amber">
+            <div class="ts-factor-header">
+              <span class="ts-factor-icon">&#127760;</span>
+              <span class="ts-factor-badge ts-badge-amber">10%</span>
+            </div>
+            <h4>Fatores Externos</h4>
+            <p>Tempo desde último login e status da conta. Usuários ativos e verificados recebem bônus.</p>
+          </div>
+        </div>
+
+        <!-- Formula -->
+        <div class="ts-formula">
+          <h4><i class="bi bi-code-slash me-2"></i>Fórmula</h4>
+          <code>Score = (Histórico × 0.4) + (IA × 0.3) + (Recente × 0.2) + (Externos × 0.1) + Fator de Ajuste</code>
+        </div>
+
+        <!-- Thresholds -->
+        <div class="ts-thresholds">
+          <h4><i class="bi bi-signpost-split me-2"></i>Limiares de Decisão</h4>
+          <div class="ts-threshold-row">
+            <div class="ts-threshold ts-threshold-green">
+              <span class="ts-threshold-value">&#8805; 0.70</span>
+              <span class="ts-threshold-label">Confiável</span>
+              <span class="ts-threshold-action">Acesso Permitido</span>
+            </div>
+            <div class="ts-threshold ts-threshold-amber">
+              <span class="ts-threshold-value">0.50 - 0.69</span>
+              <span class="ts-threshold-label">Suspeito</span>
+              <span class="ts-threshold-action">Exige MFA</span>
+            </div>
+            <div class="ts-threshold ts-threshold-red">
+              <span class="ts-threshold-value">&lt; 0.20</span>
+              <span class="ts-threshold-label">Não Confiável</span>
+              <span class="ts-threshold-action">Acesso Bloqueado</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Estatisticas Gerais -->
+      <div *ngIf="statistics" class="ts-section">
+        <h2 class="ts-section-title"><i class="bi bi-graph-up me-2"></i>Estatísticas Gerais do Sistema</h2>
+        <div class="ts-kpi-grid">
+          <div class="ts-kpi">
+            <div class="ts-kpi-icon ts-kpi-blue"><i class="bi bi-speedometer"></i></div>
+            <div class="ts-kpi-data">
+              <span class="ts-kpi-number ts-text-info">{{ statistics.scoreMedioGeral | number:'1.2-2' }}</span>
+              <span class="ts-kpi-label">Score Médio Geral</span>
+            </div>
+          </div>
+          <div class="ts-kpi">
+            <div class="ts-kpi-icon ts-kpi-green"><i class="bi bi-people-fill"></i></div>
+            <div class="ts-kpi-data">
+              <span class="ts-kpi-number ts-text-success">{{ statistics.totalUsuariosConfiaveis }}</span>
+              <span class="ts-kpi-label">Usuários Confiáveis</span>
+            </div>
+          </div>
+          <div class="ts-kpi">
+            <div class="ts-kpi-icon ts-kpi-amber"><i class="bi bi-exclamation-triangle-fill"></i></div>
+            <div class="ts-kpi-data">
+              <span class="ts-kpi-number ts-text-warning">{{ statistics.usuariosScoreBaixo }}</span>
+              <span class="ts-kpi-label">Score Baixo</span>
+            </div>
+          </div>
+          <div class="ts-kpi">
+            <div class="ts-kpi-icon ts-kpi-purple"><i class="bi bi-eye-fill"></i></div>
+            <div class="ts-kpi-data">
+              <span class="ts-kpi-number" style="color: #7c3aed;">{{ statistics.usuariosEmObservacao }}</span>
+              <span class="ts-kpi-label">Em Observação</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Informacoes Recentes -->
+      <div *ngIf="trustScore" class="ts-recent">
+        <h2 class="ts-section-title"><i class="bi bi-clock-history me-2"></i>Informações Recentes</h2>
+        <div class="ts-recent-grid">
+          <div class="ts-card ts-recent-item">
+            <i class="bi bi-calendar3" style="color: #3b82f6; font-size: 1.3rem;"></i>
+            <div>
+              <span class="ts-recent-label">Última Atualização</span>
+              <span class="ts-recent-value">{{ trustScore.ultimaAtualizacao | date:'medium' }}</span>
+            </div>
+          </div>
+          <div *ngIf="trustScore.motivoAlteracao" class="ts-card ts-recent-item">
+            <i class="bi bi-pencil-square" style="color: #8b5cf6; font-size: 1.3rem;"></i>
+            <div>
+              <span class="ts-recent-label">Motivo da Última Alteração</span>
+              <span class="ts-recent-value">{{ trustScore.motivoAlteracao }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
-  </div>
-
-
-  <!-- Loading -->
-  <div *ngIf="loading" class="loading">
-    <div class="spinner"></div>
-    <p>Carregando dados do score...</p>
-  </div>
-
-  <!-- Error -->
-  <div *ngIf="error" class="error-card">
-    <span class="error-icon">&#9888;</span>
-    <div>
-      <h3>Erro</h3>
-      <p>{{ error }}</p>
-    </div>
-  </div>
-
-  <!-- Score Details -->
-  <div *ngIf="trustScore && !loading" class="score-details">
-    <div class="score-grid">
-      <!-- Score Principal -->
-      <div class="score-card main-score">
-        <h3>Score Atual</h3>
-        <div class="score-circle">
-          <div class="score-text">
-            <span class="score-number" [style.color]="getScoreColor(trustScore.scoreAtual)">{{ trustScore.scoreAtual | number:'1.2-2' }}</span>
-            <span class="score-max">/1.00</span>
-          </div>
-          <div class="score-bar">
-            <div class="score-fill" [style.width.%]="trustScore.scoreAtual * 100" [style.background]="getScoreColor(trustScore.scoreAtual)"></div>
-          </div>
-        </div>
-        <div class="score-info">
-          <p><strong>Nível:</strong> {{ trustScore.nivelConfianca }}</p>
-          <p><strong>Score Base:</strong> {{ trustScore.scoreBase | number:'1.2-2' }}</p>
-          <p><strong>Fator Ajuste:</strong> {{ trustScore.fatorAjuste | number:'1.2-2' }}</p>
-          <p *ngIf="trustScore.emObservacao" class="observation">
-            <span class="warning">Em Observação</span>
-          </p>
-        </div>
-      </div>
-
-      <!-- Análise Contextual -->
-      <div class="score-card" style="grid-column: 1 / -1; border: 1px solid rgba(99, 102, 241, 0.5); background: rgba(15, 23, 42, 0.85);">
-        <h3 style="color: #e2e8f0;"><i class="bi bi-lightbulb-fill me-2" style="color: #a78bfa;"></i>Análise Contextual do Score</h3>
-        <p style="color: #f1f5f9; font-size: 0.95rem; line-height: 1.8; margin: 1rem 0 0;">
-          {{ getDescricaoContextual() }}
-        </p>
-      </div>
-
-      <!-- Decisão Automática do Sistema -->
-      <div class="score-card" *ngIf="decisaoSimulada" style="border: 2px solid" [style.borderColor]="getDecisaoColor(decisaoSimulada.decisaoSimulada)">
-        <h3>Decisão Automática do Sistema</h3>
-        <div style="text-align: center; padding: 1rem 0;">
-          <div style="font-size: 3rem; margin-bottom: 0.5rem;">{{ getDecisaoIcon(decisaoSimulada.decisaoSimulada) }}</div>
-          <div style="font-size: 1.3rem; font-weight: bold;" [style.color]="getDecisaoColor(decisaoSimulada.decisaoSimulada)">
-            {{ getDecisaoLabel(decisaoSimulada.decisaoSimulada) }}
-          </div>
-          <div style="color: #94a3b8; font-size: 0.9rem; margin-top: 0.5rem;">
-            Baseado no score atual de {{ decisaoSimulada.scoreAtual | number:'1.2-2' }}
-          </div>
-        </div>
-        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid rgba(148, 163, 184, 0.2);">
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-            <span style="color: #94a3b8;">Confiável:</span>
-            <span>{{ decisaoSimulada.observacoes?.confiavel ? '&#10004; Sim' : '&#10060; N&#227;o' }}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-            <span style="color: #94a3b8;">Requer MFA:</span>
-            <span>{{ decisaoSimulada.observacoes?.requerMfa ? '&#128274; Sim' : '&#128275; N&#227;o' }}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between; margin-bottom: 0.3rem;">
-            <span style="color: #94a3b8;">Deve Bloquear:</span>
-            <span>{{ decisaoSimulada.observacoes?.deveBloquear ? '&#128683; Sim' : '&#10004; N&#227;o' }}</span>
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <span style="color: #94a3b8;">Em Observação:</span>
-            <span>{{ decisaoSimulada.observacoes?.emObservacao ? '&#128065; Sim' : '&#10060; N&#227;o' }}</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- Estatísticas do Usuário -->
-      <div class="score-card statistics">
-        <h3>Estatísticas do Usuário</h3>
-        <div class="stat-item">
-          <span class="stat-label">Logins Sucesso:</span>
-          <span class="stat-value success">{{ trustScore.estatisticas.totalLoginsSucesso }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Logins Suspeitos:</span>
-          <span class="stat-value warning">{{ trustScore.estatisticas.totalLoginsSuspeitos }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">Bloqueios:</span>
-          <span class="stat-value danger">{{ trustScore.estatisticas.totalBloqueios }}</span>
-        </div>
-        <div class="stat-item">
-          <span class="stat-label">MFA Exigido:</span>
-          <span class="stat-value info">{{ trustScore.estatisticas.totalMfaExigido }}</span>
-        </div>
-      </div>
-
-      <!-- Ajuste Manual -->
-      <div class="score-card manual-adjustment">
-        <h3>Ajuste Manual do Score</h3>
-        <p style="color: #94a3b8; font-size: 0.85rem; margin-bottom: 1rem;">
-          Simule cenários ajustando o score manualmente. Valores negativos diminuem a confiança.
-        </p>
-        <form (ngSubmit)="adjustScore()" class="adjustment-form">
-          <div class="form-group">
-            <label for="adjustmentValue">Valor do Ajuste (-1.0 a 1.0):</label>
-            <input
-              type="number"
-              id="adjustmentValue"
-              [(ngModel)]="adjustmentValue"
-              name="adjustmentValue"
-              min="-1"
-              max="1"
-              step="0.1"
-              class="form-control">
-          </div>
-          <div class="form-group">
-            <label for="adjustmentReason">Motivo do Ajuste:</label>
-            <textarea
-              id="adjustmentReason"
-              [(ngModel)]="adjustmentReason"
-              name="adjustmentReason"
-              rows="3"
-              placeholder="Ex: Acesso de localização nãousual, dispositivo desconhecido..."
-              class="form-control"></textarea>
-          </div>
-          <button
-            type="submit"
-            class="btn btn-primary"
-            [disabled]="loading || !adjustmentReason">
-            Aplicar Ajuste
-          </button>
-        </form>
-      </div>
-    </div>
-  </div>
-
-  <!-- Como o Score é Calculado -->
-  <div class="score-details" style="margin-top: 2rem; margin-bottom: 2rem;">
-    <div class="score-card" style="grid-column: 1 / -1;">
-      <h3><i class="bi bi-calculator me-2"></i>Como o Score é Calculado</h3>
-      <p style="color: #475569; margin-bottom: 1.5rem;">
-        O score final é uma média ponderada de 4 fatores contextuais, variando de 0.00 (não confiável) a 1.00 (totalmente confiável).
-      </p>
-
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.2rem; margin-bottom: 1.5rem;">
-        <!-- Fator 1 -->
-        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); border-radius: 12px; padding: 1.2rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <span style="font-size: 1.5rem;">&#128202;</span>
-            <span style="background: rgba(59, 130, 246, 0.3); color: #1e40af; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Peso: 40%</span>
-          </div>
-          <h4 style="color: #1e293b; margin: 0.5rem 0 0.3rem; font-weight: 700;">Histórico de Sucesso</h4>
-          <p style="color: #475569; font-size: 0.85rem; margin: 0;">Taxa de logins bem-sucedidos vs total de tentativas. Quanto maior o histórico positivo, maior o score.</p>
-        </div>
-
-        <!-- Fator 2 -->
-        <div style="background: rgba(168, 85, 247, 0.1); border: 1px solid rgba(168, 85, 247, 0.3); border-radius: 12px; padding: 1.2rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <span style="font-size: 1.5rem;">&#129302;</span>
-            <span style="background: rgba(168, 85, 247, 0.3); color: #6b21a8; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Peso: 30%</span>
-          </div>
-          <h4 style="color: #1e293b; margin: 0.5rem 0 0.3rem; font-weight: 700;">Análise de IA</h4>
-          <p style="color: #475569; font-size: 0.85rem; margin: 0;">Ensemble de modelos (Isolation Forest, Random Forest, Deep Learning). Inversamente proporcional ao score de anomalia.</p>
-        </div>
-
-        <!-- Fator 3 -->
-        <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.3); border-radius: 12px; padding: 1.2rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <span style="font-size: 1.5rem;">&#128336;</span>
-            <span style="background: rgba(34, 197, 94, 0.3); color: #166534; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Peso: 20%</span>
-          </div>
-          <h4 style="color: #1e293b; margin: 0.5rem 0 0.3rem; font-weight: 700;">Comportamento Recente</h4>
-          <p style="color: #475569; font-size: 0.85rem; margin: 0;">Consistência nos últimos 7 dias: IPs, dispositivos e horários. Menos variação = mais confiança.</p>
-        </div>
-
-        <!-- Fator 4 -->
-        <div style="background: rgba(251, 191, 36, 0.1); border: 1px solid rgba(251, 191, 36, 0.3); border-radius: 12px; padding: 1.2rem;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
-            <span style="font-size: 1.5rem;">&#127760;</span>
-            <span style="background: rgba(251, 191, 36, 0.3); color: #92400e; padding: 2px 10px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Peso: 10%</span>
-          </div>
-          <h4 style="color: #1e293b; margin: 0.5rem 0 0.3rem; font-weight: 700;">Fatores Externos</h4>
-          <p style="color: #475569; font-size: 0.85rem; margin: 0;">Tempo desde último login e status da conta. Usuários ativos e verificados recebem bônus.</p>
-        </div>
-      </div>
-
-      <!-- Formula -->
-      <div style="background: rgba(30, 41, 59, 0.08); border: 1px solid rgba(71, 85, 105, 0.3); border-radius: 12px; padding: 1.2rem; margin-bottom: 1.2rem;">
-        <h4 style="color: #1e293b; margin: 0 0 0.8rem; font-weight: 700;">Fórmula do Cálculo</h4>
-        <code style="color: #1e40af; font-size: 0.95rem; display: block; text-align: center; padding: 0.5rem; font-weight: 600;">
-          Score = (Histórico x 0.4) + (IA x 0.3) + (Recente x 0.2) + (Externos x 0.1) + Fator de Ajuste
-        </code>
-      </div>
-
-      <!-- Thresholds -->
-      <div style="background: rgba(30, 41, 59, 0.08); border: 1px solid rgba(71, 85, 105, 0.3); border-radius: 12px; padding: 1.2rem;">
-        <h4 style="color: #1e293b; margin: 0 0 0.8rem; font-weight: 700;">Limiares de Decisão Automática</h4>
-        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
-          <div style="flex: 1; min-width: 150px; text-align: center; padding: 0.8rem; background: rgba(34, 197, 94, 0.15); border-radius: 8px;">
-            <div style="font-size: 1.3rem; font-weight: bold; color: #166534;">&#8805; 0.70</div>
-            <div style="color: #475569; font-size: 0.85rem;">Confiável</div>
-            <div style="color: #166534; font-size: 0.8rem; font-weight: 600;">Acesso Permitido</div>
-          </div>
-          <div style="flex: 1; min-width: 150px; text-align: center; padding: 0.8rem; background: rgba(251, 191, 36, 0.15); border-radius: 8px;">
-            <div style="font-size: 1.3rem; font-weight: bold; color: #92400e;">0.50 - 0.69</div>
-            <div style="color: #475569; font-size: 0.85rem;">Suspeito</div>
-            <div style="color: #92400e; font-size: 0.8rem; font-weight: 600;">Exige MFA</div>
-          </div>
-          <div style="flex: 1; min-width: 150px; text-align: center; padding: 0.8rem; background: rgba(239, 68, 68, 0.15); border-radius: 8px;">
-            <div style="font-size: 1.3rem; font-weight: bold; color: #991b1b;">&lt; 0.20</div>
-            <div style="color: #475569; font-size: 0.85rem;">Não Confiável</div>
-            <div style="color: #991b1b; font-size: 0.8rem; font-weight: 600;">Acesso Bloqueado</div>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Estatísticas Gerais -->
-  <div *ngIf="statistics" class="general-stats">
-    <h3>Estatísticas Gerais do Sistema</h3>
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">&#128202;</div>
-        <div class="stat-info">
-          <h4>Score Médio Geral</h4>
-          <p class="stat-number info">{{ statistics.scoreMedioGeral | number:'1.2-2' }}</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">&#128101;</div>
-        <div class="stat-info">
-          <h4>Usuários Confiáveis</h4>
-          <p class="stat-number success">{{ statistics.totalUsuariosConfiaveis }}</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">&#9888;</div>
-        <div class="stat-info">
-          <h4>Score Baixo</h4>
-          <p class="stat-number warning">{{ statistics.usuariosScoreBaixo }}</p>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-icon">&#128065;</div>
-        <div class="stat-info">
-          <h4>Em Observação</h4>
-          <p class="stat-number info">{{ statistics.usuariosEmObservacao }}</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Informações Recentes -->
-  <div *ngIf="trustScore" class="recent-updates">
-    <h3>Informações Recentes</h3>
-    <div class="update-item">
-      <span class="update-icon">&#128197;</span>
-      <div class="update-info">
-        <h4>Última Atualização</h4>
-        <p>{{ trustScore.ultimaAtualizacao | date:'medium' }}</p>
-      </div>
-    </div>
-    <div *ngIf="trustScore.motivoAlteracao" class="update-item">
-      <span class="update-icon">&#128221;</span>
-      <div class="update-info">
-        <h4>Motivo da Última Alteração</h4>
-        <p>{{ trustScore.motivoAlteracao }}</p>
-      </div>
-    </div>
-  </div>
-
-  </div>
   </div>
 </main>

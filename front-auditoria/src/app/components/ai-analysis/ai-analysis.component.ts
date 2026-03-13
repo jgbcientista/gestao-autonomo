@@ -135,11 +135,12 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
 
     const subscricao = forkJoin({
       estatisticas: this.apiService.getAnomalyStatistics(),
-      historico: this.apiService.getUserAnalysisHistory(userId)
+      historico: this.apiService.getUserAnalysisHistory(userId, 100)
     }).subscribe({
       next: (dados) => {
         this.statisticas = dados.estatisticas;
-        this.historicoAnalises = Array.isArray(dados.historico) ? dados.historico : [];
+        const historico = Array.isArray(dados.historico) ? dados.historico : [];
+        this.historicoAnalises = historico.map((p: any) => this.mapearPerfil(p));
         this.loading = false;
 
         this.executarAnaliseCompleta();
@@ -171,7 +172,7 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
       classificacao: this.apiService.classifyAccess(userId, contexto)
     }).subscribe({
       next: (dados) => {
-        this.perfilAtual = dados.analise;
+        this.perfilAtual = this.mapearPerfil(dados.analise);
         this.classificacaoAtual = dados.classificacao;
         this.loading = false;
 
@@ -443,6 +444,31 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
     }
 
     return desc;
+  }
+
+  // Mapear campos do backend para o formato esperado pelo template
+  private mapearPerfil(dados: any): PerfilComportamentalIA {
+    return {
+      ...dados,
+      // Mapear nomes do backend → frontend
+      scoreAnomaliaGlobal: dados.scoreAnomalia ?? dados.scoreAnomaliaGlobal ?? 0,
+      confiabilidade: dados.confiancaPredicao ?? dados.confiabilidade ?? 0,
+      timestamp: dados.criadoEm ?? dados.timestamp ?? new Date(),
+      // Montar mapa de scores comportamentais a partir dos campos individuais
+      scoresComportamentais: dados.scoresComportamentais ?? {
+        horario: dados.padraoHorarioScore ?? 0,
+        localizacao: dados.padraoLocalizacaoScore ?? 0,
+        dispositivo: dados.padraoDispositivoScore ?? 0,
+        frequencia: dados.frequenciaAcessoScore ?? 0,
+        navegacao: dados.sequenciaNavegacaoScore ?? 0
+      },
+      // Montar lista de modelos utilizados
+      modelosUtilizados: dados.modelosUtilizados ?? [
+        'Isolation Forest',
+        'Random Forest',
+        'Deep Learning'
+      ]
+    };
   }
 
   // Metodos de paginacao

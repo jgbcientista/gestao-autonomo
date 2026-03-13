@@ -96,13 +96,31 @@ export interface CalcularScoreRequest {
 export interface PerfilComportamentalIA {
   id: number;
   usuarioId: number;
-  classificacao: 'ESPERADO' | 'SUSPEITO' | 'ANOMALO' | 'ALTAMENTE_SUSPEITO';
-  scoreAnomaliaGlobal: number;
-  confiabilidade: number;
-  scoresComportamentais: { [key: string]: number };
-  dadosContexto: DadosContextoRequest;
-  timestamp: Date;
-  modelosUtilizados: string[];
+  classificacaoAcesso: string;
+  scoreAnomalia: number;
+  confiancaPredicao: number;
+  // Scores comportamentais individuais
+  padraoHorarioScore: number;
+  padraoLocalizacaoScore: number;
+  padraoDispositivoScore: number;
+  frequenciaAcessoScore: number;
+  sequenciaNavegacaoScore: number;
+  // Scores dos algoritmos
+  isolationForestScore: number;
+  randomForestScore: number;
+  deepLearningScore: number;
+  ensembleScore: number;
+  // Metadados
+  algoritmoUtilizado: string;
+  versaoModelo: string;
+  tempoProcessamentoMs: number;
+  criadoEm: Date;
+  // Campos mapeados pelo frontend
+  scoreAnomaliaGlobal?: number;
+  confiabilidade?: number;
+  timestamp?: Date;
+  scoresComportamentais?: { [key: string]: number };
+  modelosUtilizados?: string[];
 }
 
 export interface EstatisticasAnomalias {

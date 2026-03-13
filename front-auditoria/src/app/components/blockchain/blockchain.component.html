@@ -14,12 +14,12 @@
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/trust-score">
-            <i class="bi bi-bullseye me-1"></i>Score de Confianca
+            <i class="bi bi-bullseye me-1"></i>Score de Confiança
           </a>
         </li>
         <li class="nav-item">
           <a class="nav-link" routerLink="/ai-analysis">
-            <i class="bi bi-cpu-fill me-1"></i>Analise IA
+            <i class="bi bi-cpu-fill me-1"></i>Análise IA
           </a>
         </li>
         <li class="nav-item">
@@ -69,7 +69,7 @@
   </div>
 </div>
 
-<!-- Conteudo Principal -->
+<!-- Conteúdo Principal -->
 <main class="dashboard-main">
   <div class="page-container">
     <!-- Hero Section -->
@@ -79,13 +79,13 @@
           <div class="hero-content">
             <div class="welcome-badge">
               <i class="bi bi-link-45deg me-2"></i>
-              Registro Imutavel
+              Registro Imutável
             </div>
             <h1 class="hero-title">
               <span class="highlight">Blockchain</span> de Auditoria
             </h1>
             <p class="hero-subtitle">
-              Registro imutavel e verificavel de todos os eventos de autenticacao do sistema, garantindo rastreabilidade e integridade dos dados.
+              Registro imutável e verificável de todos os eventos de autenticação do sistema, garantindo rastreabilidade e integridade dos dados.
             </p>
             <div class="hero-actions">
               <button
@@ -117,14 +117,14 @@
       </div>
     </section>
 
-    <!-- Abas de Navegacao -->
+    <!-- Abas de Navegação -->
     <section class="tabs-section">
       <div class="tabs-container">
         <button class="tab-btn" [class.active]="abaAtiva === 'visao-geral'" (click)="selecionarAba('visao-geral')">
-          <i class="bi bi-grid-fill me-2"></i>Visao Geral
+          <i class="bi bi-grid-fill me-2"></i>Visão Geral
         </button>
         <button class="tab-btn" [class.active]="abaAtiva === 'transacoes'" (click)="selecionarAba('transacoes')">
-          <i class="bi bi-list-ul me-2"></i>Transacoes por Usuario
+          <i class="bi bi-list-ul me-2"></i>Transações por Usuário
         </button>
         <button class="tab-btn" [class.active]="abaAtiva === 'alto-risco'" (click)="selecionarAba('alto-risco')">
           <i class="bi bi-exclamation-triangle-fill me-2"></i>Alto Risco
@@ -150,10 +150,10 @@
       </div>
     </div>
 
-    <!-- ========== ABA: VISAO GERAL ========== -->
+    <!-- ========== ABA: VISÃO GERAL ========== -->
     <div *ngIf="abaAtiva === 'visao-geral'">
 
-      <!-- Estatisticas -->
+      <!-- Estatísticas -->
       <section class="stats-section" *ngIf="estatisticas">
         <div class="row g-4">
           <div class="col-lg-3 col-md-6">
@@ -195,7 +195,7 @@
                 <i class="bi" [ngClass]="estatisticas.integridadeValida !== false ? 'bi-shield-check' : 'bi-shield-x'"></i>
               </div>
               <div class="stat-card-content">
-                <div class="stat-card-number">{{ estatisticas.integridadeValida !== false ? 'Valida' : 'Invalida' }}</div>
+                <div class="stat-card-number">{{ estatisticas.integridadeValida !== false ? 'Válida' : 'Inválida' }}</div>
                 <div class="stat-card-label">Integridade da Cadeia</div>
               </div>
             </div>
@@ -203,12 +203,12 @@
         </div>
       </section>
 
-      <!-- Descricao contextual -->
+      <!-- Descrição contextual -->
       <section class="contextual-section" *ngIf="estatisticas">
         <div class="contextual-card">
           <div class="contextual-header">
             <i class="bi bi-lightbulb-fill me-2" style="color: #f59e0b;"></i>
-            <h4>O que e a Blockchain no Sistema</h4>
+            <h4>O que é a Blockchain no Sistema</h4>
           </div>
           <p class="contextual-text">{{ getDescricaoBlockchain() }}</p>
         </div>
@@ -246,7 +246,7 @@
                     </div>
                     <div class="flow-content">
                       <h6>2. Hash SHA-256</h6>
-                      <small>Dados do evento sao hasheados</small>
+                      <small>Dados do evento são hasheados</small>
                     </div>
                   </div>
                   <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
@@ -256,7 +256,7 @@
                     </div>
                     <div class="flow-content">
                       <h6>3. Bloco</h6>
-                      <small>Transacao adicionada ao bloco</small>
+                      <small>Transação adicionada ao bloco</small>
                     </div>
                   </div>
                   <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
@@ -266,19 +266,19 @@
                     </div>
                     <div class="flow-content">
                       <h6>4. Encadeamento</h6>
-                      <small>Hash do bloco anterior garante imutabilidade</small>
+                      <small>Hash do bloco anterior garante a imutabilidade</small>
                     </div>
                   </div>
                 </div>
 
                 <!-- Dados registrados -->
-                <h5 class="section-title mb-3">Dados Registrados em Cada Transacao</h5>
+                <h5 class="section-title mb-3">Dados Registrados em Cada Transação</h5>
                 <div class="features-grid">
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-person-fill"></i></div>
                     <div class="feature-content">
                       <h6>ID e Email do Usuario</h6>
-                      <small>Identidade do usuario autenticado</small>
+                      <small>Identidade do usuário autenticado</small>
                     </div>
                   </div>
                   <div class="feature-item">
@@ -292,42 +292,42 @@
                     <div class="feature-icon"><i class="bi bi-speedometer2"></i></div>
                     <div class="feature-content">
                       <h6>Score de Risco</h6>
-                      <small>Pontuacao de 0.0 a 1.0 da IA</small>
+                      <small>Pontuação de 0.0 a 1.0 da IA</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
                     <div class="feature-content">
-                      <h6>Decisao</h6>
+                      <h6>Decisão</h6>
                       <small>PERMITIDO, NEGADO ou REQUER_MFA</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-hdd-network-fill"></i></div>
                     <div class="feature-content">
-                      <h6>Endereco IP</h6>
+                      <h6>Endereço IP</h6>
                       <small>IP de origem do acesso</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-geo-alt-fill"></i></div>
                     <div class="feature-content">
-                      <h6>Geolocalizacao</h6>
-                      <small>Localizacao geografica do acesso</small>
+                      <h6>Geolocalização</h6>
+                      <small>Localização geográfica do acesso</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-fingerprint"></i></div>
                     <div class="feature-content">
                       <h6>Fingerprint Dispositivo</h6>
-                      <small>Impressao digital unica do device</small>
+                      <small>Impressão digital única do device</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-hash"></i></div>
                     <div class="feature-content">
                       <h6>Hash SHA-256</h6>
-                      <small>Hash criptografico dos dados</small>
+                      <small>Hash criptográfico dos dados</small>
                     </div>
                   </div>
                 </div>
@@ -340,7 +340,7 @@
                       <i class="bi bi-code-square"></i>
                     </div>
                     <h6>Java Blockchain</h6>
-                    <small>Implementacao nativa em Java com Proof-of-Work (SHA-256), responsavel pelo registro imutavel de todos os eventos de autenticacao</small>
+                    <small>Implementação nativa em Java com Proof-of-Work (SHA-256), responsável pelo registro imutável de todos os eventos de autenticação</small>
                     <span class="network-badge active">Ativo</span>
                   </div>
                 </div>
@@ -357,7 +357,7 @@
             <div class="card-header-content">
               <h4 class="card-title">
                 <i class="bi bi-search me-2"></i>
-                Buscar Transacao por Hash
+                Buscar Transação por Hash
               </h4>
             </div>
           </div>
@@ -366,7 +366,7 @@
               <input
                 type="text"
                 class="form-control search-input"
-                placeholder="Digite o hash da transacao (ex: 0x3f2a...)"
+                placeholder="Digite o hash da transação (ex: 0x3f2a...)"
                 [(ngModel)]="hashBusca"
                 (keyup.enter)="buscarPorHash()">
               <button class="btn btn-primary" [disabled]="buscandoHash || !hashBusca.trim()" (click)="buscarPorHash()">
@@ -377,7 +377,7 @@
 
             <!-- Resultado da busca -->
             <div class="transaction-detail" *ngIf="transacaoBuscada">
-              <h5 class="section-title">Transacao Encontrada</h5>
+              <h5 class="section-title">Transação Encontrada</h5>
               <div class="detail-grid">
                 <div class="detail-item">
                   <span class="detail-label">Hash</span>
@@ -426,7 +426,7 @@
                   <span class="detail-value">{{ transacaoBuscada.enderecoIp || 'N/A' }}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">Localizacao</span>
+                  <span class="detail-label">Localização</span>
                   <span class="detail-value">{{ transacaoBuscada.localizacao || 'N/A' }}</span>
                 </div>
                 <div class="detail-item">
@@ -451,15 +451,15 @@
     <!-- ========== ABA: TRANSACOES POR USUARIO ========== -->
     <div *ngIf="abaAtiva === 'transacoes'">
 
-      <!-- Selecao de Usuario -->
+      <!-- Seleção de Usuário -->
       <section class="select-section">
         <div class="select-card">
           <div class="select-card-header">
             <i class="bi bi-person-fill me-2"></i>
-            <h4>Selecionar Usuario</h4>
+            <h4>Selecionar Usuário</h4>
           </div>
           <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
-            <option [ngValue]="null">-- Selecione um usuario para ver transacoes --</option>
+            <option [ngValue]="null">-- Selecione um usuário para ver transações --</option>
             <option *ngFor="let u of usuarios" [ngValue]="u.id">
               {{ u.nome }} ({{ u.email }})
             </option>
@@ -473,7 +473,7 @@
           <div class="spinner-border text-primary" role="status">
             <span class="visually-hidden">Carregando...</span>
           </div>
-          <h4>Carregando transacoes...</h4>
+          <h4>Carregando transações...</h4>
         </div>
       </div>
 
@@ -487,7 +487,7 @@
               </div>
               <div class="stat-card-content">
                 <div class="stat-card-number">{{ relatorioUsuario.totalTransacoes || transacoesUsuario.length }}</div>
-                <div class="stat-card-label">Total Transacoes</div>
+                <div class="stat-card-label">Total Transações</div>
               </div>
             </div>
           </div>
@@ -498,7 +498,7 @@
               </div>
               <div class="stat-card-content">
                 <div class="stat-card-number">{{ formatarScore(relatorioUsuario.mediaRisco || 0) }}</div>
-                <div class="stat-card-label">Risco Medio</div>
+                <div class="stat-card-label">Risco Médio</div>
               </div>
             </div>
           </div>
@@ -520,7 +520,7 @@
               </div>
               <div class="stat-card-content">
                 <div class="stat-card-number">{{ relatorioUsuario.localizacoesDistintas?.length || 0 }}</div>
-                <div class="stat-card-label">Localizacoes</div>
+                <div class="stat-card-label">Localizações</div>
               </div>
             </div>
           </div>
@@ -536,7 +536,7 @@
                 <i class="bi bi-list-columns-reverse me-2"></i>
                 Hashes de {{ getUsuarioSelecionadoNome() }}
               </h4>
-              <span class="badge bg-light text-dark">{{ transacoesUsuario.length }} transacoes</span>
+              <span class="badge bg-light text-dark">{{ transacoesUsuario.length }} transações</span>
             </div>
           </div>
           <div class="card-body">
@@ -545,7 +545,7 @@
                 <thead>
                   <tr>
                     <th>#</th>
-                    <th>Hash da Transacao</th>
+                    <th>Hash da Transação</th>
                     <th>Hash dos Dados</th>
                     <th>Tipo Evento</th>
                     <th>Risco</th>
@@ -554,7 +554,7 @@
                     <th>IP</th>
                     <th>Rede</th>
                     <th>Data/Hora</th>
-                    <th>Acoes</th>
+                    <th>Ações</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -614,7 +614,7 @@
             <!-- Paginacao -->
             <div class="pagination-container" *ngIf="totalPaginasUsuario > 1">
               <div class="pagination-info">
-                Mostrando {{ (paginaUsuario - 1) * tamanhoPaginaUsuario + 1 }} - {{ paginaUsuario * tamanhoPaginaUsuario > transacoesUsuario.length ? transacoesUsuario.length : paginaUsuario * tamanhoPaginaUsuario }} de {{ transacoesUsuario.length }} transacoes
+                Mostrando {{ (paginaUsuario - 1) * tamanhoPaginaUsuario + 1 }} - {{ paginaUsuario * tamanhoPaginaUsuario > transacoesUsuario.length ? transacoesUsuario.length : paginaUsuario * tamanhoPaginaUsuario }} de {{ transacoesUsuario.length }} transações
               </div>
               <nav>
                 <ul class="pagination pagination-modern">
@@ -645,7 +645,7 @@
             <div class="card-header-content">
               <h4 class="card-title">
                 <i class="bi bi-file-earmark-binary me-2"></i>
-                Detalhes da Transacao
+                Detalhes da Transação
               </h4>
               <button class="btn btn-sm btn-outline-light" (click)="transacaoSelecionada = null">
                 <i class="bi bi-x-lg"></i> Fechar
@@ -655,7 +655,7 @@
           <div class="card-body">
             <div class="detail-grid">
               <div class="detail-item full-width">
-                <span class="detail-label">Hash da Transacao</span>
+                <span class="detail-label">Hash da Transação</span>
                 <span class="detail-value hash-value">
                   {{ transacaoSelecionada.hashTransacao }}
                   <button class="btn-copy" (click)="copiarHash(transacaoSelecionada.hashTransacao)" title="Copiar">
@@ -697,7 +697,7 @@
                 </span>
               </div>
               <div class="detail-item">
-                <span class="detail-label">Status Confirmacao</span>
+                <span class="detail-label">Status Confirmação</span>
                 <span class="detail-value">
                   <span class="status-badge" [ngClass]="getStatusClass(transacaoSelecionada.statusConfirmacao)">
                     <i class="bi me-1" [ngClass]="getStatusIcon(transacaoSelecionada.statusConfirmacao)"></i>
@@ -709,15 +709,15 @@
                 <span class="detail-label">Verificado</span>
                 <span class="detail-value">
                   <i class="bi" [ngClass]="transacaoSelecionada.verificado ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'"></i>
-                  {{ transacaoSelecionada.verificado ? 'Sim' : 'Nao' }}
+                  {{ transacaoSelecionada.verificado ? 'Sim' : 'Não' }}
                 </span>
               </div>
               <div class="detail-item">
-                <span class="detail-label">Endereco IP</span>
+                <span class="detail-label">Endereço IP</span>
                 <span class="detail-value">{{ transacaoSelecionada.enderecoIp || 'N/A' }}</span>
               </div>
               <div class="detail-item">
-                <span class="detail-label">Localizacao</span>
+                <span class="detail-label">Localização</span>
                 <span class="detail-value">{{ transacaoSelecionada.localizacao || 'N/A' }}</span>
               </div>
               <div class="detail-item">
@@ -729,7 +729,7 @@
                 <span class="detail-value">{{ transacaoSelecionada.nomeRede || 'N/A' }}</span>
               </div>
               <div class="detail-item" *ngIf="transacaoSelecionada.numeroBloco">
-                <span class="detail-label">Numero do Bloco</span>
+                <span class="detail-label">Número do Bloco</span>
                 <span class="detail-value">#{{ transacaoSelecionada.numeroBloco }}</span>
               </div>
               <div class="detail-item" *ngIf="transacaoSelecionada.hashBloco">
@@ -737,15 +737,15 @@
                 <span class="detail-value hash-value">{{ transacaoSelecionada.hashBloco }}</span>
               </div>
               <div class="detail-item">
-                <span class="detail-label">Confirmacoes</span>
+                <span class="detail-label">Confirmações</span>
                 <span class="detail-value">{{ transacaoSelecionada.confirmacoes || 0 }}</span>
               </div>
               <div class="detail-item">
-                <span class="detail-label">Data de Criacao</span>
+                <span class="detail-label">Data de Criação</span>
                 <span class="detail-value">{{ transacaoSelecionada.criadoEm | date:'dd/MM/yyyy HH:mm:ss' }}</span>
               </div>
               <div class="detail-item" *ngIf="transacaoSelecionada.confirmadoEm">
-                <span class="detail-label">Data de Confirmacao</span>
+                <span class="detail-label">Data de Confirmação</span>
                 <span class="detail-value">{{ transacaoSelecionada.confirmadoEm | date:'dd/MM/yyyy HH:mm:ss' }}</span>
               </div>
             </div>
@@ -768,8 +768,8 @@
       <!-- Sem transacoes -->
       <div class="empty-state" *ngIf="selectedUserId && transacoesUsuario.length === 0 && !loading">
         <i class="bi bi-inbox"></i>
-        <h4>Nenhuma transacao encontrada</h4>
-        <p>Este usuario ainda nao possui transacoes registradas na blockchain.</p>
+        <h4>Nenhuma transação encontrada</h4>
+        <p>Este usuário ainda não possui transações registradas na blockchain.</p>
       </div>
     </div>
 
@@ -782,7 +782,7 @@
             <div class="card-header-content">
               <h4 class="card-title">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
-                Transacoes de Alto Risco (Score >= {{ limiteRisco }})
+                Transações de Alto Risco (Score >= {{ limiteRisco }})
               </h4>
               <span class="badge bg-light text-danger">{{ transacoesAltoRisco.length }} alertas</span>
             </div>
@@ -844,8 +844,8 @@
 
             <div class="empty-state" *ngIf="transacoesAltoRisco.length === 0">
               <i class="bi bi-shield-check" style="color: #10b981;"></i>
-              <h4>Nenhuma transacao de alto risco</h4>
-              <p>Nao foram detectadas transacoes com score de risco acima de {{ limiteRisco }}.</p>
+              <h4>Nenhuma transação de alto risco</h4>
+              <p>Não foram detectadas transações com score de risco acima de {{ limiteRisco }}.</p>
             </div>
           </div>
         </div>
@@ -864,19 +864,19 @@
                 <div class="card-header-content">
                   <h4 class="card-title">
                     <i class="bi bi-shield-check me-2"></i>
-                    Verificar Integridade de Transacao
+                    Verificar Integridade de Transação
                   </h4>
                 </div>
               </div>
               <div class="card-body">
                 <p class="mb-3" style="color: #6b7280; font-size: 0.9rem;">
-                  Verifique se uma transacao registrada na blockchain nao foi alterada. O sistema recalcula o hash e compara com o armazenado.
+                  Verifique se uma transação registrada na blockchain não foi alterada. O sistema recalcula o hash e compara com o armazenado.
                 </p>
                 <div class="search-form">
                   <input
                     type="text"
                     class="form-control search-input"
-                    placeholder="Hash da transacao para verificar"
+                    placeholder="Hash da transação para verificar"
                     [(ngModel)]="hashVerificacao"
                     (keyup.enter)="verificarIntegridade()">
                   <button class="btn btn-success" [disabled]="verificando || !hashVerificacao.trim()" (click)="verificarIntegridade()">
@@ -893,7 +893,7 @@
                     </div>
                     <div class="result-content">
                       <h5>{{ resultadoVerificacao.integro !== false ? 'Integridade Verificada' : 'Integridade Comprometida' }}</h5>
-                      <p>{{ resultadoVerificacao.mensagem || (resultadoVerificacao.integro !== false ? 'O hash da transacao corresponde aos dados armazenados. Nenhuma alteracao detectada.' : 'O hash da transacao NAO corresponde. Os dados podem ter sido alterados.') }}</p>
+                      <p>{{ resultadoVerificacao.mensagem || (resultadoVerificacao.integro !== false ? 'O hash da transação corresponde aos dados armazenados. Nenhuma alteração detectada.' : 'O hash da transação NÃO corresponde. Os dados podem ter sido alterados.') }}</p>
                     </div>
                   </div>
                 </div>

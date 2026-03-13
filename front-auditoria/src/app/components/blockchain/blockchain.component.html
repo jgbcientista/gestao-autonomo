@@ -558,10 +558,10 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr *ngFor="let tx of transacoesUsuario; let i = index"
+                  <tr *ngFor="let tx of transacoesUsuarioPaginadas; let i = index"
                       [class.selected-row]="transacaoSelecionada?.id === tx.id"
                       (click)="selecionarTransacao(tx)">
-                    <td class="td-index">{{ i + 1 }}</td>
+                    <td class="td-index">{{ (paginaUsuario - 1) * tamanhoPaginaUsuario + i + 1 }}</td>
                     <td class="td-hash">
                       <code class="hash-code" (click)="copiarHash(tx.hashTransacao); $event.stopPropagation()" title="{{ tx.hashTransacao }}">
                         {{ truncarHash(tx.hashTransacao) }}
@@ -609,6 +609,30 @@
                   </tr>
                 </tbody>
               </table>
+            </div>
+
+            <!-- Paginacao -->
+            <div class="pagination-container" *ngIf="totalPaginasUsuario > 1">
+              <div class="pagination-info">
+                Mostrando {{ (paginaUsuario - 1) * tamanhoPaginaUsuario + 1 }} - {{ paginaUsuario * tamanhoPaginaUsuario > transacoesUsuario.length ? transacoesUsuario.length : paginaUsuario * tamanhoPaginaUsuario }} de {{ transacoesUsuario.length }} transacoes
+              </div>
+              <nav>
+                <ul class="pagination pagination-modern">
+                  <li class="page-item" [class.disabled]="paginaUsuario === 1">
+                    <a class="page-link" (click)="mudarPaginaUsuario(paginaUsuario - 1)">
+                      <i class="bi bi-chevron-left"></i>
+                    </a>
+                  </li>
+                  <li class="page-item" *ngFor="let p of getPaginas(totalPaginasUsuario)" [class.active]="p === paginaUsuario">
+                    <a class="page-link" (click)="mudarPaginaUsuario(p)">{{ p }}</a>
+                  </li>
+                  <li class="page-item" [class.disabled]="paginaUsuario === totalPaginasUsuario">
+                    <a class="page-link" (click)="mudarPaginaUsuario(paginaUsuario + 1)">
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </div>
           </div>
         </div>
@@ -765,8 +789,8 @@
           </div>
           <div class="card-body">
             <div class="transactions-list" *ngIf="transacoesAltoRisco.length > 0">
-              <div class="transaction-row high-risk-row" *ngFor="let tx of transacoesAltoRisco; let i = index">
-                <div class="tx-index danger">{{ i + 1 }}</div>
+              <div class="transaction-row high-risk-row" *ngFor="let tx of transacoesAltoRiscoPaginadas; let i = index">
+                <div class="tx-index danger">{{ (paginaAltoRisco - 1) * tamanhoPaginaAltoRisco + i + 1 }}</div>
                 <div class="tx-main">
                   <div class="tx-hash" (click)="copiarHash(tx.hashTransacao)" title="Clique para copiar">
                     <i class="bi bi-hash me-1"></i>{{ truncarHash(tx.hashTransacao) }}
@@ -792,6 +816,30 @@
                   </span>
                 </div>
               </div>
+            </div>
+
+            <!-- Paginacao Alto Risco -->
+            <div class="pagination-container" *ngIf="totalPaginasAltoRisco > 1">
+              <div class="pagination-info">
+                Mostrando {{ (paginaAltoRisco - 1) * tamanhoPaginaAltoRisco + 1 }} - {{ paginaAltoRisco * tamanhoPaginaAltoRisco > transacoesAltoRisco.length ? transacoesAltoRisco.length : paginaAltoRisco * tamanhoPaginaAltoRisco }} de {{ transacoesAltoRisco.length }} alertas
+              </div>
+              <nav>
+                <ul class="pagination pagination-modern">
+                  <li class="page-item" [class.disabled]="paginaAltoRisco === 1">
+                    <a class="page-link" (click)="mudarPaginaAltoRisco(paginaAltoRisco - 1)">
+                      <i class="bi bi-chevron-left"></i>
+                    </a>
+                  </li>
+                  <li class="page-item" *ngFor="let p of getPaginas(totalPaginasAltoRisco)" [class.active]="p === paginaAltoRisco">
+                    <a class="page-link" (click)="mudarPaginaAltoRisco(p)">{{ p }}</a>
+                  </li>
+                  <li class="page-item" [class.disabled]="paginaAltoRisco === totalPaginasAltoRisco">
+                    <a class="page-link" (click)="mudarPaginaAltoRisco(paginaAltoRisco + 1)">
+                      <i class="bi bi-chevron-right"></i>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
             </div>
 
             <div class="empty-state" *ngIf="transacoesAltoRisco.length === 0">

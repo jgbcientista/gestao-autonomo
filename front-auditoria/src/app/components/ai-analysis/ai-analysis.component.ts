@@ -56,6 +56,10 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
   monitoramentoAtivo = false;
   intervalId: any = null;
 
+  // Paginacao do historico
+  paginaHistorico = 1;
+  tamanhoPaginaHistorico = 10;
+
   private subscriptions = new Subscription();
 
   constructor(
@@ -116,6 +120,7 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
       return;
     }
 
+    this.paginaHistorico = 1;
     this.carregarDadosUsuario();
     this.iniciarMonitoramento();
   }
@@ -438,6 +443,30 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
     }
 
     return desc;
+  }
+
+  // Metodos de paginacao
+  get historicoPaginado(): PerfilComportamentalIA[] {
+    const inicio = (this.paginaHistorico - 1) * this.tamanhoPaginaHistorico;
+    return this.historicoAnalises.slice(inicio, inicio + this.tamanhoPaginaHistorico);
+  }
+
+  get totalPaginasHistorico(): number {
+    return Math.ceil(this.historicoAnalises.length / this.tamanhoPaginaHistorico);
+  }
+
+  getPaginasHistorico(): number[] {
+    const paginas: number[] = [];
+    for (let i = 1; i <= this.totalPaginasHistorico; i++) {
+      paginas.push(i);
+    }
+    return paginas;
+  }
+
+  mudarPaginaHistorico(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginasHistorico) {
+      this.paginaHistorico = pagina;
+    }
   }
 
   // Métodos de navegação

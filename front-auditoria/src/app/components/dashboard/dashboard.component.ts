@@ -20,6 +20,17 @@ export class DashboardComponent implements OnInit, OnDestroy {
   showAlert: boolean = true;
   private subscription = new Subscription();
 
+  // Métricas reais do sistema
+  cpuPercent: number = 0;
+  memoryPercent: number = 0;
+  iaLoadPercent: number = 0;
+  memoryUsedMb: number = 0;
+  memoryMaxMb: number = 0;
+  uptimeFormatted: string = '';
+  totalUsuarios: number = 0;
+  totalTransacoes: number = 0;
+  totalAnalises: number = 0;
+
   constructor(
     private authService: AuthService,
     private apiService: ApiService,
@@ -35,19 +46,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
   }
 
   private initializeComponent(): void {
-    // Verifica se o usuário está autenticado
     if (!this.authService.isAuthenticated()) {
       this.router.navigate(['/login']);
       return;
     }
 
-    // Carrega informações do usuário
     this.loadUserInfo();
-    
-    // Carrega status do sistema
     this.checkSystemStatus();
-    
-    // Define última sessão
+    this.loadSystemMetrics();
     this.lastLogin = new Date().toLocaleString('pt-BR');
   }
 
@@ -61,11 +67,9 @@ export class DashboardComponent implements OnInit, OnDestroy {
   checkSystemStatus(): void {
     const statusSub = this.apiService.getStatus().subscribe({
       next: (status) => {
-        console.log('✅ Status recebido:', status);
         this.systemStatus = status || 'Sistema operacional';
       },
       error: (error) => {
-        console.error('❌ Erro ao verificar status:', error);
         if (error.status === 0) {
           this.systemStatus = 'API não disponível';
         } else if (error.status === 401 || error.status === 403) {
@@ -76,6 +80,36 @@ export class DashboardComponent implements OnInit, OnDestroy {
       }
     });
     this.subscription.add(statusSub);
+  }
+
+  loadSystemMetrics(): void {
+    const metricsSub = this.apiService.getSystemHealth().subscribe({
+      next: (metrics) => {
+        if (metrics.cpu) {
+          this.cpuPercent = metrics.cpu.percent || 0;
+        }
+        if (metrics.memory) {
+          this.memoryPercent = metrics.memory.percent || 0;
+          this.memoryUsedMb = metrics.memory.usedMb || 0;
+          this.memoryMaxMb = metrics.memory.maxMb || 0;
+        }
+        if (metrics.iaLoad) {
+          this.iaLoadPercent = metrics.iaLoad.percent || 0;
+        }
+        if (metrics.uptime) {
+          this.uptimeFormatted = metrics.uptime.formatted || '';
+        }
+        if (metrics.appStats) {
+          this.totalUsuarios = metrics.appStats.totalUsuarios || 0;
+          this.totalTransacoes = metrics.appStats.totalTransacoesBlockchain || 0;
+          this.totalAnalises = metrics.appStats.totalAnalisesIA || 0;
+        }
+      },
+      error: (error) => {
+        console.warn('Erro ao carregar métricas do sistema:', error);
+      }
+    });
+    this.subscription.add(metricsSub);
   }
 
   logout(): void {

@@ -53,6 +53,12 @@ export class BlockchainComponent implements OnInit, OnDestroy {
   // Aba ativa
   abaAtiva: 'visao-geral' | 'transacoes' | 'alto-risco' | 'integridade' = 'visao-geral';
 
+  // Paginacao
+  paginaUsuario = 1;
+  tamanhoPaginaUsuario = 10;
+  paginaAltoRisco = 1;
+  tamanhoPaginaAltoRisco = 10;
+
   private subscriptions = new Subscription();
 
   constructor(
@@ -111,6 +117,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
       this.relatorioUsuario = null;
       return;
     }
+    this.paginaUsuario = 1;
     this.carregarTransacoesUsuario();
   }
 
@@ -315,6 +322,45 @@ export class BlockchainComponent implements OnInit, OnDestroy {
     desc += 'Cada transacao contem o hash SHA-256 dos dados do evento, garantindo que qualquer alteracao seja imediatamente detectavel.';
 
     return desc;
+  }
+
+  // Metodos de paginacao
+  get transacoesUsuarioPaginadas(): any[] {
+    const inicio = (this.paginaUsuario - 1) * this.tamanhoPaginaUsuario;
+    return this.transacoesUsuario.slice(inicio, inicio + this.tamanhoPaginaUsuario);
+  }
+
+  get totalPaginasUsuario(): number {
+    return Math.ceil(this.transacoesUsuario.length / this.tamanhoPaginaUsuario);
+  }
+
+  get transacoesAltoRiscoPaginadas(): any[] {
+    const inicio = (this.paginaAltoRisco - 1) * this.tamanhoPaginaAltoRisco;
+    return this.transacoesAltoRisco.slice(inicio, inicio + this.tamanhoPaginaAltoRisco);
+  }
+
+  get totalPaginasAltoRisco(): number {
+    return Math.ceil(this.transacoesAltoRisco.length / this.tamanhoPaginaAltoRisco);
+  }
+
+  getPaginas(total: number): number[] {
+    const paginas: number[] = [];
+    for (let i = 1; i <= total; i++) {
+      paginas.push(i);
+    }
+    return paginas;
+  }
+
+  mudarPaginaUsuario(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginasUsuario) {
+      this.paginaUsuario = pagina;
+    }
+  }
+
+  mudarPaginaAltoRisco(pagina: number): void {
+    if (pagina >= 1 && pagina <= this.totalPaginasAltoRisco) {
+      this.paginaAltoRisco = pagina;
+    }
   }
 
   voltarDashboard(): void {

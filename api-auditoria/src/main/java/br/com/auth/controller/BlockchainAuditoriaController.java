@@ -152,19 +152,31 @@ public class BlockchainAuditoriaController {
         }
 
         TransacaoBlockchain transacao = transacaoOpt.get();
-        boolean integridadeOk = blockchainService.isTransactionVerified(transacao.getHashTransacao());
-        
+
+        // Verificação real: recalcular hash e verificar encadeamento
+        boolean integridadeHash = blockchainService.verificarIntegridadeReal(transacao);
+        boolean verificadoDb = Boolean.TRUE.equals(transacao.getVerificado());
+        boolean integridadeOk = integridadeHash && verificadoDb;
+
         Map<String, Object> resultado = new HashMap<>();
         resultado.put("hash", hash);
         resultado.put("integridadeOk", integridadeOk);
+        resultado.put("integridadeHash", integridadeHash);
+        resultado.put("verificadoDb", verificadoDb);
+        resultado.put("hashBlocoAnterior", transacao.getHashBlocoAnterior());
+        resultado.put("hashDados", transacao.getHashDados());
         resultado.put("verificadoEm", LocalDateTime.now());
         resultado.put("transacao", transacao);
-        
+
         if (!integridadeOk) {
-            resultado.put("alerta", "INTEGRIDADE COMPROMETIDA - Dados podem ter sido alterados");
-            log.warn("Integridade comprometida detectada para transação: {}", hash);
+            String alerta = !integridadeHash
+                ? "INTEGRIDADE COMPROMETIDA - Hash recalculado não corresponde ao armazenado"
+                : "TRANSAÇÃO NÃO VERIFICADA - Aguardando confirmação na blockchain";
+            resultado.put("alerta", alerta);
+            log.warn("Integridade comprometida detectada para transação: {} (hash={}, db={})",
+                hash, integridadeHash, verificadoDb);
         }
-        
+
         return ResponseEntity.ok(resultado);
     }
 
@@ -282,8 +294,15 @@ public class BlockchainAuditoriaController {
                 .findByCriadoEmBetween(ultimasVinteQuatroHoras, LocalDateTime.now());
         estatisticas.put("transacoesUltimas24h", recentesTransacoes.size());
 
-        // Integridade da cadeia
-        estatisticas.put("integridadeValida", naoVerificadas.isEmpty());
+        // Integridade da cadeia (verificação real)
+        try {
+            Map<String, Object> integridadeCadeia = blockchainService.verificarIntegridadeCadeia();
+            estatisticas.put("integridadeCadeia", integridadeCadeia);
+            estatisticas.put("integridadeValida", Boolean.TRUE.equals(integridadeCadeia.get("integridadeOk")));
+        } catch (Exception e) {
+            log.error("Erro ao verificar integridade da cadeia: {}", e.getMessage());
+            estatisticas.put("integridadeValida", naoVerificadas.isEmpty());
+        }
 
         estatisticas.put("consultadoEm", LocalDateTime.now());
 

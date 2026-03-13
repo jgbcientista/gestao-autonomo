@@ -30,6 +30,9 @@ import jakarta.servlet.http.HttpServletRequestWrapper;
 
 import br.com.auth.dto.PythonPredictionRequest;
 import br.com.auth.dto.PythonPredictionResponse;
+import br.com.auth.dominio.entidades.PerfilComportamentalIA;
+import br.com.auth.dominio.entidades.ScoreConfianca;
+import br.com.auth.dominio.interfaces.IServicoAnaliseComportamentalIA.DadosContextoAcesso;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -128,24 +131,63 @@ public class AuthenticationService implements IServicoAutenticacao {
                 )
             );
 
-            // Verificar se MFA é necessário
-            boolean mfaHabilitado = Boolean.TRUE.equals(usuario.getAutenticacaoDoisFatoresHabilitada());
-            boolean scoreRequerMfa = false;
-
+            // Análise de risco com IA ensemble (IF 40% + RF 30% + DL 30%)
+            double aiRiskScore = 0.2;
+            PerfilComportamentalIA perfilIA = null;
             try {
-                var scoreConfianca = servicoScoreConfianca.obterOuCriarScore(usuario);
-                scoreRequerMfa = scoreConfianca.requerMfa();
+                Map<String, String> geoData = servicoGeolocalizacao.obterLocalizacao(httpRequest.getRemoteAddr());
+                String cidadeGeo = geoData.getOrDefault("cidade", "Unknown");
+                DadosContextoAcesso dadosContexto = new DadosContextoAcesso(
+                    httpRequest.getRemoteAddr(),
+                    httpRequest.getHeader("User-Agent"),
+                    cidadeGeo,
+                    "America/Sao_Paulo",
+                    "pt-BR",
+                    "1920x1080",
+                    usuario.getTentativasLoginFalhadas() != null ? usuario.getTentativasLoginFalhadas() : 0
+                );
+                perfilIA = servicoAnaliseComportamentalIA.analisarComportamento(usuario, dadosContexto);
+                aiRiskScore = perfilIA.getEnsembleScore() != null ? perfilIA.getEnsembleScore() : 0.2;
+                log.info("IA Ensemble - anomalia={}, IF={}, RF={}, DL={}",
+                    aiRiskScore,
+                    perfilIA.getIsolationForestScore(),
+                    perfilIA.getRandomForestScore(),
+                    perfilIA.getDeepLearningScore());
             } catch (Exception e) {
-                log.warn("Erro ao verificar score de confiança para MFA: {}", e.getMessage());
+                log.warn("Fallback IA ensemble: {}", e.getMessage());
+                try {
+                    double pythonScore = analyzeRiskWithPythonAi(usuario, httpRequest);
+                    aiRiskScore = 1.0 - pythonScore;
+                } catch (Exception ex) {
+                    log.warn("Fallback Python AI: {}", ex.getMessage());
+                }
             }
 
+            // Calcular trust score (40% Histórico + 30% IA + 20% Recente + 10% Externos)
+            double trustScore = 0.5;
+            try {
+                if (perfilIA != null) {
+                    ScoreConfianca scoreConfianca = servicoScoreConfianca.calcularScore(usuario, perfilIA);
+                    trustScore = scoreConfianca.getScoreAtual();
+                } else {
+                    trustScore = servicoScoreConfianca.calcularScore(usuario, httpRequest);
+                }
+                log.info("Trust score calculado para {}: {}", usuario.getEmail(), trustScore);
+            } catch (Exception e) {
+                log.warn("Erro ao calcular trust score: {}", e.getMessage());
+            }
+
+            // Verificar se MFA é necessário (baseado no trust score e configuração)
+            boolean mfaHabilitado = Boolean.TRUE.equals(usuario.getAutenticacaoDoisFatoresHabilitada());
+            boolean scoreRequerMfa = trustScore < 0.5;
+
             if (mfaHabilitado || scoreRequerMfa) {
-                log.info("MFA necessário para usuário: {} (habilitado={}, scoreRequer={})",
-                    request.getEmail(), mfaHabilitado, scoreRequerMfa);
+                log.info("MFA necessário para usuário: {} (habilitado={}, trustScore={}, requerMfa={})",
+                    request.getEmail(), mfaHabilitado, trustScore, scoreRequerMfa);
 
                 String mfaMessage = mfaHabilitado
                     ? "Autenticação de dois fatores necessária. Insira o código do seu aplicativo autenticador."
-                    : "Verificação adicional necessária devido ao nível de confiança. Configure o MFA ou insira o código.";
+                    : String.format("Verificação adicional necessária (trust score: %.2f). Insira o código do seu autenticador.", trustScore);
 
                 return AuthenticationResponse.builder()
                     .email(usuario.getEmail())
@@ -153,6 +195,8 @@ public class AuthenticationService implements IServicoAutenticacao {
                     .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
                     .requiresMfa(true)
                     .mfaMessage(mfaMessage)
+                    .trustScore(trustScore)
+                    .aiRiskScore(aiRiskScore)
                     .build();
             }
 
@@ -168,20 +212,12 @@ public class AuthenticationService implements IServicoAutenticacao {
             // Registrar log de auditoria
             registrarLogAuditoria(usuario, "LOGIN_SUCCESS", httpRequest);
 
-            // Analise de risco via Python AI Service (com fallback para IA Java)
-            double riskScore = 0.8;
-            try {
-                riskScore = analyzeRiskWithPythonAi(usuario, httpRequest);
-            } catch (Exception e) {
-                log.warn("Fallback para IA Java: {}", e.getMessage());
-            }
-
-            // Registrar no blockchain
+            // Registrar no blockchain com score real da IA
             try {
                 Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(httpRequest.getRemoteAddr());
                 String locationStr = String.format("%s, %s", localizacao.get("cidade"), localizacao.get("pais"));
 
-                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", riskScore,
+                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", aiRiskScore,
                     httpRequest.getRemoteAddr(),
                     locationStr,
                     httpRequest.getHeader("User-Agent"));
@@ -189,7 +225,7 @@ public class AuthenticationService implements IServicoAutenticacao {
                 log.error("Erro ao registrar evento no blockchain", e);
             }
 
-            return buildAuthResponse(usuario, jwtToken);
+            return buildAuthResponse(usuario, jwtToken, trustScore, aiRiskScore);
         } catch (Exception e) {
             log.error("Erro durante autenticação: {}", e.getMessage());
             throw new BadCredentialsException("Falha na autenticação: " + e.getMessage());
@@ -403,60 +439,92 @@ public class AuthenticationService implements IServicoAutenticacao {
                 )
             );
 
-            // Verificar se MFA é necessário
-            boolean mfaHabilitado = Boolean.TRUE.equals(usuario.getAutenticacaoDoisFatoresHabilitada());
-            boolean scoreRequerMfa = false;
-
+            // Análise de risco com IA ensemble (IF 40% + RF 30% + DL 30%)
+            double aiRiskScore = 0.2;
+            PerfilComportamentalIA perfilIA = null;
             try {
-                var scoreConfianca = servicoScoreConfianca.obterOuCriarScore(usuario);
-                scoreRequerMfa = scoreConfianca.requerMfa();
+                String ipAddress = requisicao.getIpAddress() != null ? requisicao.getIpAddress() : "127.0.0.1";
+                String userAgent = requisicao.getUserAgent() != null ? requisicao.getUserAgent() : "Web";
+                String location = requisicao.getLocation() != null ? requisicao.getLocation() : "Unknown";
+                DadosContextoAcesso dadosContexto = new DadosContextoAcesso(
+                    ipAddress, userAgent, location,
+                    "America/Sao_Paulo", "pt-BR", "1920x1080",
+                    usuario.getTentativasLoginFalhadas() != null ? usuario.getTentativasLoginFalhadas() : 0
+                );
+                perfilIA = servicoAnaliseComportamentalIA.analisarComportamento(usuario, dadosContexto);
+                aiRiskScore = perfilIA.getEnsembleScore() != null ? perfilIA.getEnsembleScore() : 0.2;
+                log.info("IA Ensemble - anomalia={}, IF={}, RF={}, DL={}",
+                    aiRiskScore,
+                    perfilIA.getIsolationForestScore(),
+                    perfilIA.getRandomForestScore(),
+                    perfilIA.getDeepLearningScore());
             } catch (Exception e) {
-                log.warn("Erro ao verificar score de confiança para MFA: {}", e.getMessage());
+                log.warn("Fallback IA ensemble: {}", e.getMessage());
             }
 
+            // Calcular trust score (40% Histórico + 30% IA + 20% Recente + 10% Externos)
+            double trustScore = 0.5;
+            try {
+                if (perfilIA != null) {
+                    ScoreConfianca scoreConfianca = servicoScoreConfianca.calcularScore(usuario, perfilIA);
+                    trustScore = scoreConfianca.getScoreAtual();
+                } else {
+                    ScoreConfianca scoreConfianca = servicoScoreConfianca.obterOuCriarScore(usuario);
+                    trustScore = scoreConfianca.getScoreAtual();
+                }
+                log.info("Trust score calculado para {}: {}", usuario.getEmail(), trustScore);
+            } catch (Exception e) {
+                log.warn("Erro ao calcular trust score: {}", e.getMessage());
+            }
+
+            // Verificar se MFA é necessário (baseado no trust score e configuração)
+            boolean mfaHabilitado = Boolean.TRUE.equals(usuario.getAutenticacaoDoisFatoresHabilitada());
+            boolean scoreRequerMfa = trustScore < 0.5;
+
             if (mfaHabilitado || scoreRequerMfa) {
-                log.info("MFA necessário para usuário: {} (habilitado={}, scoreRequer={})",
-                    requisicao.getEmail(), mfaHabilitado, scoreRequerMfa);
+                log.info("MFA necessário para usuário: {} (habilitado={}, trustScore={}, requerMfa={})",
+                    requisicao.getEmail(), mfaHabilitado, trustScore, scoreRequerMfa);
 
                 String mfaMessage = mfaHabilitado
                     ? "Autenticação de dois fatores necessária. Insira o código do seu aplicativo autenticador."
-                    : "Verificação adicional necessária devido ao nível de confiança. Configure o MFA ou insira o código.";
+                    : String.format("Verificação adicional necessária (trust score: %.2f). Insira o código do seu autenticador.", trustScore);
 
-                // Retornar resposta parcial sem token JWT
                 return AuthenticationResponse.builder()
                     .email(usuario.getEmail())
                     .name(usuario.getNome())
                     .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
                     .requiresMfa(true)
                     .mfaMessage(mfaMessage)
+                    .trustScore(trustScore)
+                    .aiRiskScore(aiRiskScore)
                     .build();
             }
 
             // Gerar token JWT (fluxo normal sem MFA)
             var jwtToken = jwtService.generateToken(usuario);
 
-            // Atualizar último login sem HttpServletRequest
+            // Atualizar último login
             usuario.setUltimoLoginData(LocalDateTime.now());
-            usuario.setUltimoLoginIp("127.0.0.1");
-            usuario.setUltimoLoginLocalizacao("Unknown");
-            usuario.setUltimoLoginDispositivo("Web");
+            usuario.setUltimoLoginIp(requisicao.getIpAddress() != null ? requisicao.getIpAddress() : "127.0.0.1");
+            usuario.setUltimoLoginLocalizacao(requisicao.getLocation() != null ? requisicao.getLocation() : "Unknown");
+            usuario.setUltimoLoginDispositivo(requisicao.getUserAgent() != null ? requisicao.getUserAgent() : "Web");
             repositorioUsuario.save(usuario);
 
             log.info("Login bem-sucedido para usuário: {}", requisicao.getEmail());
 
-            // Registrar no blockchain
+            // Registrar no blockchain com score real da IA
             try {
                 String ipAddress = requisicao.getIpAddress() != null ? requisicao.getIpAddress() : "127.0.0.1";
                 String location = requisicao.getLocation() != null ? requisicao.getLocation() : "Unknown";
                 String deviceFingerprint = requisicao.getUserAgent() != null ? requisicao.getUserAgent() : "Web";
 
-                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", 0.0,
+                recordBlockchainEvent(usuario, "LOGIN_SUCCESS", "ALLOWED", aiRiskScore,
                     ipAddress, location, deviceFingerprint);
             } catch (Exception blockchainEx) {
                 log.error("Erro ao registrar evento no blockchain: {}", blockchainEx.getMessage(), blockchainEx);
             }
 
-            return buildAuthResponse(usuario, jwtToken);
+            return buildAuthResponse(usuario, jwtToken, trustScore, aiRiskScore);
         } catch (Exception e) {
             log.error("Erro durante autenticação: {}", e.getMessage());
             throw new BadCredentialsException("Falha na autenticação: " + e.getMessage());
@@ -580,12 +648,21 @@ public class AuthenticationService implements IServicoAutenticacao {
         log.info("Roles do usuário {} atualizadas para: {}", email, newRoles);
     }
 
-    private AuthenticationResponse buildAuthResponse(Usuario usuario, String token) {
+    private AuthenticationResponse buildAuthResponse(Usuario usuario, String token, double trustScore, double aiRiskScore) {
+        String trustLevel;
+        if (trustScore >= 0.7) trustLevel = "HIGH";
+        else if (trustScore >= 0.5) trustLevel = "MEDIUM";
+        else if (trustScore >= 0.2) trustLevel = "LOW";
+        else trustLevel = "CRITICAL";
+
         return AuthenticationResponse.builder()
             .token(token)
             .name(usuario.getNome())
             .email(usuario.getEmail())
             .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
+            .trustScore(trustScore)
+            .trustLevel(trustLevel)
+            .aiRiskScore(aiRiskScore)
             .build();
     }
 
@@ -660,8 +737,8 @@ public class AuthenticationService implements IServicoAutenticacao {
             atualizarDadosLogin(usuario, httpRequest);
             
             // Construir resposta
-            return buildAuthResponse(usuario, jwtToken);
-            
+            return buildAuthResponse(usuario, jwtToken, 0.8, 0.2);
+
         } catch (Exception e) {
             log.error("Erro ao registrar usuário: {}", e.getMessage());
             throw new RegistrationException("Erro ao registrar usuário: " + e.getMessage());

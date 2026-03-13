@@ -29,6 +29,9 @@ public class TransacaoBlockchain {
     @Column(name = "hash_bloco")
     private String hashBloco;
 
+    @Column(name = "hash_bloco_anterior")
+    private String hashBlocoAnterior;
+
     @Column(name = "numero_bloco")
     private Long numeroBloco;
 

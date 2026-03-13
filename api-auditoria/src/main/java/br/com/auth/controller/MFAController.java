@@ -3,14 +3,21 @@ package br.com.auth.controller;
 import br.com.auth.dominio.entidades.Usuario;
 import br.com.auth.dto.AuthenticationResponse;
 import br.com.auth.infraestrutura.repositorios.RepositorioUsuario;
+import br.com.auth.service.BlockchainService;
+import br.com.auth.service.GerenciadorSessaoService;
 import br.com.auth.service.JwtService;
 import br.com.auth.service.ServicoMFA;
+import br.com.auth.service.ServicoScoreConfianca;
+import br.com.auth.service.ServicoGeolocalizacao;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
@@ -31,6 +38,11 @@ public class MFAController {
     private final ServicoMFA servicoMFA;
     private final RepositorioUsuario repositorioUsuario;
     private final JwtService jwtService;
+    private final ServicoScoreConfianca servicoScoreConfianca;
+    private final GerenciadorSessaoService gerenciadorSessaoService;
+    private final ServicoGeolocalizacao servicoGeolocalizacao;
+    @Autowired(required = false)
+    private BlockchainService blockchainService;
 
     @PostMapping("/configurar")
     @Operation(summary = "Iniciar configuração MFA",
@@ -127,7 +139,7 @@ public class MFAController {
         @ApiResponse(responseCode = "401", description = "Código MFA inválido"),
         @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
-    public ResponseEntity<?> validar(@RequestBody Map<String, String> requisicao) {
+    public ResponseEntity<?> validar(@RequestBody Map<String, String> requisicao, HttpServletRequest httpRequest) {
         try {
             String email = requisicao.get("email");
             String codigo = requisicao.get("codigo");
@@ -149,7 +161,40 @@ public class MFAController {
                 // Gerar token JWT completo
                 String jwtToken = jwtService.generateToken(usuario);
 
-                log.info("Validação MFA bem-sucedida para usuário: {}", email);
+                // Criar sessão
+                gerenciadorSessaoService.criarSessao(usuario, jwtToken, httpRequest);
+
+                // Calcular trust score
+                double trustScore = 0.5;
+                try {
+                    trustScore = servicoScoreConfianca.calcularScore(usuario, httpRequest);
+                } catch (Exception e) {
+                    log.warn("Erro ao calcular trust score após MFA: {}", e.getMessage());
+                }
+
+                String trustLevel;
+                if (trustScore >= 0.7) trustLevel = "HIGH";
+                else if (trustScore >= 0.5) trustLevel = "MEDIUM";
+                else if (trustScore >= 0.2) trustLevel = "LOW";
+                else trustLevel = "CRITICAL";
+
+                // Registrar no blockchain
+                try {
+                    if (blockchainService != null) {
+                        Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(httpRequest.getRemoteAddr());
+                        String locationStr = String.format("%s, %s",
+                            localizacao.getOrDefault("cidade", "Unknown"),
+                            localizacao.getOrDefault("pais", "Unknown"));
+                        blockchainService.recordAuthenticationEvent(
+                            usuario, "LOGIN_MFA_SUCCESS", "ALLOWED", 1.0 - trustScore,
+                            httpRequest.getRemoteAddr(), locationStr,
+                            httpRequest.getHeader("User-Agent"));
+                    }
+                } catch (Exception e) {
+                    log.error("Erro ao registrar MFA no blockchain: {}", e.getMessage());
+                }
+
+                log.info("Validação MFA bem-sucedida para usuário: {} (trustScore={})", email, trustScore);
 
                 return ResponseEntity.ok(AuthenticationResponse.builder()
                         .token(jwtToken)
@@ -158,9 +203,24 @@ public class MFAController {
                         .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
                         .requiresMfa(false)
                         .mfaMessage("MFA validado com sucesso")
+                        .trustScore(trustScore)
+                        .trustLevel(trustLevel)
                         .build());
             } else {
                 log.warn("Código MFA inválido para usuário: {}", email);
+
+                // Registrar tentativa falha no blockchain
+                try {
+                    if (blockchainService != null) {
+                        blockchainService.recordAuthenticationEvent(
+                            usuario, "MFA_FAILED", "DENIED", 0.9,
+                            httpRequest.getRemoteAddr(), "Unknown",
+                            httpRequest.getHeader("User-Agent"));
+                    }
+                } catch (Exception e) {
+                    log.error("Erro ao registrar falha MFA no blockchain: {}", e.getMessage());
+                }
+
                 return ResponseEntity.status(401).body(Map.of(
                     "error", "Código MFA inválido",
                     "message", "O código informado é inválido ou expirou. Tente novamente."

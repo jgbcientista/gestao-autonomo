@@ -351,23 +351,23 @@
                 <div class="metric">
                   <div class="metric-label">CPU</div>
                   <div class="metric-bar">
-                    <div class="metric-fill" style="width: 35%"></div>
+                    <div class="metric-fill" [style.width.%]="cpuPercent"></div>
                   </div>
-                  <div class="metric-value">35%</div>
+                  <div class="metric-value">{{ cpuPercent | number:'1.0-1' }}%</div>
                 </div>
                 <div class="metric">
                   <div class="metric-label">Memória</div>
                   <div class="metric-bar">
-                    <div class="metric-fill" style="width: 60%"></div>
+                    <div class="metric-fill" [style.width.%]="memoryPercent"></div>
                   </div>
-                  <div class="metric-value">60%</div>
+                  <div class="metric-value">{{ memoryPercent | number:'1.0-1' }}%</div>
                 </div>
                 <div class="metric">
                   <div class="metric-label">IA Load</div>
                   <div class="metric-bar">
-                    <div class="metric-fill ai-metric" style="width: 80%"></div>
+                    <div class="metric-fill ai-metric" [style.width.%]="iaLoadPercent"></div>
                   </div>
-                  <div class="metric-value">80%</div>
+                  <div class="metric-value">{{ iaLoadPercent | number:'1.0-0' }}%</div>
                 </div>
               </div>
             </div>

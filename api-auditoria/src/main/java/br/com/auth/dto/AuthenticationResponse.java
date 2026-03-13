@@ -36,4 +36,13 @@ public class AuthenticationResponse {
 
     @Schema(description = "Segredo TOTP para configuração manual do MFA")
     private String mfaSecret;
+
+    @Schema(description = "Trust Score do usuário (0.0 a 1.0)", example = "0.85")
+    private Double trustScore;
+
+    @Schema(description = "Nível de confiança baseado no trust score", example = "HIGH")
+    private String trustLevel;
+
+    @Schema(description = "Score de risco calculado pela IA ensemble", example = "0.15")
+    private Double aiRiskScore;
 } 

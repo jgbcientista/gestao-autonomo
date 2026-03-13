@@ -72,7 +72,7 @@ public class SecurityConfig {
                     "/configuration/ui",
                     "/configuration/security"
                 ).permitAll()
-                .requestMatchers("/api/v1/health/status", "/api/v1/health/system").hasRole("ADMIN")
+                .requestMatchers("/api/v1/health/**").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/configuracoes/**").hasRole("ADMIN")
                 .anyRequest().authenticated()

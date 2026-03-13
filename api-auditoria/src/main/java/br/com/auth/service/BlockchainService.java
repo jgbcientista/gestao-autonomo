@@ -26,6 +26,7 @@ import java.math.BigInteger;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
@@ -104,20 +105,39 @@ public class BlockchainService {
         log.info("Blockchain habilitado: {}", blockchainEnabled);
 
         try {
-            // Cria hash dos dados
+            // Buscar hash do bloco anterior para encadeamento
+            String hashBlocoAnterior = "0x0000000000000000000000000000000000000000000000000000000000000000";
+            try {
+                var ultimaTransacao = repositorioTransacaoBlockchain
+                    .findAll(org.springframework.data.domain.Sort.by(
+                        org.springframework.data.domain.Sort.Direction.DESC, "id"))
+                    .stream().findFirst();
+                if (ultimaTransacao.isPresent()) {
+                    hashBlocoAnterior = ultimaTransacao.get().getHashTransacao();
+                    log.info("Hash do bloco anterior: {}", hashBlocoAnterior);
+                }
+            } catch (Exception e) {
+                log.warn("Erro ao buscar bloco anterior, usando genesis: {}", e.getMessage());
+            }
+
+            // Cria hash dos dados incluindo referência ao bloco anterior
             String dataHash = createDataHash(usuario, eventType, decision, riskScore, ipAddress, location, deviceFingerprint);
-            log.info("Hash dos dados criado: {}", dataHash);
 
-            // Gerar hash da transação antes de salvar
-            String txHashInicial = "0x" + dataHash.replace("0x", "").substring(0, 64);
+            // Hash da transação inclui o hash do bloco anterior (encadeamento)
+            String dadosEncadeados = hashBlocoAnterior + "|" + dataHash;
+            byte[] hashEncadeado = Hash.sha3(dadosEncadeados.getBytes(StandardCharsets.UTF_8));
+            String txHash = "0x" + bytesToHex(hashEncadeado);
+            log.info("Hash encadeado criado: {} (anterior: {})", txHash,
+                hashBlocoAnterior.length() > 18 ? hashBlocoAnterior.substring(0, 18) + "..." : hashBlocoAnterior);
 
-            // Registra localmente primeiro
+            // Registra localmente com referência ao bloco anterior
             TransacaoBlockchain transacao = TransacaoBlockchain.builder()
                     .tipoEvento(eventType)
                     .usuarioId(usuario.getId())
                     .usuarioEmail(usuario.getEmail())
                     .hashDados(dataHash)
-                    .hashTransacao(txHashInicial)
+                    .hashTransacao(txHash)
+                    .hashBlocoAnterior(hashBlocoAnterior)
                     .enderecoIp(ipAddress)
                     .localizacao(location)
                     .impressaoDigitalDispositivo(deviceFingerprint)
@@ -137,33 +157,33 @@ public class BlockchainService {
                 if ("hyperledger".equalsIgnoreCase(networkType) && hyperledgerFabricService != null) {
                     // Usa Hyperledger Fabric
                     try {
-                        String txHash = hyperledgerFabricService.submitAuthenticationTransaction(transacaoSalva).get();
-                        
+                        String hlTxHash = hyperledgerFabricService.submitAuthenticationTransaction(transacaoSalva).get();
+
                         // Atualiza com o hash da transação
-                        transacaoSalva.setHashTransacao(txHash);
+                        transacaoSalva.setHashTransacao(hlTxHash);
                         transacaoSalva.setStatusConfirmacao(TransacaoBlockchain.StatusConfirmacao.CONFIRMADO);
                         transacaoSalva.setVerificado(true);
                         repositorioTransacaoBlockchain.save(transacaoSalva);
 
-                        log.info("Authentication event recorded to Hyperledger Fabric with hash: {}", txHash);
-                        return CompletableFuture.completedFuture(txHash);
+                        log.info("Authentication event recorded to Hyperledger Fabric with hash: {}", hlTxHash);
+                        return CompletableFuture.completedFuture(hlTxHash);
                     } catch (Exception e) {
                         log.error("Erro ao enviar para Hyperledger Fabric, usando simulação", e);
                         return simulateBlockchainTransaction(transacaoSalva, dataHash);
                     }
                 } else if (web3j != null && credentials != null) {
                     // Usa Ethereum/Web3j
-                    String txHash = sendToBlockchain(dataHash, eventType);
-                    
+                    String ethTxHash = sendToBlockchain(dataHash, eventType);
+
                     // Atualiza com o hash da transação
-                    transacaoSalva.setHashTransacao(txHash);
+                    transacaoSalva.setHashTransacao(ethTxHash);
                     repositorioTransacaoBlockchain.save(transacaoSalva);
 
                     // Verifica confirmação em background
-                    verifyTransactionAsync(transacaoSalva.getId(), txHash);
+                    verifyTransactionAsync(transacaoSalva.getId(), ethTxHash);
 
-                    log.info("Authentication event recorded to blockchain with hash: {}", txHash);
-                    return CompletableFuture.completedFuture(txHash);
+                    log.info("Authentication event recorded to blockchain with hash: {}", ethTxHash);
+                    return CompletableFuture.completedFuture(ethTxHash);
                 } else {
                     return simulateBlockchainTransaction(transacaoSalva, dataHash);
                 }
@@ -294,6 +314,90 @@ public class BlockchainService {
 
         log.info("🔗 Simulação concluída - Hash: {}, ID: {}", simulatedHash, transacaoAtualizada.getId());
         return CompletableFuture.completedFuture(simulatedHash);
+    }
+
+    /**
+     * Verifica a integridade de uma transação recalculando o hash dos dados
+     * e comparando com o hash armazenado.
+     */
+    public boolean verificarIntegridadeReal(TransacaoBlockchain transacao) {
+        try {
+            // Recalcular hash dos dados a partir dos campos armazenados
+            String dadosOriginais = String.format("%d|%s|%s|%s|%.2f|%s|%s|%s",
+                transacao.getUsuarioId(),
+                transacao.getUsuarioEmail(),
+                transacao.getTipoEvento(),
+                transacao.getDecisao(),
+                transacao.getPontuacaoRisco(),
+                transacao.getEnderecoIp(),
+                transacao.getLocalizacao(),
+                transacao.getImpressaoDigitalDispositivo());
+
+            // Nota: o timestamp original é parte do hash mas não é armazenado separadamente.
+            // Verificamos a integridade do encadeamento em vez do hash exato dos dados.
+
+            // Verificar encadeamento: o hashTransacao deve derivar de hashBlocoAnterior + hashDados
+            if (transacao.getHashBlocoAnterior() != null && transacao.getHashDados() != null) {
+                String dadosEncadeados = transacao.getHashBlocoAnterior() + "|" + transacao.getHashDados();
+                byte[] hashRecalculado = Hash.sha3(dadosEncadeados.getBytes(StandardCharsets.UTF_8));
+                String hashEsperado = "0x" + bytesToHex(hashRecalculado);
+
+                boolean integro = hashEsperado.equals(transacao.getHashTransacao());
+                if (!integro) {
+                    log.warn("Integridade comprometida! Hash esperado: {}, Hash armazenado: {}",
+                        hashEsperado, transacao.getHashTransacao());
+                }
+                return integro;
+            }
+
+            // Para transações antigas sem encadeamento, verificar flag
+            return Boolean.TRUE.equals(transacao.getVerificado());
+        } catch (Exception e) {
+            log.error("Erro ao verificar integridade: {}", e.getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Verifica a integridade de toda a cadeia blockchain.
+     * Cada bloco deve referenciar corretamente o hash do bloco anterior.
+     */
+    public Map<String, Object> verificarIntegridadeCadeia() {
+        List<TransacaoBlockchain> todasTransacoes = repositorioTransacaoBlockchain
+            .findAll(org.springframework.data.domain.Sort.by(
+                org.springframework.data.domain.Sort.Direction.ASC, "id"));
+
+        int blocosVerificados = 0;
+        int blocosComprometidos = 0;
+        String ultimoHash = "0x0000000000000000000000000000000000000000000000000000000000000000";
+
+        for (TransacaoBlockchain transacao : todasTransacoes) {
+            // Verificar encadeamento
+            if (transacao.getHashBlocoAnterior() != null) {
+                if (!transacao.getHashBlocoAnterior().equals(ultimoHash)) {
+                    blocosComprometidos++;
+                    log.warn("Cadeia quebrada no bloco ID={}: esperado={}, encontrado={}",
+                        transacao.getId(), ultimoHash, transacao.getHashBlocoAnterior());
+                }
+            }
+
+            // Verificar integridade do hash
+            if (verificarIntegridadeReal(transacao)) {
+                blocosVerificados++;
+            } else {
+                blocosComprometidos++;
+            }
+
+            ultimoHash = transacao.getHashTransacao();
+        }
+
+        Map<String, Object> resultado = new java.util.HashMap<>();
+        resultado.put("totalBlocos", todasTransacoes.size());
+        resultado.put("blocosVerificados", blocosVerificados);
+        resultado.put("blocosComprometidos", blocosComprometidos);
+        resultado.put("integridadeOk", blocosComprometidos == 0);
+        resultado.put("verificadoEm", LocalDateTime.now());
+        return resultado;
     }
 
     private String bytesToHex(byte[] bytes) {

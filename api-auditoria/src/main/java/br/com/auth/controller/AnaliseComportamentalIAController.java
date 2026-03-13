@@ -236,10 +236,10 @@ public class AnaliseComportamentalIAController {
     private IServicoAnaliseComportamentalIA.DadosContextoAcesso extrairDadosContexto(
             DadosContextoRequest contexto, HttpServletRequest request) {
         
-        String enderecoIp = contexto.enderecoIp != null ? contexto.enderecoIp : 
-                           obterEnderecoIpReal(request);
-        String userAgent = contexto.userAgent != null ? contexto.userAgent : 
-                          request.getHeader("User-Agent");
+        String enderecoIp = (contexto.enderecoIp != null && !contexto.enderecoIp.isBlank())
+                           ? contexto.enderecoIp : obterEnderecoIpReal(request);
+        String userAgent = (contexto.userAgent != null && !contexto.userAgent.isBlank())
+                          ? contexto.userAgent : request.getHeader("User-Agent");
         
         return new IServicoAnaliseComportamentalIA.DadosContextoAcesso(
             enderecoIp,

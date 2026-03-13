@@ -1,6 +1,7 @@
 package br.com.auth.service;
 
 import br.com.auth.dominio.entidades.PerfilComportamentalIA;
+import br.com.auth.dominio.entidades.ScoreConfianca;
 import br.com.auth.dominio.entidades.Usuario;
 import br.com.auth.dominio.entidades.LogAuditoria;
 import br.com.auth.dominio.interfaces.IServicoAnaliseComportamentalIA;
@@ -29,6 +30,7 @@ public class ServicoAnaliseComportamentalIA implements IServicoAnaliseComportame
     private final ServicoIsolationForest servicoIsolationForest;
     private final ServicoRandomForest servicoRandomForest;
     private final ServicoDeepLearning servicoDeepLearning;
+    private final ServicoScoreConfianca servicoScoreConfianca;
 
     // Thresholds para classificação
     private static final double THRESHOLD_ANOMALIA = 0.7;
@@ -52,8 +54,14 @@ public class ServicoAnaliseComportamentalIA implements IServicoAnaliseComportame
             Double scoreDeepLearning = calcularScoreDeepLearning(features);
             Double scoreEnsemble = calcularScoreEnsemble(features);
 
+            // 2.1. Ajustar score com base no trust score do usuário
+            Double trustScoreAtual = obterTrustScoreUsuario(usuario);
+            scoreEnsemble = ajustarScoreComTrustScore(scoreEnsemble, trustScoreAtual);
+
+            log.info("Score ensemble ajustado: {} (trust score: {})", scoreEnsemble, trustScoreAtual);
+
             // 3. Classificar acesso
-            PerfilComportamentalIA.ClassificacaoAcesso classificacao = 
+            PerfilComportamentalIA.ClassificacaoAcesso classificacao =
                 classificarAcessoPorScore(scoreEnsemble);
 
             // 4. Calcular scores individuais de comportamento
@@ -110,6 +118,11 @@ public class ServicoAnaliseComportamentalIA implements IServicoAnaliseComportame
     public PerfilComportamentalIA.ClassificacaoAcesso classificarAcesso(Usuario usuario, DadosContextoAcesso dadosContexto) {
         DadosFeatures features = servicoExtracaoFeatures.extrairFeatures(usuario, dadosContexto);
         Double scoreEnsemble = calcularScoreEnsemble(features);
+
+        // Ajustar score com base no trust score do usuário
+        Double trustScoreAtual = obterTrustScoreUsuario(usuario);
+        scoreEnsemble = ajustarScoreComTrustScore(scoreEnsemble, trustScoreAtual);
+
         return classificarAcessoPorScore(scoreEnsemble);
     }
 
@@ -211,6 +224,41 @@ public class ServicoAnaliseComportamentalIA implements IServicoAnaliseComportame
             THRESHOLD_ANOMALIA,
             acuraciaAlgoritmos
         );
+    }
+
+    /**
+     * Obtém o trust score atual do usuário.
+     * O trust score reflete a confiança histórica acumulada.
+     */
+    private Double obterTrustScoreUsuario(Usuario usuario) {
+        try {
+            ScoreConfianca scoreConfianca = servicoScoreConfianca.obterOuCriarScore(usuario);
+            return scoreConfianca.getScoreAtual();
+        } catch (Exception e) {
+            log.warn("Erro ao obter trust score do usuário {}. Usando 0.5 como padrão.", usuario.getEmail(), e);
+            return 0.5;
+        }
+    }
+
+    /**
+     * Ajusta o score de anomalia considerando o trust score do usuário.
+     *
+     * Fórmula: scoreAjustado = scoreAnomalia * (1 - trustScore * pesoConfianca)
+     *
+     * Exemplo com trust score 1.0 e peso 0.6:
+     *   scoreAnomalia 0.6 → 0.6 * (1 - 1.0 * 0.6) = 0.6 * 0.4 = 0.24 → ESPERADO
+     *
+     * Exemplo com trust score 0.3 e peso 0.6:
+     *   scoreAnomalia 0.6 → 0.6 * (1 - 0.3 * 0.6) = 0.6 * 0.82 = 0.49 → ESPERADO (limite)
+     *
+     * Isso garante que usuários com histórico confiável precisam de anomalias
+     * muito mais fortes para serem classificados como suspeitos.
+     */
+    private Double ajustarScoreComTrustScore(Double scoreAnomalia, Double trustScore) {
+        final double PESO_CONFIANCA = 0.6; // Quanto o trust score influencia (0-1)
+        double fatorAjuste = 1.0 - (trustScore * PESO_CONFIANCA);
+        double scoreAjustado = scoreAnomalia * fatorAjuste;
+        return Math.max(0.0, Math.min(1.0, scoreAjustado));
     }
 
     private PerfilComportamentalIA.ClassificacaoAcesso classificarAcessoPorScore(Double score) {

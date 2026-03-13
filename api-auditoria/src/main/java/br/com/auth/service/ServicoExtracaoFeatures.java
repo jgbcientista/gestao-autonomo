@@ -72,7 +72,7 @@ public class ServicoExtracaoFeatures {
     }
 
     private Boolean verificarIpJaUtilizado(List<LogAuditoria> historico, String enderecoIp) {
-        if (enderecoIp == null) return false;
+        if (enderecoIp == null || enderecoIp.isBlank()) return false;
         
         return historico.stream()
             .anyMatch(log -> enderecoIp.equals(log.getEnderecoIp()));
@@ -86,15 +86,15 @@ public class ServicoExtracaoFeatures {
     }
 
     private Boolean verificarLocalizacaoJaUtilizada(List<LogAuditoria> historico, String localizacao) {
-        if (localizacao == null) return false;
+        if (localizacao == null || localizacao.isBlank()) return true; // Sem dados, assumir local conhecido
         
         return historico.stream()
             .anyMatch(log -> localizacao.equals(log.getLocalizacao()));
     }
 
     private Double calcularDistanciaLocalizacaoHabitual(List<LogAuditoria> historico, String localizacaoAtual) {
-        if (localizacaoAtual == null || historico.isEmpty()) {
-            return 1000.0; // Distância máxima se não há dados
+        if (localizacaoAtual == null || localizacaoAtual.isBlank() || historico.isEmpty()) {
+            return 0.0; // Sem dados de localização, assumir local habitual para não penalizar indevidamente
         }
 
         try {
@@ -146,7 +146,7 @@ public class ServicoExtracaoFeatures {
 
     private Double calcularDiferencaHorarioHabitual(List<LogAuditoria> historico) {
         if (historico.isEmpty()) {
-            return 12.0; // Diferença máxima se não há dados
+            return 0.0; // Sem histórico, não penalizar
         }
 
         // Calcular horário médio de acesso
@@ -161,7 +161,7 @@ public class ServicoExtracaoFeatures {
 
     private Double calcularTempoDesdeUltimoAcesso(List<LogAuditoria> historico) {
         if (historico.isEmpty()) {
-            return 168.0; // 1 semana em horas se não há dados
+            return 1.0; // Sem histórico, assumir acesso recente
         }
 
         LocalDateTime ultimoAcesso = historico.stream()
@@ -188,7 +188,7 @@ public class ServicoExtracaoFeatures {
 
     private Double calcularDesvioPadraoHorarios(List<LogAuditoria> historico) {
         if (historico.size() < 2) {
-            return 12.0; // Desvio máximo se poucos dados
+            return 1.0; // Sem dados suficientes, assumir baixo desvio
         }
 
         List<Integer> horarios = historico.stream()

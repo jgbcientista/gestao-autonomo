@@ -19,6 +19,18 @@ $radius-sm: 10px;
 $shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
 $shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.25);
 
+// Navbar container aligned with content
+.ts-navbar-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-wrap: inherit;
+  align-items: center;
+  justify-content: space-between;
+}
+
 // Container
 .ts-container {
   padding: 0 1.5rem 3rem;

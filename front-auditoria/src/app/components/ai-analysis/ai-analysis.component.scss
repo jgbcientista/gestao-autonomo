@@ -1,5 +1,107 @@
 /* AI Analysis Component - Estilos específicos */
 
+/* Container alinhado - navbar e conteúdo com mesma largura */
+.page-navbar-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-wrap: inherit;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-container {
+  padding: 0 1.5rem 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Seleção de Usuário */
+.select-section {
+  margin-bottom: 2rem;
+}
+
+.select-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.select-card-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  i {
+    font-size: 1.2rem;
+    color: #3b82f6;
+  }
+
+  h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+}
+
+.select-usuario {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 0.95rem;
+  color: #1e293b;
+  background: #fff;
+  transition: all 0.2s ease;
+
+  &:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    outline: none;
+  }
+}
+
+/* Análise Contextual */
+.contextual-section {
+  margin-bottom: 2rem;
+}
+
+.contextual-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-left: 4px solid #f59e0b;
+}
+
+.contextual-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+
+  h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+  }
+}
+
+.contextual-text {
+  color: #475569;
+  line-height: 1.7;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
 /* Hero Section */
 .hero-section {
   padding: 3rem 0;

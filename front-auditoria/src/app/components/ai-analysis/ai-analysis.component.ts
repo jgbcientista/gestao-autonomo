@@ -33,6 +33,10 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
   statisticas: EstatisticasAnomalias | null = null;
   historicoAnalises: PerfilComportamentalIA[] = [];
 
+  // Seleção de usuário
+  usuarios: any[] = [];
+  selectedUserId: number | null = null;
+
   // Scores de anomalia
   scoreAtual: ScoreResponse | null = null;
   calculandoScore = false;
@@ -66,8 +70,15 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.carregarDados();
-    this.iniciarMonitoramento();
+    this.usuarioAtual = this.authService.getCurrentUser();
+
+    if (!this.usuarioAtual) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.loadUsuarios();
+    this.carregarEstatisticas();
   }
 
   ngOnDestroy(): void {
@@ -75,21 +86,48 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
     this.pararMonitoramento();
   }
 
-  carregarDados(): void {
-    this.loading = true;
-    this.error = null;
+  loadUsuarios(): void {
+    this.apiService.getUsuariosCadastrados().subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+        // Seleciona o usuário logado por padrão
+        if (this.usuarioAtual?.email) {
+          const found = usuarios.find((u: any) => u.email === this.usuarioAtual.email);
+          if (found) {
+            this.selectedUserId = found.id;
+            this.onUsuarioSelecionado();
+          }
+        }
+      },
+      error: (err) => {
+        console.error('Erro ao carregar usuarios:', err);
+        this.error = 'Erro ao carregar lista de usuários.';
+      }
+    });
+  }
 
-    this.usuarioAtual = this.authService.getCurrentUser();
-
-    if (!this.usuarioAtual) {
-      this.error = 'Usuario nao autenticado';
-      this.loading = false;
+  onUsuarioSelecionado(): void {
+    if (!this.selectedUserId) {
+      this.perfilAtual = null;
+      this.classificacaoAtual = null;
+      this.scoreAtual = null;
+      this.historicoAnalises = [];
+      this.pararMonitoramento();
       return;
     }
 
-    const userId = this.usuarioAtual.id || 1;
+    this.carregarDadosUsuario();
+    this.iniciarMonitoramento();
+  }
 
-    // Carrega estatísticas e histórico em paralelo
+  carregarDadosUsuario(): void {
+    if (!this.selectedUserId) return;
+
+    this.loading = true;
+    this.error = null;
+
+    const userId = this.selectedUserId;
+
     const subscricao = forkJoin({
       estatisticas: this.apiService.getAnomalyStatistics(),
       historico: this.apiService.getUserAnalysisHistory(userId)
@@ -99,12 +137,11 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
         this.historicoAnalises = Array.isArray(dados.historico) ? dados.historico : [];
         this.loading = false;
 
-        // Após carregar dados, executar primeira análise
         this.executarAnaliseCompleta();
       },
       error: (erro) => {
         console.error('Erro ao carregar dados de IA:', erro);
-        this.error = 'Erro ao carregar dados de analise IA. Verifique sua conexao com o servidor.';
+        this.error = 'Erro ao carregar dados de análise IA. Verifique sua conexão com o servidor.';
         this.statisticas = null;
         this.historicoAnalises = [];
         this.loading = false;
@@ -115,12 +152,12 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
   }
 
   executarAnaliseCompleta(): void {
-    if (this.loading) return;
+    if (this.loading || !this.selectedUserId) return;
 
     this.loading = true;
     this.error = null;
 
-    const userId = this.usuarioAtual?.id || 1;
+    const userId = this.selectedUserId;
     const contexto = this.obterContextoAtual();
 
     // Chama as APIs reais para análise e classificação
@@ -326,6 +363,81 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
   formatarScore(valor: number): string {
     if (!valor && valor !== 0) return '0.000';
     return valor.toFixed(3);
+  }
+
+  getUsuarioSelecionadoNome(): string {
+    const u = this.usuarios.find((u: any) => u.id === this.selectedUserId);
+    return u?.nome || 'Usuário';
+  }
+
+  getDescricaoAnalise(): string {
+    if (!this.perfilAtual && !this.classificacaoAtual) return '';
+
+    const nome = this.getUsuarioSelecionadoNome();
+    const scoreAnomalia = this.perfilAtual?.scoreAnomaliaGlobal || 0;
+    const confiabilidade = this.perfilAtual?.confiabilidade || 0;
+    const classificacao = this.classificacaoAtual?.classificacao || '';
+    const nivelRisco = this.classificacaoAtual?.nivelRisco || '';
+    let desc = '';
+
+    // Classificação geral
+    desc += `O usuário ${nome} foi classificado como "${classificacao}" com nível de risco "${nivelRisco}". `;
+
+    // Score de anomalia
+    if (scoreAnomalia <= 0.3) {
+      desc += `O score global de anomalia é ${this.formatarScore(scoreAnomalia)}, indicando um comportamento consistente com o padrão habitual do usuário. `;
+    } else if (scoreAnomalia <= 0.7) {
+      desc += `O score global de anomalia é ${this.formatarScore(scoreAnomalia)}, indicando desvios moderados em relação ao padrão habitual — isso pode ocorrer por mudança de dispositivo, horário incomum ou localização diferente. `;
+    } else {
+      desc += `O score global de anomalia é ${this.formatarScore(scoreAnomalia)}, indicando desvios significativos do comportamento esperado — múltiplos fatores como IP desconhecido, horário atípico ou dispositivo novo contribuíram para esse resultado. `;
+    }
+
+    // Scores dos algoritmos
+    if (this.scoreAtual) {
+      const scores = [];
+      if (this.scoreAtual.isolationForest !== undefined) {
+        scores.push(`Isolation Forest: ${this.formatarScore(this.scoreAtual.isolationForest)}`);
+      }
+      if (this.scoreAtual.randomForest !== undefined) {
+        scores.push(`Random Forest: ${this.formatarScore(this.scoreAtual.randomForest)}`);
+      }
+      if (this.scoreAtual.deepLearning !== undefined) {
+        scores.push(`Deep Learning: ${this.formatarScore(this.scoreAtual.deepLearning)}`);
+      }
+      if (scores.length > 0) {
+        desc += `Os modelos de IA retornaram os seguintes scores individuais: ${scores.join(', ')}. `;
+        if (this.scoreAtual.ensemble !== undefined) {
+          desc += `O score ensemble (combinação ponderada dos 3 modelos) resultou em ${this.formatarScore(this.scoreAtual.ensemble)}. `;
+        }
+      }
+    }
+
+    // Confiabilidade
+    desc += `A confiabilidade desta análise é de ${this.formatarPercentual(confiabilidade)}. `;
+
+    // Scores comportamentais detalhados
+    if (this.perfilAtual?.scoresComportamentais) {
+      const fatoresAltos: string[] = [];
+      for (const [key, value] of Object.entries(this.perfilAtual.scoresComportamentais)) {
+        if ((value as number) > 0.5) {
+          fatoresAltos.push(key);
+        }
+      }
+      if (fatoresAltos.length > 0) {
+        desc += `Os fatores comportamentais que mais contribuíram para o score foram: ${fatoresAltos.join(', ')}. `;
+      }
+    }
+
+    // Decisão
+    if (scoreAnomalia <= 0.3) {
+      desc += `Com base nesta análise, o sistema recomenda permitir o acesso normalmente.`;
+    } else if (scoreAnomalia <= 0.7) {
+      desc += `Com base nesta análise, o sistema recomenda exigir autenticação multi-fator (MFA) antes de liberar o acesso.`;
+    } else {
+      desc += `Com base nesta análise, o sistema recomenda bloquear o acesso por motivos de segurança.`;
+    }
+
+    return desc;
   }
 
   // Métodos de navegação

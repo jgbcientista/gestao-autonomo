@@ -1,5 +1,23 @@
 /* Dashboard Component - Estilos específicos */
 
+/* Container alinhado - navbar e conteúdo com mesma largura */
+.page-navbar-container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+  display: flex;
+  flex-wrap: inherit;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-container {
+  padding: 0 1.5rem 3rem;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
 /* Hero Section */
 .hero-section {
   padding: 3rem 0;
@@ -617,6 +635,10 @@
 }
 
 /* Features Section */
+.features-wrapper {
+  width: 100%;
+}
+
 .features-section {
   margin: 4rem 0 6rem 0;
   display: block !important;

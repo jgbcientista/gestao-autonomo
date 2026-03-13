@@ -1,13 +1,6 @@
 <!-- Navbar moderna com glassmorphism -->
 <nav class="navbar navbar-expand-lg fixed-top modern-navbar">
-  <div class="container-fluid">
-    <a class="navbar-brand" href="/dashboard">
-      <div class="brand-logo">
-        <i class="bi bi-shield-check"></i>
-      </div>
-      <span class="brand-text">AuthSystem</span>
-    </a>
-    
+  <div class="page-navbar-container">
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
       <span class="navbar-toggler-icon"></span>
     </button>
@@ -73,7 +66,7 @@
 
 <!-- Conteúdo Principal -->
 <main class="dashboard-main">
-  <div class="container-fluid">
+  <div class="page-container">
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="row align-items-center">
@@ -123,6 +116,22 @@
       </div>
     </section>
 
+    <!-- Seleção de Usuário -->
+    <section class="select-section">
+      <div class="select-card">
+        <div class="select-card-header">
+          <i class="bi bi-person-fill me-2"></i>
+          <h4>Selecionar Usuário</h4>
+        </div>
+        <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
+          <option [ngValue]="null">-- Selecione um usuário para análise --</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.id">
+            {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
+          </option>
+        </select>
+      </div>
+    </section>
+
     <!-- Erro -->
     <div class="row" *ngIf="error">
       <div class="col-12">
@@ -133,7 +142,7 @@
           <div class="alert-content">
             <h5 class="alert-title">Erro ao carregar dados da análise de IA</h5>
             <p class="alert-message">{{ error }}</p>
-            <button class="btn btn-outline-danger btn-sm" (click)="carregarDados()">
+            <button class="btn btn-outline-danger btn-sm" (click)="carregarDadosUsuario()">
               <i class="bi bi-arrow-clockwise me-1"></i>Tentar Novamente
             </button>
           </div>
@@ -176,6 +185,17 @@
             </div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <!-- Análise Contextual -->
+    <section class="contextual-section" *ngIf="(perfilAtual || classificacaoAtual) && !loading">
+      <div class="contextual-card">
+        <div class="contextual-header">
+          <i class="bi bi-lightbulb-fill me-2" style="color: #f59e0b;"></i>
+          <h4>Análise Contextual do Resultado</h4>
+        </div>
+        <p class="contextual-text">{{ getDescricaoAnalise() }}</p>
       </div>
     </section>
 

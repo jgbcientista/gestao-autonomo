@@ -23,11 +23,11 @@
           </div>
 
           <div class="card-body">
-            <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-              <!-- Email com ícone -->
+            <!-- Formulario de Login -->
+            <form *ngIf="!showMfaChallenge" [formGroup]="loginForm" (ngSubmit)="onSubmit()">
               <div class="form-floating mb-3">
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   class="form-control form-control-modern"
                   id="email"
                   formControlName="email"
@@ -38,18 +38,17 @@
                 </label>
                 <div class="invalid-feedback" *ngIf="loginForm.get('email')?.invalid && loginForm.get('email')?.touched">
                   <div *ngIf="loginForm.get('email')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Email é obrigatório
+                    <i class="bi bi-exclamation-circle me-1"></i>Email e obrigatorio
                   </div>
                   <div *ngIf="loginForm.get('email')?.errors?.['email']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Email deve ter um formato válido
+                    <i class="bi bi-exclamation-circle me-1"></i>Email deve ter um formato valido
                   </div>
                 </div>
               </div>
 
-              <!-- Senha com ícone e toggle -->
               <div class="form-floating mb-4">
-                <input 
-                  [type]="showPassword ? 'text' : 'password'" 
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
                   class="form-control form-control-modern"
                   id="password"
                   formControlName="password"
@@ -58,35 +57,32 @@
                 <label for="password">
                   <i class="bi bi-lock me-2"></i>Senha
                 </label>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   class="password-toggle"
                   (click)="showPassword = !showPassword">
                   <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
                 </button>
                 <div class="invalid-feedback" *ngIf="loginForm.get('password')?.invalid && loginForm.get('password')?.touched">
                   <div *ngIf="loginForm.get('password')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Senha é obrigatória
+                    <i class="bi bi-exclamation-circle me-1"></i>Senha e obrigatoria
                   </div>
                 </div>
               </div>
 
-              <!-- Mensagem de erro com animação -->
               <div class="alert alert-danger slide-down" *ngIf="errorMessage" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 {{ errorMessage }}
               </div>
 
-              <!-- Mensagem de sucesso com animação -->
               <div class="alert alert-success slide-down" *ngIf="successMessage" role="alert">
                 <i class="bi bi-check-circle-fill me-2"></i>
                 {{ successMessage }}
               </div>
 
-              <!-- Botão de login moderno -->
               <div class="d-grid mb-4">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   class="btn btn-primary btn-modern btn-lg"
                   [disabled]="loginForm.invalid || isLoading">
                   <span *ngIf="isLoading" class="spinner-grow spinner-grow-sm me-2" role="status" aria-hidden="true"></span>
@@ -95,15 +91,13 @@
                 </button>
               </div>
 
-              <!-- Divider -->
               <div class="divider">
                 <span>ou</span>
               </div>
 
-              <!-- Link para registro com estilo moderno -->
               <div class="text-center">
                 <p class="register-text">
-                  Não tem uma conta?
+                  Nao tem uma conta?
                 </p>
                 <a routerLink="/register" class="btn btn-outline-light btn-register">
                   <i class="bi bi-person-plus me-2"></i>
@@ -111,6 +105,67 @@
                 </a>
               </div>
             </form>
+
+            <!-- Desafio MFA -->
+            <div *ngIf="showMfaChallenge" class="mfa-challenge">
+              <div class="text-center mb-4">
+                <div class="mfa-icon mb-3">
+                  <i class="bi bi-shield-lock-fill" style="font-size: 3rem; color: #667eea;"></i>
+                </div>
+                <h4 style="color: #1e293b; font-weight: 700;">Verificacao em Duas Etapas</h4>
+                <p style="color: #64748b;">{{ mfaMessage }}</p>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input
+                  type="text"
+                  class="form-control form-control-modern text-center"
+                  id="mfaCode"
+                  [(ngModel)]="mfaCode"
+                  maxlength="6"
+                  placeholder="000000"
+                  style="font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: bold;"
+                  (keyup.enter)="onSubmitMfa()">
+                <label for="mfaCode">
+                  <i class="bi bi-key me-2"></i>Codigo de 6 digitos
+                </label>
+              </div>
+
+              <div class="alert alert-danger slide-down" *ngIf="errorMessage" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {{ errorMessage }}
+              </div>
+
+              <div class="alert alert-success slide-down" *ngIf="successMessage" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                {{ successMessage }}
+              </div>
+
+              <div class="d-grid mb-3">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-modern btn-lg"
+                  [disabled]="!mfaCode || mfaCode.length !== 6 || isValidatingMfa"
+                  (click)="onSubmitMfa()">
+                  <span *ngIf="isValidatingMfa" class="spinner-grow spinner-grow-sm me-2" role="status"></span>
+                  <i *ngIf="!isValidatingMfa" class="bi bi-check-circle me-2"></i>
+                  {{ isValidatingMfa ? 'Validando...' : 'Verificar Codigo' }}
+                </button>
+              </div>
+
+              <div class="text-center">
+                <button type="button" class="btn btn-link" style="color: #667eea; text-decoration: none;" (click)="voltarLogin()">
+                  <i class="bi bi-arrow-left me-1"></i> Voltar ao login
+                </button>
+              </div>
+
+              <div class="mt-3 p-3" style="background: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <small style="color: #64748b;">
+                  <i class="bi bi-info-circle me-1"></i>
+                  Abra o aplicativo Google Authenticator no seu celular e informe o codigo de 6 digitos exibido para esta conta.
+                </small>
+              </div>
+            </div>
           </div>
 
           <!-- Footer do card -->

@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
@@ -8,7 +8,7 @@ import { AuthenticationRequest } from '../../models/auth.model';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss'
 })
@@ -19,6 +19,13 @@ export class LoginComponent implements OnInit {
   successMessage = '';
   showPassword = false;
 
+  // MFA
+  showMfaChallenge = false;
+  mfaCode = '';
+  mfaEmail = '';
+  mfaMessage = '';
+  isValidatingMfa = false;
+
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
@@ -27,8 +34,7 @@ export class LoginComponent implements OnInit {
 
   ngOnInit(): void {
     this.initializeForm();
-    
-    // Redireciona se já estiver logado
+
     if (this.authService.isAuthenticated()) {
       this.router.navigate(['/dashboard']);
     }
@@ -52,15 +58,20 @@ export class LoginComponent implements OnInit {
         password: this.loginForm.value.password
       };
 
-      // Enriquece a requisição com informações do cliente
       const enrichedLoginData = this.authService.enrichAuthRequest(loginData);
 
       this.authService.login(enrichedLoginData).subscribe({
         next: (response) => {
           this.isLoading = false;
+
+          if (response.requiresMfa) {
+            this.showMfaChallenge = true;
+            this.mfaEmail = this.loginForm.value.email;
+            this.mfaMessage = response.mfaMessage || 'Informe o codigo do Google Authenticator';
+            return;
+          }
+
           this.successMessage = `Bem-vindo, ${response.name}!`;
-          
-          // Redireciona para o dashboard após sucesso
           setTimeout(() => {
             this.router.navigate(['/dashboard']);
           }, 1500);
@@ -68,20 +79,19 @@ export class LoginComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           console.error('Erro no login:', error);
-          
-          // Mapeia os códigos de erro HTTP para mensagens amigáveis
+
           switch (error.status) {
             case 401:
-              this.errorMessage = 'Email ou senha inválidos. Verifique suas credenciais.';
+              this.errorMessage = 'Email ou senha invalidos. Verifique suas credenciais.';
               break;
             case 423:
               this.errorMessage = 'Sua conta foi bloqueada. Entre em contato com o suporte.';
               break;
             case 403:
-              this.errorMessage = 'Acesso negado pela análise de segurança. Tente novamente.';
+              this.errorMessage = 'Acesso negado pela analise de seguranca. Tente novamente.';
               break;
             case 0:
-              this.errorMessage = 'Erro de conexão. Verifique se o servidor está rodando.';
+              this.errorMessage = 'Erro de conexao. Verifique se o servidor esta rodando.';
               break;
             default:
               this.errorMessage = 'Erro interno do servidor. Tente novamente em alguns instantes.';
@@ -93,6 +103,39 @@ export class LoginComponent implements OnInit {
     }
   }
 
+  onSubmitMfa(): void {
+    if (!this.mfaCode || this.mfaCode.length !== 6) {
+      this.errorMessage = 'Informe o codigo de 6 digitos do Google Authenticator.';
+      return;
+    }
+
+    this.isValidatingMfa = true;
+    this.errorMessage = '';
+
+    this.authService.completeMfaLogin(this.mfaEmail, this.mfaCode).subscribe({
+      next: (response) => {
+        this.isValidatingMfa = false;
+        this.successMessage = `Bem-vindo, ${response.name}!`;
+        setTimeout(() => {
+          this.router.navigate(['/dashboard']);
+        }, 1500);
+      },
+      error: (error) => {
+        this.isValidatingMfa = false;
+        console.error('Erro na validacao MFA:', error);
+        this.errorMessage = 'Codigo MFA invalido. Tente novamente.';
+        this.mfaCode = '';
+      }
+    });
+  }
+
+  voltarLogin(): void {
+    this.showMfaChallenge = false;
+    this.mfaCode = '';
+    this.mfaEmail = '';
+    this.errorMessage = '';
+  }
+
   private markFormGroupTouched(): void {
     Object.keys(this.loginForm.controls).forEach(key => {
       const control = this.loginForm.get(key);
@@ -100,7 +143,6 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  // Método para facilitar acesso aos controles do form no template
   get f() {
     return this.loginForm.controls;
   }

@@ -58,6 +58,7 @@ public class AuthenticationService implements IServicoAutenticacao {
     private final ServicoGeolocalizacao servicoGeolocalizacao;
     private final ServicoScoreConfianca servicoScoreConfianca;
     private final GerenciadorSessaoService gerenciadorSessaoService;
+    private final ServicoMFA servicoMFA;
 
     @Value("${blockchain.native.enabled:false}")
     private boolean useNativeBlockchain;
@@ -90,6 +91,10 @@ public class AuthenticationService implements IServicoAutenticacao {
         repositorioUsuario.save(usuario);
         log.info("Usuário {} registrado com sucesso, Roles: {}", usuario.getEmail(), usuario.getPerfis());
 
+        // Gerar segredo MFA e salvar no usuário
+        ServicoMFA.ResultadoConfiguracaoMFA resultadoMfa = servicoMFA.habilitarMFA(usuario);
+        log.info("Segredo MFA gerado para novo usuário: {}", usuario.getEmail());
+
         var jwtToken = jwtService.generateToken(usuario);
         return RespostaAutenticacao.builder()
                 .token(jwtToken)
@@ -98,6 +103,8 @@ public class AuthenticationService implements IServicoAutenticacao {
                 .trustScore(0.8)
                 .trustLevel("HIGH")
                 .requiresMfa(false)
+                .mfaQrCode(resultadoMfa.qrCodeBase64())
+                .mfaSecret(resultadoMfa.segredo())
                 .role(usuario.getPerfis().stream().findFirst().orElse("USER"))
                 .build();
     }
@@ -120,7 +127,35 @@ public class AuthenticationService implements IServicoAutenticacao {
                     request.getPassword()
                 )
             );
-            
+
+            // Verificar se MFA é necessário
+            boolean mfaHabilitado = Boolean.TRUE.equals(usuario.getAutenticacaoDoisFatoresHabilitada());
+            boolean scoreRequerMfa = false;
+
+            try {
+                var scoreConfianca = servicoScoreConfianca.obterOuCriarScore(usuario);
+                scoreRequerMfa = scoreConfianca.requerMfa();
+            } catch (Exception e) {
+                log.warn("Erro ao verificar score de confiança para MFA: {}", e.getMessage());
+            }
+
+            if (mfaHabilitado || scoreRequerMfa) {
+                log.info("MFA necessário para usuário: {} (habilitado={}, scoreRequer={})",
+                    request.getEmail(), mfaHabilitado, scoreRequerMfa);
+
+                String mfaMessage = mfaHabilitado
+                    ? "Autenticação de dois fatores necessária. Insira o código do seu aplicativo autenticador."
+                    : "Verificação adicional necessária devido ao nível de confiança. Configure o MFA ou insira o código.";
+
+                return AuthenticationResponse.builder()
+                    .email(usuario.getEmail())
+                    .name(usuario.getNome())
+                    .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
+                    .requiresMfa(true)
+                    .mfaMessage(mfaMessage)
+                    .build();
+            }
+
             // Gerar token JWT
             var jwtToken = jwtService.generateToken(usuario);
 
@@ -279,17 +314,23 @@ public class AuthenticationService implements IServicoAutenticacao {
 
             // Salva o usuário
             Usuario usuarioSalvo = repositorioUsuario.save(usuario);
-            log.info("Usuário {} salvo com sucesso, ID: {}, Roles: {}", 
+            log.info("Usuário {} salvo com sucesso, ID: {}, Roles: {}",
                 usuarioSalvo.getEmail(), usuarioSalvo.getId(), usuarioSalvo.getPerfis());
+
+            // Gerar segredo MFA e salvar no usuário
+            ServicoMFA.ResultadoConfiguracaoMFA resultadoMfa = servicoMFA.habilitarMFA(usuarioSalvo);
+            log.info("Segredo MFA gerado para novo usuário: {}", usuarioSalvo.getEmail());
 
             // Gera o token JWT
             var jwtToken = jwtService.generateToken(usuarioSalvo);
-            
-            // Retorna a resposta
+
+            // Retorna a resposta com dados MFA
             return AuthenticationResponse.builder()
                     .token(jwtToken)
                     .name(usuarioSalvo.getName())
                     .email(usuarioSalvo.getEmail())
+                    .mfaQrCode(resultadoMfa.qrCodeBase64())
+                    .mfaSecret(resultadoMfa.segredo())
                     .build();
                     
         } catch (Exception e) {
@@ -361,8 +402,37 @@ public class AuthenticationService implements IServicoAutenticacao {
                     requisicao.getPassword()
                 )
             );
-            
-            // Gerar token JWT
+
+            // Verificar se MFA é necessário
+            boolean mfaHabilitado = Boolean.TRUE.equals(usuario.getAutenticacaoDoisFatoresHabilitada());
+            boolean scoreRequerMfa = false;
+
+            try {
+                var scoreConfianca = servicoScoreConfianca.obterOuCriarScore(usuario);
+                scoreRequerMfa = scoreConfianca.requerMfa();
+            } catch (Exception e) {
+                log.warn("Erro ao verificar score de confiança para MFA: {}", e.getMessage());
+            }
+
+            if (mfaHabilitado || scoreRequerMfa) {
+                log.info("MFA necessário para usuário: {} (habilitado={}, scoreRequer={})",
+                    requisicao.getEmail(), mfaHabilitado, scoreRequerMfa);
+
+                String mfaMessage = mfaHabilitado
+                    ? "Autenticação de dois fatores necessária. Insira o código do seu aplicativo autenticador."
+                    : "Verificação adicional necessária devido ao nível de confiança. Configure o MFA ou insira o código.";
+
+                // Retornar resposta parcial sem token JWT
+                return AuthenticationResponse.builder()
+                    .email(usuario.getEmail())
+                    .name(usuario.getNome())
+                    .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
+                    .requiresMfa(true)
+                    .mfaMessage(mfaMessage)
+                    .build();
+            }
+
+            // Gerar token JWT (fluxo normal sem MFA)
             var jwtToken = jwtService.generateToken(usuario);
 
             // Atualizar último login sem HttpServletRequest

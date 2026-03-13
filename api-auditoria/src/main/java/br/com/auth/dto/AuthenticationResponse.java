@@ -24,4 +24,16 @@ public class AuthenticationResponse {
 
     @Schema(description = "Papel/perfil do usuário", example = "ADMIN")
     private String role;
+
+    @Schema(description = "Indica se é necessário autenticação de dois fatores", example = "false")
+    private Boolean requiresMfa;
+
+    @Schema(description = "Mensagem relacionada ao MFA", example = "Autenticação de dois fatores necessária")
+    private String mfaMessage;
+
+    @Schema(description = "QR Code em Base64 para configuração do MFA", example = "data:image/png;base64,...")
+    private String mfaQrCode;
+
+    @Schema(description = "Segredo TOTP para configuração manual do MFA")
+    private String mfaSecret;
 } 

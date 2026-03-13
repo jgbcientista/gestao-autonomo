@@ -24,11 +24,11 @@
           </div>
 
           <div class="card-body">
-            <form [formGroup]="registerForm" (ngSubmit)="onSubmit()">
-              <!-- Nome com ícone -->
+            <!-- Formulario de Registro -->
+            <form *ngIf="!showMfaSetup" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
               <div class="form-floating mb-3">
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   class="form-control form-control-modern"
                   id="name"
                   formControlName="name"
@@ -39,21 +39,20 @@
                 </label>
                 <div class="invalid-feedback" *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
                   <div *ngIf="registerForm.get('name')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Nome é obrigatório
+                    <i class="bi bi-exclamation-circle me-1"></i>Nome e obrigatorio
                   </div>
                   <div *ngIf="registerForm.get('name')?.errors?.['minlength']">
                     <i class="bi bi-exclamation-circle me-1"></i>Nome deve ter pelo menos 2 caracteres
                   </div>
                   <div *ngIf="registerForm.get('name')?.errors?.['maxlength']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Nome deve ter no máximo 100 caracteres
+                    <i class="bi bi-exclamation-circle me-1"></i>Nome deve ter no maximo 100 caracteres
                   </div>
                 </div>
               </div>
 
-              <!-- Email com ícone -->
               <div class="form-floating mb-3">
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   class="form-control form-control-modern"
                   id="email"
                   formControlName="email"
@@ -64,35 +63,34 @@
                 </label>
                 <div class="invalid-feedback" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
                   <div *ngIf="registerForm.get('email')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Email é obrigatório
+                    <i class="bi bi-exclamation-circle me-1"></i>Email e obrigatorio
                   </div>
                   <div *ngIf="registerForm.get('email')?.errors?.['email']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Email deve ter um formato válido
+                    <i class="bi bi-exclamation-circle me-1"></i>Email deve ter um formato valido
                   </div>
                 </div>
               </div>
 
-              <!-- Senha com ícone e toggle -->
               <div class="form-floating mb-3">
-                <input 
-                  [type]="showPassword ? 'text' : 'password'" 
+                <input
+                  [type]="showPassword ? 'text' : 'password'"
                   class="form-control form-control-modern"
                   id="password"
                   formControlName="password"
                   [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
-                  placeholder="Senha (mínimo 6 caracteres)">
+                  placeholder="Senha (minimo 6 caracteres)">
                 <label for="password">
                   <i class="bi bi-lock me-2"></i>Senha
                 </label>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   class="password-toggle"
                   (click)="showPassword = !showPassword">
                   <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
                 </button>
                 <div class="invalid-feedback" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
                   <div *ngIf="registerForm.get('password')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Senha é obrigatória
+                    <i class="bi bi-exclamation-circle me-1"></i>Senha e obrigatoria
                   </div>
                   <div *ngIf="registerForm.get('password')?.errors?.['minlength']">
                     <i class="bi bi-exclamation-circle me-1"></i>Senha deve ter pelo menos 6 caracteres
@@ -100,10 +98,9 @@
                 </div>
               </div>
 
-              <!-- Confirmar Senha com ícone e toggle -->
               <div class="form-floating mb-4">
-                <input 
-                  [type]="showConfirmPassword ? 'text' : 'password'" 
+                <input
+                  [type]="showConfirmPassword ? 'text' : 'password'"
                   class="form-control form-control-modern"
                   id="confirmPassword"
                   formControlName="confirmPassword"
@@ -112,38 +109,35 @@
                 <label for="confirmPassword">
                   <i class="bi bi-shield-lock me-2"></i>Confirmar Senha
                 </label>
-                <button 
-                  type="button" 
+                <button
+                  type="button"
                   class="password-toggle"
                   (click)="showConfirmPassword = !showConfirmPassword">
                   <i class="bi" [class.bi-eye]="!showConfirmPassword" [class.bi-eye-slash]="showConfirmPassword"></i>
                 </button>
                 <div class="invalid-feedback" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
                   <div *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Confirmação de senha é obrigatória
+                    <i class="bi bi-exclamation-circle me-1"></i>Confirmacao de senha e obrigatoria
                   </div>
                   <div *ngIf="registerForm.errors?.['mismatch']">
-                    <i class="bi bi-exclamation-circle me-1"></i>As senhas não coincidem
+                    <i class="bi bi-exclamation-circle me-1"></i>As senhas nao coincidem
                   </div>
                 </div>
               </div>
 
-              <!-- Mensagem de erro com animação -->
               <div class="alert alert-danger slide-down" *ngIf="errorMessage" role="alert">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>
                 {{ errorMessage }}
               </div>
 
-              <!-- Mensagem de sucesso com animação -->
               <div class="alert alert-success slide-down" *ngIf="successMessage" role="alert">
                 <i class="bi bi-check-circle-fill me-2"></i>
                 {{ successMessage }}
               </div>
 
-              <!-- Indicador de força da senha -->
               <div class="password-strength mb-4" *ngIf="registerForm.get('password')?.value">
                 <div class="strength-label">
-                  <small>Força da senha:</small>
+                  <small>Forca da senha:</small>
                   <span class="strength-text" [class]="getPasswordStrengthClass()">
                     {{ getPasswordStrengthText() }}
                   </span>
@@ -153,10 +147,9 @@
                 </div>
               </div>
 
-              <!-- Botão de registro moderno -->
               <div class="d-grid mb-4">
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   class="btn btn-primary btn-modern btn-lg"
                   [disabled]="registerForm.invalid || isLoading">
                   <span *ngIf="isLoading" class="spinner-grow spinner-grow-sm me-2" role="status" aria-hidden="true"></span>
@@ -165,15 +158,13 @@
                 </button>
               </div>
 
-              <!-- Divider -->
               <div class="divider">
                 <span>ou</span>
               </div>
 
-              <!-- Link para login com estilo moderno -->
               <div class="text-center">
                 <p class="login-text">
-                  Já tem uma conta?
+                  Ja tem uma conta?
                 </p>
                 <a routerLink="/login" class="btn btn-outline-light btn-login">
                   <i class="bi bi-box-arrow-in-right me-2"></i>
@@ -181,6 +172,84 @@
                 </a>
               </div>
             </form>
+
+            <!-- Configuracao MFA apos registro -->
+            <div *ngIf="showMfaSetup" class="mfa-setup">
+              <div class="text-center mb-4">
+                <div class="mfa-icon mb-3">
+                  <i class="bi bi-qr-code-scan" style="font-size: 3rem; color: #667eea;"></i>
+                </div>
+                <h4 style="color: #1e293b; font-weight: 700;">Configurar Autenticacao em Duas Etapas</h4>
+                <p style="color: #64748b;">
+                  Escaneie o QR Code abaixo com o Google Authenticator
+                </p>
+              </div>
+
+              <!-- QR Code -->
+              <div class="text-center mb-4">
+                <div style="background: #f8fafc; display: inline-block; padding: 16px; border-radius: 16px; border: 2px solid #e2e8f0;">
+                  <img [src]="mfaQrCode" alt="QR Code MFA" style="width: 200px; height: 200px;">
+                </div>
+              </div>
+
+              <!-- Chave secreta manual -->
+              <div class="mb-4 p-3" style="background: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0;">
+                <small style="color: #64748b;">
+                  <i class="bi bi-key me-1"></i> Nao consegue escanear? Insira manualmente:
+                </small>
+                <div class="mt-2" style="font-family: monospace; color: #667eea; font-size: 0.85rem; word-break: break-all; letter-spacing: 2px; font-weight: 600;">
+                  {{ mfaSecret }}
+                </div>
+              </div>
+
+              <!-- Passos -->
+              <div class="mb-4 p-3" style="background: #eef2ff; border-radius: 12px; border: 1px solid #c7d2fe;">
+                <div style="color: #334155; font-size: 0.85rem;">
+                  <div class="mb-2"><strong>1.</strong> Instale o Google Authenticator no celular</div>
+                  <div class="mb-2"><strong>2.</strong> Abra o app e toque em "+" para adicionar conta</div>
+                  <div class="mb-2"><strong>3.</strong> Escaneie o QR Code acima</div>
+                  <div><strong>4.</strong> Informe o codigo de 6 digitos gerado abaixo</div>
+                </div>
+              </div>
+
+              <!-- Campo para codigo TOTP -->
+              <div class="form-floating mb-3">
+                <input
+                  type="text"
+                  class="form-control form-control-modern text-center"
+                  id="mfaCodeRegister"
+                  [(ngModel)]="mfaCode"
+                  maxlength="6"
+                  placeholder="000000"
+                  style="font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: bold;"
+                  (keyup.enter)="onVerifyMfa()">
+                <label for="mfaCodeRegister">
+                  <i class="bi bi-key me-2"></i>Codigo de 6 digitos
+                </label>
+              </div>
+
+              <div class="alert alert-danger slide-down" *ngIf="errorMessage" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {{ errorMessage }}
+              </div>
+
+              <div class="alert alert-success slide-down" *ngIf="successMessage" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                {{ successMessage }}
+              </div>
+
+              <div class="d-grid">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-modern btn-lg"
+                  [disabled]="!mfaCode || mfaCode.length !== 6 || isVerifyingMfa"
+                  (click)="onVerifyMfa()">
+                  <span *ngIf="isVerifyingMfa" class="spinner-grow spinner-grow-sm me-2" role="status"></span>
+                  <i *ngIf="!isVerifyingMfa" class="bi bi-check-circle me-2"></i>
+                  {{ isVerifyingMfa ? 'Verificando...' : 'Confirmar Configuracao' }}
+                </button>
+              </div>
+            </div>
           </div>
 
           <!-- Footer do card -->

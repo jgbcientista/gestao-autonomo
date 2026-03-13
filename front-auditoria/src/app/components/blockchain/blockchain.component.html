@@ -1,0 +1,911 @@
+<!-- Navbar moderna com glassmorphism -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="page-navbar-container">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/trust-score">
+            <i class="bi bi-bullseye me-1"></i>Score de Confianca
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/ai-analysis">
+            <i class="bi bi-cpu-fill me-1"></i>Analise IA
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" routerLink="/blockchain">
+            <i class="bi bi-link-45deg me-1"></i>Blockchain
+          </a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header">
+              <div class="user-info">
+                <strong>{{ usuarioAtual.name }}</strong>
+                <small>{{ usuarioAtual.email }}</small>
+              </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="#" (click)="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Background animado -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
+  </div>
+</div>
+
+<!-- Conteudo Principal -->
+<main class="dashboard-main">
+  <div class="page-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="hero-content">
+            <div class="welcome-badge">
+              <i class="bi bi-link-45deg me-2"></i>
+              Registro Imutavel
+            </div>
+            <h1 class="hero-title">
+              <span class="highlight">Blockchain</span> de Auditoria
+            </h1>
+            <p class="hero-subtitle">
+              Registro imutavel e verificavel de todos os eventos de autenticacao do sistema, garantindo rastreabilidade e integridade dos dados.
+            </p>
+            <div class="hero-actions">
+              <button
+                class="btn btn-primary btn-lg me-3"
+                [disabled]="loading"
+                (click)="carregarEstatisticas(); carregarTransacoesAltoRisco()">
+                <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+                {{ loading ? 'Carregando...' : 'Atualizar Dados' }}
+              </button>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="hero-visual">
+            <div class="blockchain-indicator">
+              <div class="indicator-circle">
+                <i class="bi bi-link-45deg"></i>
+              </div>
+              <div class="chain-links">
+                <div class="chain-block block-1"></div>
+                <div class="chain-connector"></div>
+                <div class="chain-block block-2"></div>
+                <div class="chain-connector"></div>
+                <div class="chain-block block-3"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Abas de Navegacao -->
+    <section class="tabs-section">
+      <div class="tabs-container">
+        <button class="tab-btn" [class.active]="abaAtiva === 'visao-geral'" (click)="selecionarAba('visao-geral')">
+          <i class="bi bi-grid-fill me-2"></i>Visao Geral
+        </button>
+        <button class="tab-btn" [class.active]="abaAtiva === 'transacoes'" (click)="selecionarAba('transacoes')">
+          <i class="bi bi-list-ul me-2"></i>Transacoes por Usuario
+        </button>
+        <button class="tab-btn" [class.active]="abaAtiva === 'alto-risco'" (click)="selecionarAba('alto-risco')">
+          <i class="bi bi-exclamation-triangle-fill me-2"></i>Alto Risco
+        </button>
+        <button class="tab-btn" [class.active]="abaAtiva === 'integridade'" (click)="selecionarAba('integridade')">
+          <i class="bi bi-shield-check me-2"></i>Integridade
+        </button>
+      </div>
+    </section>
+
+    <!-- Erro -->
+    <div class="row" *ngIf="error">
+      <div class="col-12">
+        <div class="alert alert-danger alert-modern">
+          <div class="alert-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <div class="alert-content">
+            <h5 class="alert-title">Erro</h5>
+            <p class="alert-message">{{ error }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== ABA: VISAO GERAL ========== -->
+    <div *ngIf="abaAtiva === 'visao-geral'">
+
+      <!-- Estatisticas -->
+      <section class="stats-section" *ngIf="estatisticas">
+        <div class="row g-4">
+          <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+              <div class="stat-card-icon bg-primary-gradient">
+                <i class="bi bi-layers-fill"></i>
+              </div>
+              <div class="stat-card-content">
+                <div class="stat-card-number">{{ estatisticas.totalBlocos || estatisticas.totalTransacoes || 0 }}</div>
+                <div class="stat-card-label">Total de Blocos</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+              <div class="stat-card-icon bg-success-gradient">
+                <i class="bi bi-check-circle-fill"></i>
+              </div>
+              <div class="stat-card-content">
+                <div class="stat-card-number">{{ estatisticas.transacoesConfirmadas || 0 }}</div>
+                <div class="stat-card-label">Confirmadas</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+              <div class="stat-card-icon bg-warning-gradient">
+                <i class="bi bi-clock-fill"></i>
+              </div>
+              <div class="stat-card-content">
+                <div class="stat-card-number">{{ estatisticas.transacoesPendentes || 0 }}</div>
+                <div class="stat-card-label">Pendentes</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+              <div class="stat-card-icon" [ngClass]="estatisticas.integridadeValida !== false ? 'bg-success-gradient' : 'bg-danger-gradient'">
+                <i class="bi" [ngClass]="estatisticas.integridadeValida !== false ? 'bi-shield-check' : 'bi-shield-x'"></i>
+              </div>
+              <div class="stat-card-content">
+                <div class="stat-card-number">{{ estatisticas.integridadeValida !== false ? 'Valida' : 'Invalida' }}</div>
+                <div class="stat-card-label">Integridade da Cadeia</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Descricao contextual -->
+      <section class="contextual-section" *ngIf="estatisticas">
+        <div class="contextual-card">
+          <div class="contextual-header">
+            <i class="bi bi-lightbulb-fill me-2" style="color: #f59e0b;"></i>
+            <h4>O que e a Blockchain no Sistema</h4>
+          </div>
+          <p class="contextual-text">{{ getDescricaoBlockchain() }}</p>
+        </div>
+      </section>
+
+      <!-- Como funciona -->
+      <section class="info-section">
+        <div class="row g-4">
+          <div class="col-12">
+            <div class="analysis-card">
+              <div class="card-header">
+                <div class="card-header-content">
+                  <h4 class="card-title">
+                    <i class="bi bi-diagram-3 me-2"></i>
+                    Como a Blockchain Funciona no Sistema
+                  </h4>
+                </div>
+              </div>
+              <div class="card-body">
+                <!-- Fluxo -->
+                <div class="decision-flow mb-4">
+                  <div class="flow-step">
+                    <div class="flow-icon bg-primary">
+                      <i class="bi bi-box-arrow-in-right"></i>
+                    </div>
+                    <div class="flow-content">
+                      <h6>1. Evento</h6>
+                      <small>Login, logout ou falha</small>
+                    </div>
+                  </div>
+                  <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+                  <div class="flow-step">
+                    <div class="flow-icon bg-info">
+                      <i class="bi bi-file-earmark-binary"></i>
+                    </div>
+                    <div class="flow-content">
+                      <h6>2. Hash SHA-256</h6>
+                      <small>Dados do evento sao hasheados</small>
+                    </div>
+                  </div>
+                  <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+                  <div class="flow-step">
+                    <div class="flow-icon bg-success">
+                      <i class="bi bi-box-seam"></i>
+                    </div>
+                    <div class="flow-content">
+                      <h6>3. Bloco</h6>
+                      <small>Transacao adicionada ao bloco</small>
+                    </div>
+                  </div>
+                  <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
+                  <div class="flow-step">
+                    <div class="flow-icon bg-secondary">
+                      <i class="bi bi-link-45deg"></i>
+                    </div>
+                    <div class="flow-content">
+                      <h6>4. Encadeamento</h6>
+                      <small>Hash do bloco anterior garante imutabilidade</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dados registrados -->
+                <h5 class="section-title mb-3">Dados Registrados em Cada Transacao</h5>
+                <div class="features-grid">
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-person-fill"></i></div>
+                    <div class="feature-content">
+                      <h6>ID e Email do Usuario</h6>
+                      <small>Identidade do usuario autenticado</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-tag-fill"></i></div>
+                    <div class="feature-content">
+                      <h6>Tipo de Evento</h6>
+                      <small>LOGIN_SUCCESS, LOGIN_FAILED, LOGOUT</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-speedometer2"></i></div>
+                    <div class="feature-content">
+                      <h6>Score de Risco</h6>
+                      <small>Pontuacao de 0.0 a 1.0 da IA</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-shield-check"></i></div>
+                    <div class="feature-content">
+                      <h6>Decisao</h6>
+                      <small>PERMITIDO, NEGADO ou REQUER_MFA</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-hdd-network-fill"></i></div>
+                    <div class="feature-content">
+                      <h6>Endereco IP</h6>
+                      <small>IP de origem do acesso</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-geo-alt-fill"></i></div>
+                    <div class="feature-content">
+                      <h6>Geolocalizacao</h6>
+                      <small>Localizacao geografica do acesso</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-fingerprint"></i></div>
+                    <div class="feature-content">
+                      <h6>Fingerprint Dispositivo</h6>
+                      <small>Impressao digital unica do device</small>
+                    </div>
+                  </div>
+                  <div class="feature-item">
+                    <div class="feature-icon"><i class="bi bi-hash"></i></div>
+                    <div class="feature-content">
+                      <h6>Hash SHA-256</h6>
+                      <small>Hash criptografico dos dados</small>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Rede blockchain -->
+                <h5 class="section-title mb-3 mt-4">Rede Blockchain do Sistema</h5>
+                <div class="networks-grid">
+                  <div class="network-card">
+                    <div class="network-icon">
+                      <i class="bi bi-code-square"></i>
+                    </div>
+                    <h6>Java Blockchain</h6>
+                    <small>Implementacao nativa em Java com Proof-of-Work (SHA-256), responsavel pelo registro imutavel de todos os eventos de autenticacao</small>
+                    <span class="network-badge active">Ativo</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Busca por Hash -->
+      <section class="search-section">
+        <div class="analysis-card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <h4 class="card-title">
+                <i class="bi bi-search me-2"></i>
+                Buscar Transacao por Hash
+              </h4>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="search-form">
+              <input
+                type="text"
+                class="form-control search-input"
+                placeholder="Digite o hash da transacao (ex: 0x3f2a...)"
+                [(ngModel)]="hashBusca"
+                (keyup.enter)="buscarPorHash()">
+              <button class="btn btn-primary" [disabled]="buscandoHash || !hashBusca.trim()" (click)="buscarPorHash()">
+                <i class="bi bi-search" [class.spin]="buscandoHash"></i>
+                {{ buscandoHash ? 'Buscando...' : 'Buscar' }}
+              </button>
+            </div>
+
+            <!-- Resultado da busca -->
+            <div class="transaction-detail" *ngIf="transacaoBuscada">
+              <h5 class="section-title">Transacao Encontrada</h5>
+              <div class="detail-grid">
+                <div class="detail-item">
+                  <span class="detail-label">Hash</span>
+                  <span class="detail-value hash-value">
+                    {{ transacaoBuscada.hashTransacao }}
+                    <button class="btn-copy" (click)="copiarHash(transacaoBuscada.hashTransacao)" title="Copiar hash">
+                      <i class="bi bi-clipboard"></i>
+                    </button>
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Tipo de Evento</span>
+                  <span class="detail-value">{{ transacaoBuscada.tipoEvento }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Usuario</span>
+                  <span class="detail-value">{{ transacaoBuscada.usuarioEmail || ('ID: ' + transacaoBuscada.usuarioId) }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Score de Risco</span>
+                  <span class="detail-value">
+                    <span class="risk-badge-sm" [ngClass]="getRiscoClass(transacaoBuscada.pontuacaoRisco || transacaoBuscada.scoreRisco || 0)">
+                      {{ formatarScore(transacaoBuscada.pontuacaoRisco || transacaoBuscada.scoreRisco || 0) }}
+                    </span>
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Status</span>
+                  <span class="detail-value">
+                    <span class="status-badge" [ngClass]="getStatusClass(transacaoBuscada.statusConfirmacao)">
+                      <i class="bi me-1" [ngClass]="getStatusIcon(transacaoBuscada.statusConfirmacao)"></i>
+                      {{ transacaoBuscada.statusConfirmacao }}
+                    </span>
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Decisao</span>
+                  <span class="detail-value">
+                    <span class="decisao-badge" [ngClass]="getDecisaoClass(transacaoBuscada.decisao)">
+                      {{ transacaoBuscada.decisao }}
+                    </span>
+                  </span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">IP</span>
+                  <span class="detail-value">{{ transacaoBuscada.enderecoIp || 'N/A' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Localizacao</span>
+                  <span class="detail-value">{{ transacaoBuscada.localizacao || 'N/A' }}</span>
+                </div>
+                <div class="detail-item">
+                  <span class="detail-label">Data/Hora</span>
+                  <span class="detail-value">{{ transacaoBuscada.criadoEm | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+                </div>
+                <div class="detail-item" *ngIf="transacaoBuscada.numeroBloco">
+                  <span class="detail-label">Bloco</span>
+                  <span class="detail-value">#{{ transacaoBuscada.numeroBloco }}</span>
+                </div>
+                <div class="detail-item" *ngIf="transacaoBuscada.nomeRede">
+                  <span class="detail-label">Rede</span>
+                  <span class="detail-value">{{ transacaoBuscada.nomeRede }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========== ABA: TRANSACOES POR USUARIO ========== -->
+    <div *ngIf="abaAtiva === 'transacoes'">
+
+      <!-- Selecao de Usuario -->
+      <section class="select-section">
+        <div class="select-card">
+          <div class="select-card-header">
+            <i class="bi bi-person-fill me-2"></i>
+            <h4>Selecionar Usuario</h4>
+          </div>
+          <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
+            <option [ngValue]="null">-- Selecione um usuario para ver transacoes --</option>
+            <option *ngFor="let u of usuarios" [ngValue]="u.id">
+              {{ u.nome }} ({{ u.email }})
+            </option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="loading-card">
+        <div class="loading-content">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Carregando...</span>
+          </div>
+          <h4>Carregando transacoes...</h4>
+        </div>
+      </div>
+
+      <!-- Relatorio do usuario -->
+      <section class="report-section" *ngIf="relatorioUsuario && !loading">
+        <div class="row g-4">
+          <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+              <div class="stat-card-icon bg-primary-gradient">
+                <i class="bi bi-receipt"></i>
+              </div>
+              <div class="stat-card-content">
+                <div class="stat-card-number">{{ relatorioUsuario.totalTransacoes || transacoesUsuario.length }}</div>
+                <div class="stat-card-label">Total Transacoes</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+              <div class="stat-card-icon bg-info-gradient">
+                <i class="bi bi-speedometer2"></i>
+              </div>
+              <div class="stat-card-content">
+                <div class="stat-card-number">{{ formatarScore(relatorioUsuario.mediaRisco || 0) }}</div>
+                <div class="stat-card-label">Risco Medio</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+              <div class="stat-card-icon bg-warning-gradient">
+                <i class="bi bi-hdd-network"></i>
+              </div>
+              <div class="stat-card-content">
+                <div class="stat-card-number">{{ relatorioUsuario.ipsDistintos?.length || 0 }}</div>
+                <div class="stat-card-label">IPs Distintos</div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div class="stat-card">
+              <div class="stat-card-icon bg-danger-gradient">
+                <i class="bi bi-geo-alt-fill"></i>
+              </div>
+              <div class="stat-card-content">
+                <div class="stat-card-number">{{ relatorioUsuario.localizacoesDistintas?.length || 0 }}</div>
+                <div class="stat-card-label">Localizacoes</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tabela de hashes do usuario -->
+      <section class="transactions-section" *ngIf="transacoesUsuario.length > 0 && !loading">
+        <div class="analysis-card">
+          <div class="card-header">
+            <div class="card-header-content">
+              <h4 class="card-title">
+                <i class="bi bi-list-columns-reverse me-2"></i>
+                Hashes de {{ getUsuarioSelecionadoNome() }}
+              </h4>
+              <span class="badge bg-light text-dark">{{ transacoesUsuario.length }} transacoes</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="table-responsive">
+              <table class="blockchain-table">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Hash da Transacao</th>
+                    <th>Hash dos Dados</th>
+                    <th>Tipo Evento</th>
+                    <th>Risco</th>
+                    <th>Decisao</th>
+                    <th>Status</th>
+                    <th>IP</th>
+                    <th>Rede</th>
+                    <th>Data/Hora</th>
+                    <th>Acoes</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let tx of transacoesUsuario; let i = index"
+                      [class.selected-row]="transacaoSelecionada?.id === tx.id"
+                      (click)="selecionarTransacao(tx)">
+                    <td class="td-index">{{ i + 1 }}</td>
+                    <td class="td-hash">
+                      <code class="hash-code" (click)="copiarHash(tx.hashTransacao); $event.stopPropagation()" title="{{ tx.hashTransacao }}">
+                        {{ truncarHash(tx.hashTransacao) }}
+                      </code>
+                    </td>
+                    <td class="td-hash">
+                      <code class="hash-code data-hash" *ngIf="tx.hashDados" (click)="copiarHash(tx.hashDados); $event.stopPropagation()" title="{{ tx.hashDados }}">
+                        {{ truncarHash(tx.hashDados) }}
+                      </code>
+                      <span *ngIf="!tx.hashDados" class="text-muted">-</span>
+                    </td>
+                    <td>
+                      <span class="event-badge">{{ tx.tipoEvento }}</span>
+                    </td>
+                    <td>
+                      <span class="risk-badge-sm" [ngClass]="getRiscoClass(tx.pontuacaoRisco || 0)">
+                        {{ formatarScore(tx.pontuacaoRisco || 0) }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="decisao-badge" [ngClass]="getDecisaoClass(tx.decisao)">
+                        {{ tx.decisao }}
+                      </span>
+                    </td>
+                    <td>
+                      <span class="status-badge" [ngClass]="getStatusClass(tx.statusConfirmacao)">
+                        <i class="bi me-1" [ngClass]="getStatusIcon(tx.statusConfirmacao)"></i>
+                        {{ tx.statusConfirmacao }}
+                      </span>
+                    </td>
+                    <td class="td-ip">{{ tx.enderecoIp || 'N/A' }}</td>
+                    <td class="td-rede">{{ tx.nomeRede || 'N/A' }}</td>
+                    <td class="td-data">{{ tx.criadoEm | date:'dd/MM/yyyy HH:mm' }}</td>
+                    <td class="td-acoes" (click)="$event.stopPropagation()">
+                      <button class="btn-action" title="Copiar hash completo" (click)="copiarHash(tx.hashTransacao)">
+                        <i class="bi bi-clipboard"></i>
+                      </button>
+                      <button class="btn-action" title="Ver detalhes" (click)="selecionarTransacao(tx)">
+                        <i class="bi bi-eye"></i>
+                      </button>
+                      <button class="btn-action" title="Verificar integridade" (click)="hashVerificacao = tx.hashTransacao; selecionarAba('integridade'); verificarIntegridade()">
+                        <i class="bi bi-shield-check"></i>
+                      </button>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detalhes da transacao selecionada -->
+      <section class="detail-section" *ngIf="transacaoSelecionada && !loading">
+        <div class="analysis-card">
+          <div class="card-header" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+            <div class="card-header-content">
+              <h4 class="card-title">
+                <i class="bi bi-file-earmark-binary me-2"></i>
+                Detalhes da Transacao
+              </h4>
+              <button class="btn btn-sm btn-outline-light" (click)="transacaoSelecionada = null">
+                <i class="bi bi-x-lg"></i> Fechar
+              </button>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="detail-grid">
+              <div class="detail-item full-width">
+                <span class="detail-label">Hash da Transacao</span>
+                <span class="detail-value hash-value">
+                  {{ transacaoSelecionada.hashTransacao }}
+                  <button class="btn-copy" (click)="copiarHash(transacaoSelecionada.hashTransacao)" title="Copiar">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </span>
+              </div>
+              <div class="detail-item full-width" *ngIf="transacaoSelecionada.hashDados">
+                <span class="detail-label">Hash dos Dados (SHA-256)</span>
+                <span class="detail-value hash-value">
+                  {{ transacaoSelecionada.hashDados }}
+                  <button class="btn-copy" (click)="copiarHash(transacaoSelecionada.hashDados)" title="Copiar">
+                    <i class="bi bi-clipboard"></i>
+                  </button>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Tipo de Evento</span>
+                <span class="detail-value">{{ transacaoSelecionada.tipoEvento }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Usuario</span>
+                <span class="detail-value">{{ transacaoSelecionada.usuarioEmail }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Score de Risco</span>
+                <span class="detail-value">
+                  <span class="risk-badge-sm" [ngClass]="getRiscoClass(transacaoSelecionada.pontuacaoRisco || 0)">
+                    {{ formatarScore(transacaoSelecionada.pontuacaoRisco || 0) }} - {{ getRiscoLabel(transacaoSelecionada.pontuacaoRisco || 0) }}
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Decisao</span>
+                <span class="detail-value">
+                  <span class="decisao-badge" [ngClass]="getDecisaoClass(transacaoSelecionada.decisao)">
+                    {{ transacaoSelecionada.decisao }}
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Status Confirmacao</span>
+                <span class="detail-value">
+                  <span class="status-badge" [ngClass]="getStatusClass(transacaoSelecionada.statusConfirmacao)">
+                    <i class="bi me-1" [ngClass]="getStatusIcon(transacaoSelecionada.statusConfirmacao)"></i>
+                    {{ transacaoSelecionada.statusConfirmacao }}
+                  </span>
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Verificado</span>
+                <span class="detail-value">
+                  <i class="bi" [ngClass]="transacaoSelecionada.verificado ? 'bi-check-circle-fill text-success' : 'bi-x-circle-fill text-danger'"></i>
+                  {{ transacaoSelecionada.verificado ? 'Sim' : 'Nao' }}
+                </span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Endereco IP</span>
+                <span class="detail-value">{{ transacaoSelecionada.enderecoIp || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Localizacao</span>
+                <span class="detail-value">{{ transacaoSelecionada.localizacao || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Dispositivo</span>
+                <span class="detail-value" style="font-size: 0.8rem;">{{ transacaoSelecionada.impressaoDigitalDispositivo || 'N/A' }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Rede Blockchain</span>
+                <span class="detail-value">{{ transacaoSelecionada.nomeRede || 'N/A' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="transacaoSelecionada.numeroBloco">
+                <span class="detail-label">Numero do Bloco</span>
+                <span class="detail-value">#{{ transacaoSelecionada.numeroBloco }}</span>
+              </div>
+              <div class="detail-item" *ngIf="transacaoSelecionada.hashBloco">
+                <span class="detail-label">Hash do Bloco</span>
+                <span class="detail-value hash-value">{{ transacaoSelecionada.hashBloco }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Confirmacoes</span>
+                <span class="detail-value">{{ transacaoSelecionada.confirmacoes || 0 }}</span>
+              </div>
+              <div class="detail-item">
+                <span class="detail-label">Data de Criacao</span>
+                <span class="detail-value">{{ transacaoSelecionada.criadoEm | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+              </div>
+              <div class="detail-item" *ngIf="transacaoSelecionada.confirmadoEm">
+                <span class="detail-label">Data de Confirmacao</span>
+                <span class="detail-value">{{ transacaoSelecionada.confirmadoEm | date:'dd/MM/yyyy HH:mm:ss' }}</span>
+              </div>
+            </div>
+
+            <div class="detail-actions mt-3">
+              <button class="btn btn-primary btn-sm" (click)="hashVerificacao = transacaoSelecionada.hashTransacao; selecionarAba('integridade'); verificarIntegridade()">
+                <i class="bi bi-shield-check me-1"></i> Verificar Integridade
+              </button>
+              <button class="btn btn-outline-primary btn-sm" (click)="copiarHash(transacaoSelecionada.hashTransacao)">
+                <i class="bi bi-clipboard me-1"></i> Copiar Hash
+              </button>
+              <button class="btn btn-outline-primary btn-sm" *ngIf="transacaoSelecionada.hashDados" (click)="copiarHash(transacaoSelecionada.hashDados)">
+                <i class="bi bi-clipboard me-1"></i> Copiar Hash Dados
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Sem transacoes -->
+      <div class="empty-state" *ngIf="selectedUserId && transacoesUsuario.length === 0 && !loading">
+        <i class="bi bi-inbox"></i>
+        <h4>Nenhuma transacao encontrada</h4>
+        <p>Este usuario ainda nao possui transacoes registradas na blockchain.</p>
+      </div>
+    </div>
+
+    <!-- ========== ABA: ALTO RISCO ========== -->
+    <div *ngIf="abaAtiva === 'alto-risco'">
+
+      <section class="transactions-section">
+        <div class="analysis-card">
+          <div class="card-header" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+            <div class="card-header-content">
+              <h4 class="card-title">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                Transacoes de Alto Risco (Score >= {{ limiteRisco }})
+              </h4>
+              <span class="badge bg-light text-danger">{{ transacoesAltoRisco.length }} alertas</span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div class="transactions-list" *ngIf="transacoesAltoRisco.length > 0">
+              <div class="transaction-row high-risk-row" *ngFor="let tx of transacoesAltoRisco; let i = index">
+                <div class="tx-index danger">{{ i + 1 }}</div>
+                <div class="tx-main">
+                  <div class="tx-hash" (click)="copiarHash(tx.hashTransacao)" title="Clique para copiar">
+                    <i class="bi bi-hash me-1"></i>{{ truncarHash(tx.hashTransacao) }}
+                  </div>
+                  <div class="tx-info">
+                    <span class="tx-event">{{ tx.tipoEvento }}</span>
+                    <span class="tx-user">{{ tx.usuarioEmail || ('ID: ' + tx.usuarioId) }}</span>
+                    <span class="tx-date">{{ tx.criadoEm | date:'dd/MM/yyyy HH:mm' }}</span>
+                  </div>
+                </div>
+                <div class="tx-risk">
+                  <span class="risk-badge-sm risco-alto">
+                    {{ formatarScore(tx.pontuacaoRisco || 0) }}
+                  </span>
+                </div>
+                <div class="tx-details">
+                  <small><i class="bi bi-hdd-network me-1"></i>{{ tx.enderecoIp || 'N/A' }}</small>
+                  <small><i class="bi bi-geo-alt me-1"></i>{{ tx.localizacao || 'N/A' }}</small>
+                </div>
+                <div class="tx-decisao">
+                  <span class="decisao-badge" [ngClass]="getDecisaoClass(tx.decisao)">
+                    {{ tx.decisao }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div class="empty-state" *ngIf="transacoesAltoRisco.length === 0">
+              <i class="bi bi-shield-check" style="color: #10b981;"></i>
+              <h4>Nenhuma transacao de alto risco</h4>
+              <p>Nao foram detectadas transacoes com score de risco acima de {{ limiteRisco }}.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <!-- ========== ABA: INTEGRIDADE ========== -->
+    <div *ngIf="abaAtiva === 'integridade'">
+
+      <section class="integrity-section">
+        <div class="row g-4">
+          <!-- Verificar integridade -->
+          <div class="col-lg-6">
+            <div class="analysis-card">
+              <div class="card-header" style="background: linear-gradient(135deg, #10b981, #059669);">
+                <div class="card-header-content">
+                  <h4 class="card-title">
+                    <i class="bi bi-shield-check me-2"></i>
+                    Verificar Integridade de Transacao
+                  </h4>
+                </div>
+              </div>
+              <div class="card-body">
+                <p class="mb-3" style="color: #6b7280; font-size: 0.9rem;">
+                  Verifique se uma transacao registrada na blockchain nao foi alterada. O sistema recalcula o hash e compara com o armazenado.
+                </p>
+                <div class="search-form">
+                  <input
+                    type="text"
+                    class="form-control search-input"
+                    placeholder="Hash da transacao para verificar"
+                    [(ngModel)]="hashVerificacao"
+                    (keyup.enter)="verificarIntegridade()">
+                  <button class="btn btn-success" [disabled]="verificando || !hashVerificacao.trim()" (click)="verificarIntegridade()">
+                    <i class="bi bi-shield-check" [class.spin]="verificando"></i>
+                    {{ verificando ? 'Verificando...' : 'Verificar' }}
+                  </button>
+                </div>
+
+                <!-- Resultado -->
+                <div class="verification-result" *ngIf="resultadoVerificacao">
+                  <div class="result-card" [ngClass]="resultadoVerificacao.integro !== false ? 'result-success' : 'result-danger'">
+                    <div class="result-icon">
+                      <i class="bi" [ngClass]="resultadoVerificacao.integro !== false ? 'bi-check-circle-fill' : 'bi-x-circle-fill'"></i>
+                    </div>
+                    <div class="result-content">
+                      <h5>{{ resultadoVerificacao.integro !== false ? 'Integridade Verificada' : 'Integridade Comprometida' }}</h5>
+                      <p>{{ resultadoVerificacao.mensagem || (resultadoVerificacao.integro !== false ? 'O hash da transacao corresponde aos dados armazenados. Nenhuma alteracao detectada.' : 'O hash da transacao NAO corresponde. Os dados podem ter sido alterados.') }}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Como funciona a verificacao -->
+          <div class="col-lg-6">
+            <div class="analysis-card">
+              <div class="card-header" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">
+                <div class="card-header-content">
+                  <h4 class="card-title">
+                    <i class="bi bi-info-circle me-2"></i>
+                    Como a Verificacao Funciona
+                  </h4>
+                </div>
+              </div>
+              <div class="card-body">
+                <div class="verification-steps">
+                  <div class="v-step">
+                    <div class="v-step-number">1</div>
+                    <div class="v-step-content">
+                      <h6>Dados Originais</h6>
+                      <small>Os dados do evento (usuario, IP, risco, decisao, timestamp) sao concatenados</small>
+                    </div>
+                  </div>
+                  <div class="v-step">
+                    <div class="v-step-number">2</div>
+                    <div class="v-step-content">
+                      <h6>Hash SHA-256</h6>
+                      <small>Um hash criptografico e calculado sobre os dados concatenados</small>
+                    </div>
+                  </div>
+                  <div class="v-step">
+                    <div class="v-step-number">3</div>
+                    <div class="v-step-content">
+                      <h6>Comparacao</h6>
+                      <small>O hash recalculado e comparado com o hash armazenado na blockchain</small>
+                    </div>
+                  </div>
+                  <div class="v-step">
+                    <div class="v-step-number">4</div>
+                    <div class="v-step-content">
+                      <h6>Resultado</h6>
+                      <small>Se os hashes coincidem, a integridade esta garantida. Qualquer alteracao nos dados modifica o hash</small>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="integrity-note mt-3">
+                  <i class="bi bi-lock-fill me-2"></i>
+                  <span>A propriedade fundamental da blockchain e que alterar qualquer dado em um bloco invalida todos os blocos subsequentes, tornando adulteracoes facilmente detectaveis.</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+  </div>
+</main>

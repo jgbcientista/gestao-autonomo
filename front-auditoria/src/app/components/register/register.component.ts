@@ -1,14 +1,15 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { ApiService } from '../../services/api.service';
 import { RegisterRequest } from '../../models/auth.model';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, RouterModule],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss'
 })
@@ -20,9 +21,18 @@ export class RegisterComponent implements OnInit {
   showPassword = false;
   showConfirmPassword = false;
 
+  // MFA Setup
+  showMfaSetup = false;
+  mfaQrCode = '';
+  mfaSecret = '';
+  mfaCode = '';
+  mfaEmail = '';
+  isVerifyingMfa = false;
+
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private apiService: ApiService,
     private router: Router
   ) {}
 
@@ -129,9 +139,18 @@ export class RegisterComponent implements OnInit {
       this.authService.register(registerData).subscribe({
         next: (response) => {
           this.isLoading = false;
+
+          // Se o backend retornou QR code MFA, mostrar tela de configuracao
+          if (response.mfaQrCode) {
+            this.showMfaSetup = true;
+            this.mfaQrCode = response.mfaQrCode;
+            this.mfaSecret = response.mfaSecret || '';
+            this.mfaEmail = registerData.email;
+            this.successMessage = 'Conta criada! Configure a autenticacao em duas etapas.';
+            return;
+          }
+
           this.successMessage = `Conta criada com sucesso! Bem-vindo, ${response.name}!`;
-          
-          // Redireciona para o dashboard após sucesso
           setTimeout(() => {
             this.router.navigate(['/dashboard']);
           }, 2000);
@@ -139,21 +158,20 @@ export class RegisterComponent implements OnInit {
         error: (error) => {
           this.isLoading = false;
           console.error('Erro no registro:', error);
-          
-          // Mapeia os códigos de erro HTTP para mensagens amigáveis
+
           switch (error.status) {
             case 400:
               if (error.error?.message?.includes('email')) {
-                this.errorMessage = 'Dados inválidos. Verifique o formato do email.';
+                this.errorMessage = 'Dados invalidos. Verifique o formato do email.';
               } else {
-                this.errorMessage = 'Dados inválidos. Verifique os campos preenchidos.';
+                this.errorMessage = 'Dados invalidos. Verifique os campos preenchidos.';
               }
               break;
             case 409:
-              this.errorMessage = 'Este email já está cadastrado. Tente fazer login ou use outro email.';
+              this.errorMessage = 'Este email ja esta cadastrado. Tente fazer login ou use outro email.';
               break;
             case 0:
-              this.errorMessage = 'Erro de conexão. Verifique se o servidor está rodando.';
+              this.errorMessage = 'Erro de conexao. Verifique se o servidor esta rodando.';
               break;
             default:
               this.errorMessage = 'Erro interno do servidor. Tente novamente em alguns instantes.';
@@ -172,7 +190,32 @@ export class RegisterComponent implements OnInit {
     });
   }
 
-  // Método para facilitar acesso aos controles do form no template
+  onVerifyMfa(): void {
+    if (!this.mfaCode || this.mfaCode.length !== 6) {
+      this.errorMessage = 'Informe o codigo de 6 digitos do Google Authenticator.';
+      return;
+    }
+
+    this.isVerifyingMfa = true;
+    this.errorMessage = '';
+
+    this.apiService.verificarConfiguracaoMfa(this.mfaEmail, this.mfaCode).subscribe({
+      next: (response) => {
+        this.isVerifyingMfa = false;
+        this.successMessage = 'MFA configurado com sucesso! Redirecionando para o login...';
+        setTimeout(() => {
+          this.router.navigate(['/login']);
+        }, 2500);
+      },
+      error: (error) => {
+        this.isVerifyingMfa = false;
+        console.error('Erro na verificacao MFA:', error);
+        this.errorMessage = 'Codigo invalido. Verifique o Google Authenticator e tente novamente.';
+        this.mfaCode = '';
+      }
+    });
+  }
+
   get f() {
     return this.registerForm.controls;
   }

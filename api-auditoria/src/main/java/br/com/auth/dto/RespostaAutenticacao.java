@@ -37,6 +37,12 @@ public class RespostaAutenticacao {
     @Schema(description = "Papel/perfil do usuário", example = "ADMIN")
     private String role;
 
+    @Schema(description = "QR Code em Base64 para configuração do MFA", example = "data:image/png;base64,...")
+    private String mfaQrCode;
+
+    @Schema(description = "Segredo TOTP para configuração manual do MFA")
+    private String mfaSecret;
+
     // Métodos auxiliares para compatibilidade com código existente
     public String getName() {
         return nome;

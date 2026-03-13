@@ -211,6 +211,13 @@ export class ApiService {
   }
 
   // === BLOCKCHAIN AUDITORIA ===
+  getBlockchainAllTransactions(limite: number = 100): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/blockchain/auditoria/transacoes`,
+      { headers: this.getHeaders(), params: { limite: limite.toString() } }
+    );
+  }
+
   getBlockchainUserTransactions(userId: number): Observable<any> {
     return this.http.get<any>(
       `${this.baseUrl}/blockchain/auditoria/usuario/${userId}`,
@@ -478,6 +485,38 @@ export class ApiService {
   getSessionStats(): Observable<any> {
     return this.http.get<any>(
       `${this.baseUrl}/api/v1/sessoes/estatisticas`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // === MFA (Autenticação Multi-Fator) ===
+  configurarMfa(email: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/mfa/configurar`,
+      { email },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  verificarConfiguracaoMfa(email: string, codigo: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/mfa/verificar-configuracao`,
+      { email, codigo },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  validarMfa(email: string, codigo: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/mfa/validar`,
+      { email, codigo },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getMfaStatus(email: string): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/mfa/status/${email}`,
       { headers: this.getHeaders() }
     );
   }

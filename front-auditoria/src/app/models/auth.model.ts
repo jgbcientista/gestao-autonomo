@@ -17,6 +17,9 @@ export interface AuthenticationResponse {
   trustScore?: number;
   trustLevel?: string;
   requiresMfa?: boolean;
+  mfaMessage?: string;
+  mfaQrCode?: string;
+  mfaSecret?: string;
 }
 
 export interface RegisterRequest {

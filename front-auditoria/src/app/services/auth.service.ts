@@ -105,22 +105,13 @@ export class AuthService {
 
     return this.apiService.login(enrichedCredentials).pipe(
       tap(response => {
+        // Se MFA é requerido, não faz login ainda
+        if (response && response.requiresMfa) {
+          return;
+        }
+
         if (response && response.token && response.token.trim() !== '') {
-          const userRole = response.role || this.determineUserRole(response.email || credentials.email, response);
-
-          const user: User = {
-            name: response.name || 'Usuário',
-            email: response.email || credentials.email,
-            role: userRole
-          };
-
-          if (this.isBrowser) {
-            localStorage.setItem('auth_token', response.token);
-            localStorage.setItem('current_user', JSON.stringify(user));
-          }
-
-          this.currentUserSubject.next(user);
-          this.isAuthenticatedSubject.next(true);
+          this.processLoginResponse(response, credentials.email);
         } else {
           throw new Error('Token não fornecido pelo servidor');
         }
@@ -128,9 +119,44 @@ export class AuthService {
     );
   }
 
+  completeMfaLogin(email: string, codigo: string): Observable<any> {
+    return this.apiService.validarMfa(email, codigo).pipe(
+      tap(response => {
+        if (response && response.token && response.token.trim() !== '') {
+          this.processLoginResponse(response, email);
+        } else {
+          throw new Error('Token não fornecido após validação MFA');
+        }
+      })
+    );
+  }
+
+  private processLoginResponse(response: AuthenticationResponse, email: string): void {
+    const userRole = response.role || this.determineUserRole(response.email || email, response);
+
+    const user: User = {
+      name: response.name || 'Usuário',
+      email: response.email || email,
+      role: userRole
+    };
+
+    if (this.isBrowser) {
+      localStorage.setItem('auth_token', response.token);
+      localStorage.setItem('current_user', JSON.stringify(user));
+    }
+
+    this.currentUserSubject.next(user);
+    this.isAuthenticatedSubject.next(true);
+  }
+
   register(userDetails: RegisterRequest): Observable<AuthenticationResponse> {
     return this.apiService.register(userDetails).pipe(
       tap(response => {
+        // Se tem QR code MFA, não faz login automático - precisa configurar MFA primeiro
+        if (response && response.mfaQrCode) {
+          return;
+        }
+
         if (response && response.token && response.token.trim() !== '') {
           const userRole = this.determineUserRole(response.email || userDetails.email, response);
 
@@ -147,8 +173,6 @@ export class AuthService {
 
           this.currentUserSubject.next(user);
           this.isAuthenticatedSubject.next(true);
-        } else {
-          throw new Error('Token não fornecido pelo servidor durante o registro');
         }
       })
     );

@@ -38,7 +38,26 @@ public class BlockchainAuditoriaController {
     private final RepositorioTransacaoBlockchain repositorioTransacaoBlockchain;
     private final org.springframework.beans.factory.ObjectProvider<HyperledgerFabricService> hyperledgerFabricServiceProvider;
 
-    @Operation(summary = "Buscar transação por hash", 
+    @Operation(summary = "Listar todas as transações",
+               description = "Retorna todas as transações registradas na blockchain, ordenadas da mais recente para a mais antiga")
+    @GetMapping("/transacoes")
+    public ResponseEntity<List<TransacaoBlockchain>> listarTodasTransacoes(
+            @Parameter(description = "Limite de registros (padrão: 100)")
+            @RequestParam(defaultValue = "100") int limite) {
+
+        log.debug("Listando todas as transações (limite: {})", limite);
+
+        List<TransacaoBlockchain> transacoes = repositorioTransacaoBlockchain
+                .findAll(org.springframework.data.domain.Sort.by(
+                    org.springframework.data.domain.Sort.Direction.DESC, "criadoEm"))
+                .stream()
+                .limit(limite)
+                .collect(java.util.stream.Collectors.toList());
+
+        return ResponseEntity.ok(transacoes);
+    }
+
+    @Operation(summary = "Buscar transação por hash",
                description = "Consulta uma transação específica pelo seu hash")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Transação encontrada"),
@@ -230,26 +249,44 @@ public class BlockchainAuditoriaController {
                description = "Fornece estatísticas gerais sobre todas as transações na blockchain")
     @GetMapping("/estatisticas")
     public ResponseEntity<Map<String, Object>> obterEstatisticasGerais() {
-        
+
         log.debug("Obtendo estatísticas gerais da blockchain");
-        
+
         Map<String, Object> estatisticas = new HashMap<>();
-        
+
+        // Total de transações
+        long totalTransacoes = repositorioTransacaoBlockchain.count();
+        estatisticas.put("totalTransacoes", totalTransacoes);
+
+        // Transações confirmadas
+        List<TransacaoBlockchain> confirmadas = repositorioTransacaoBlockchain
+                .findByStatusConfirmacao(TransacaoBlockchain.StatusConfirmacao.CONFIRMADO);
+        estatisticas.put("transacoesConfirmadas", confirmadas.size());
+
+        // Transações pendentes
+        List<TransacaoBlockchain> pendentes = repositorioTransacaoBlockchain
+                .findByStatusConfirmacao(TransacaoBlockchain.StatusConfirmacao.PENDENTE);
+        estatisticas.put("transacoesPendentes", pendentes.size());
+
         // Total de transações não verificadas
         List<TransacaoBlockchain> naoVerificadas = blockchainService.getUnverifiedTransactions();
         estatisticas.put("transacoesNaoVerificadas", naoVerificadas.size());
-        
+
         // Transações de alto risco
         List<TransacaoBlockchain> altoRisco = blockchainService.getHighRiskTransactions(0.7);
         estatisticas.put("transacoesAltoRisco", altoRisco.size());
-        
+
         // Estatísticas das últimas 24 horas
         LocalDateTime ultimasVinteQuatroHoras = LocalDateTime.now().minusHours(24);
-        List<TransacaoBlockchain> recentesTransacoes = blockchainService.getUnverifiedTransactions();
+        List<TransacaoBlockchain> recentesTransacoes = repositorioTransacaoBlockchain
+                .findByCriadoEmBetween(ultimasVinteQuatroHoras, LocalDateTime.now());
         estatisticas.put("transacoesUltimas24h", recentesTransacoes.size());
-        
+
+        // Integridade da cadeia
+        estatisticas.put("integridadeValida", naoVerificadas.isEmpty());
+
         estatisticas.put("consultadoEm", LocalDateTime.now());
-        
+
         return ResponseEntity.ok(estatisticas);
     }
 

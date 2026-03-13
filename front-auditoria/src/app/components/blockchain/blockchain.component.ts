@@ -1,0 +1,328 @@
+import { Component, OnInit, OnDestroy } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Router, RouterModule } from '@angular/router';
+import { Subscription, forkJoin } from 'rxjs';
+import { ApiService } from '../../services/api.service';
+import { AuthService } from '../../services/auth.service';
+
+@Component({
+  selector: 'app-blockchain',
+  standalone: true,
+  imports: [CommonModule, FormsModule, RouterModule],
+  templateUrl: './blockchain.component.html',
+  styleUrl: './blockchain.component.scss'
+})
+export class BlockchainComponent implements OnInit, OnDestroy {
+  loading = false;
+  error: string | null = null;
+  usuarioAtual: any = null;
+
+  // Estatisticas gerais
+  estatisticas: any = null;
+
+  // Selecao de usuario
+  usuarios: any[] = [];
+  selectedUserId: number | null = null;
+
+  // Transacoes do usuario
+  transacoesUsuario: any[] = [];
+  relatorioUsuario: any = null;
+
+  // Todas as transacoes
+  todasTransacoes: any[] = [];
+  carregandoTransacoes = false;
+
+  // Transacoes de alto risco
+  transacoesAltoRisco: any[] = [];
+  limiteRisco = 0.7;
+
+  // Transacao selecionada para detalhes
+  transacaoSelecionada: any = null;
+
+  // Busca por hash
+  hashBusca = '';
+  transacaoBuscada: any = null;
+  buscandoHash = false;
+
+  // Verificacao de integridade
+  hashVerificacao = '';
+  resultadoVerificacao: any = null;
+  verificando = false;
+
+  // Aba ativa
+  abaAtiva: 'visao-geral' | 'transacoes' | 'alto-risco' | 'integridade' = 'visao-geral';
+
+  private subscriptions = new Subscription();
+
+  constructor(
+    private apiService: ApiService,
+    private authService: AuthService,
+    private router: Router
+  ) {}
+
+  ngOnInit(): void {
+    this.usuarioAtual = this.authService.getCurrentUser();
+    if (!this.usuarioAtual) {
+      this.router.navigate(['/login']);
+      return;
+    }
+
+    this.loadUsuarios();
+    this.carregarEstatisticas();
+    this.carregarTodasTransacoes();
+    this.carregarTransacoesAltoRisco();
+  }
+
+  ngOnDestroy(): void {
+    this.subscriptions.unsubscribe();
+  }
+
+  loadUsuarios(): void {
+    this.apiService.getUsuariosCadastrados().subscribe({
+      next: (usuarios) => {
+        this.usuarios = usuarios;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar usuarios:', err);
+      }
+    });
+  }
+
+  carregarEstatisticas(): void {
+    this.loading = true;
+    const sub = this.apiService.getBlockchainStatistics().subscribe({
+      next: (stats) => {
+        this.estatisticas = stats;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar estatisticas blockchain:', err);
+        this.error = 'Erro ao carregar estatisticas da blockchain.';
+        this.loading = false;
+      }
+    });
+    this.subscriptions.add(sub);
+  }
+
+  onUsuarioSelecionado(): void {
+    if (!this.selectedUserId) {
+      this.transacoesUsuario = [];
+      this.relatorioUsuario = null;
+      return;
+    }
+    this.carregarTransacoesUsuario();
+  }
+
+  carregarTransacoesUsuario(): void {
+    if (!this.selectedUserId) return;
+    this.loading = true;
+    this.error = null;
+
+    const sub = forkJoin({
+      transacoes: this.apiService.getBlockchainUserTransactions(this.selectedUserId),
+      relatorio: this.apiService.getBlockchainUserReport(this.selectedUserId)
+    }).subscribe({
+      next: (dados) => {
+        this.transacoesUsuario = Array.isArray(dados.transacoes) ? dados.transacoes : [];
+        this.relatorioUsuario = dados.relatorio;
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar transacoes:', err);
+        this.error = 'Erro ao carregar transacoes do usuario.';
+        this.transacoesUsuario = [];
+        this.relatorioUsuario = null;
+        this.loading = false;
+      }
+    });
+    this.subscriptions.add(sub);
+  }
+
+  carregarTodasTransacoes(): void {
+    this.carregandoTransacoes = true;
+    const sub = this.apiService.getBlockchainAllTransactions(100).subscribe({
+      next: (transacoes) => {
+        this.todasTransacoes = Array.isArray(transacoes) ? transacoes : [];
+        this.carregandoTransacoes = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar todas as transacoes:', err);
+        this.carregandoTransacoes = false;
+      }
+    });
+    this.subscriptions.add(sub);
+  }
+
+  carregarTransacoesAltoRisco(): void {
+    const sub = this.apiService.getBlockchainHighRiskTransactions(this.limiteRisco).subscribe({
+      next: (transacoes) => {
+        this.transacoesAltoRisco = Array.isArray(transacoes) ? transacoes : [];
+      },
+      error: (err) => {
+        console.error('Erro ao carregar transacoes de alto risco:', err);
+      }
+    });
+    this.subscriptions.add(sub);
+  }
+
+  buscarPorHash(): void {
+    if (!this.hashBusca.trim()) return;
+    this.buscandoHash = true;
+    this.transacaoBuscada = null;
+    this.error = null;
+
+    const sub = this.apiService.getBlockchainTransactionByHash(this.hashBusca.trim()).subscribe({
+      next: (transacao) => {
+        this.transacaoBuscada = transacao;
+        this.buscandoHash = false;
+      },
+      error: (err) => {
+        console.error('Erro ao buscar transacao:', err);
+        this.error = 'Transacao nao encontrada com o hash informado.';
+        this.buscandoHash = false;
+      }
+    });
+    this.subscriptions.add(sub);
+  }
+
+  verificarIntegridade(): void {
+    if (!this.hashVerificacao.trim()) return;
+    this.verificando = true;
+    this.resultadoVerificacao = null;
+
+    const sub = this.apiService.verifyBlockchainIntegrity(this.hashVerificacao.trim()).subscribe({
+      next: (resultado) => {
+        this.resultadoVerificacao = resultado;
+        this.verificando = false;
+      },
+      error: (err) => {
+        console.error('Erro ao verificar integridade:', err);
+        this.resultadoVerificacao = { integro: false, mensagem: 'Erro ao verificar integridade da transacao.' };
+        this.verificando = false;
+      }
+    });
+    this.subscriptions.add(sub);
+  }
+
+  selecionarTransacao(tx: any): void {
+    this.transacaoSelecionada = this.transacaoSelecionada?.id === tx.id ? null : tx;
+  }
+
+  selecionarAba(aba: 'visao-geral' | 'transacoes' | 'alto-risco' | 'integridade'): void {
+    this.abaAtiva = aba;
+    this.error = null;
+  }
+
+  getStatusClass(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'CONFIRMADO':
+      case 'CONFIRMADA':
+        return 'status-confirmado';
+      case 'PENDENTE':
+        return 'status-pendente';
+      case 'FALHADO':
+      case 'FALHADA':
+        return 'status-falhado';
+      default:
+        return 'status-pendente';
+    }
+  }
+
+  getStatusIcon(status: string): string {
+    switch (status?.toUpperCase()) {
+      case 'CONFIRMADO':
+      case 'CONFIRMADA':
+        return 'bi-check-circle-fill';
+      case 'PENDENTE':
+        return 'bi-clock-fill';
+      case 'FALHADO':
+      case 'FALHADA':
+        return 'bi-x-circle-fill';
+      default:
+        return 'bi-question-circle-fill';
+    }
+  }
+
+  getRiscoClass(score: number): string {
+    if (score >= 0.7) return 'risco-alto';
+    if (score >= 0.4) return 'risco-medio';
+    return 'risco-baixo';
+  }
+
+  getRiscoLabel(score: number): string {
+    if (score >= 0.7) return 'ALTO';
+    if (score >= 0.4) return 'MEDIO';
+    return 'BAIXO';
+  }
+
+  getDecisaoClass(decisao: string): string {
+    switch (decisao?.toUpperCase()) {
+      case 'PERMITIDO':
+      case 'APROVADA':
+        return 'decisao-permitido';
+      case 'NEGADO':
+      case 'NEGADA':
+        return 'decisao-negado';
+      case 'REQUER_MFA':
+        return 'decisao-mfa';
+      default:
+        return 'decisao-pendente';
+    }
+  }
+
+  truncarHash(hash: string): string {
+    if (!hash || hash.length <= 16) return hash || '';
+    return hash.substring(0, 8) + '...' + hash.substring(hash.length - 8);
+  }
+
+  copiarHash(hash: string): void {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(hash);
+    }
+  }
+
+  formatarScore(valor: number): string {
+    if (!valor && valor !== 0) return '0.000';
+    return valor.toFixed(3);
+  }
+
+  getUsuarioSelecionadoNome(): string {
+    const u = this.usuarios.find((u: any) => u.id === this.selectedUserId);
+    return u?.nome || 'Usuario';
+  }
+
+  getDescricaoBlockchain(): string {
+    if (!this.estatisticas) return '';
+
+    let desc = 'A blockchain do sistema registra de forma imutavel todos os eventos de autenticacao. ';
+
+    const total = this.estatisticas.totalTransacoes || 0;
+    const confirmadas = this.estatisticas.transacoesConfirmadas || 0;
+    const pendentes = this.estatisticas.transacoesPendentes || 0;
+
+    desc += `Atualmente existem ${total} transacoes registradas, `;
+    desc += `sendo ${confirmadas} confirmadas e ${pendentes} pendentes de confirmacao. `;
+
+    if (this.estatisticas.integridadeValida !== undefined) {
+      if (this.estatisticas.integridadeValida) {
+        desc += 'A integridade da cadeia de blocos esta validada e consistente. ';
+      } else {
+        desc += 'ATENCAO: Foram detectadas inconsistencias na integridade da cadeia de blocos. ';
+      }
+    }
+
+    desc += 'Cada transacao contem o hash SHA-256 dos dados do evento, garantindo que qualquer alteracao seja imediatamente detectavel.';
+
+    return desc;
+  }
+
+  voltarDashboard(): void {
+    this.router.navigate(['/dashboard']);
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
+}

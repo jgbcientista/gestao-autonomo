@@ -18,26 +18,26 @@ export class BlockchainComponent implements OnInit, OnDestroy {
   error: string | null = null;
   usuarioAtual: any = null;
 
-  // Estatisticas gerais
+  // Estatísticas gerais
   estatisticas: any = null;
 
-  // Selecao de usuario
+  // Seleção de usuário
   usuarios: any[] = [];
   selectedUserId: number | null = null;
 
-  // Transacoes do usuario
+  // Transações do usuário
   transacoesUsuario: any[] = [];
   relatorioUsuario: any = null;
 
-  // Todas as transacoes
+  // Todas as transações
   todasTransacoes: any[] = [];
   carregandoTransacoes = false;
 
-  // Transacoes de alto risco
+  // Transações de alto risco
   transacoesAltoRisco: any[] = [];
   limiteRisco = 0.7;
 
-  // Transacao selecionada para detalhes
+  // Transação selecionada para detalhes
   transacaoSelecionada: any = null;
 
   // Busca por hash
@@ -45,7 +45,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
   transacaoBuscada: any = null;
   buscandoHash = false;
 
-  // Verificacao de integridade
+  // Verificação de integridade
   hashVerificacao = '';
   resultadoVerificacao: any = null;
   verificando = false;
@@ -53,7 +53,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
   // Aba ativa
   abaAtiva: 'visao-geral' | 'transacoes' | 'alto-risco' | 'integridade' = 'visao-geral';
 
-  // Paginacao
+  // Paginação
   paginaUsuario = 1;
   tamanhoPaginaUsuario = 10;
   paginaAltoRisco = 1;
@@ -90,7 +90,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
         this.usuarios = usuarios;
       },
       error: (err) => {
-        console.error('Erro ao carregar usuarios:', err);
+        console.error('Erro ao carregar usuários:', err);
       }
     });
   }
@@ -103,8 +103,8 @@ export class BlockchainComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Erro ao carregar estatisticas blockchain:', err);
-        this.error = 'Erro ao carregar estatisticas da blockchain.';
+        console.error('Erro ao carregar estatísticas blockchain:', err);
+        this.error = 'Erro ao carregar estatísticas da blockchain.';
         this.loading = false;
       }
     });
@@ -136,8 +136,8 @@ export class BlockchainComponent implements OnInit, OnDestroy {
         this.loading = false;
       },
       error: (err) => {
-        console.error('Erro ao carregar transacoes:', err);
-        this.error = 'Erro ao carregar transacoes do usuario.';
+        console.error('Erro ao carregar transações:', err);
+        this.error = 'Erro ao carregar transações do usuário.';
         this.transacoesUsuario = [];
         this.relatorioUsuario = null;
         this.loading = false;
@@ -154,7 +154,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
         this.carregandoTransacoes = false;
       },
       error: (err) => {
-        console.error('Erro ao carregar todas as transacoes:', err);
+        console.error('Erro ao carregar todas as transações:', err);
         this.carregandoTransacoes = false;
       }
     });
@@ -167,7 +167,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
         this.transacoesAltoRisco = Array.isArray(transacoes) ? transacoes : [];
       },
       error: (err) => {
-        console.error('Erro ao carregar transacoes de alto risco:', err);
+        console.error('Erro ao carregar transações de alto risco:', err);
       }
     });
     this.subscriptions.add(sub);
@@ -185,8 +185,8 @@ export class BlockchainComponent implements OnInit, OnDestroy {
         this.buscandoHash = false;
       },
       error: (err) => {
-        console.error('Erro ao buscar transacao:', err);
-        this.error = 'Transacao nao encontrada com o hash informado.';
+        console.error('Erro ao buscar transação:', err);
+        this.error = 'Transação não encontrada com o hash informado.';
         this.buscandoHash = false;
       }
     });
@@ -205,7 +205,7 @@ export class BlockchainComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error('Erro ao verificar integridade:', err);
-        this.resultadoVerificacao = { integro: false, mensagem: 'Erro ao verificar integridade da transacao.' };
+        this.resultadoVerificacao = { integro: false, mensagem: 'Erro ao verificar integridade da transação.' };
         this.verificando = false;
       }
     });
@@ -296,35 +296,35 @@ export class BlockchainComponent implements OnInit, OnDestroy {
 
   getUsuarioSelecionadoNome(): string {
     const u = this.usuarios.find((u: any) => u.id === this.selectedUserId);
-    return u?.nome || 'Usuario';
+    return u?.nome || 'Usuário';
   }
 
   getDescricaoBlockchain(): string {
     if (!this.estatisticas) return '';
 
-    let desc = 'A blockchain do sistema registra de forma imutavel todos os eventos de autenticacao. ';
+    let desc = 'A blockchain do sistema registra de forma imutável todos os eventos de autenticação. ';
 
     const total = this.estatisticas.totalTransacoes || 0;
     const confirmadas = this.estatisticas.transacoesConfirmadas || 0;
     const pendentes = this.estatisticas.transacoesPendentes || 0;
 
-    desc += `Atualmente existem ${total} transacoes registradas, `;
-    desc += `sendo ${confirmadas} confirmadas e ${pendentes} pendentes de confirmacao. `;
+    desc += `Atualmente existem ${total} transações registradas, `;
+    desc += `sendo ${confirmadas} confirmadas e ${pendentes} pendentes de confirmação. `;
 
     if (this.estatisticas.integridadeValida !== undefined) {
       if (this.estatisticas.integridadeValida) {
-        desc += 'A integridade da cadeia de blocos esta validada e consistente. ';
+        desc += 'A integridade da cadeia de blocos está validada e consistente. ';
       } else {
-        desc += 'ATENCAO: Foram detectadas inconsistencias na integridade da cadeia de blocos. ';
+        desc += 'ATENÇÃO: Foram detectadas inconsistências na integridade da cadeia de blocos. ';
       }
     }
 
-    desc += 'Cada transacao contem o hash SHA-256 dos dados do evento, garantindo que qualquer alteracao seja imediatamente detectavel.';
+    desc += 'Cada transação contém o hash SHA-256 dos dados do evento, garantindo que qualquer alteração seja imediatamente detectável.';
 
     return desc;
   }
 
-  // Metodos de paginacao
+  // Métodos de paginação
   get transacoesUsuarioPaginadas(): any[] {
     const inicio = (this.paginaUsuario - 1) * this.tamanhoPaginaUsuario;
     return this.transacoesUsuario.slice(inicio, inicio + this.tamanhoPaginaUsuario);

@@ -146,7 +146,7 @@ export class RegisterComponent implements OnInit {
             this.mfaQrCode = response.mfaQrCode;
             this.mfaSecret = response.mfaSecret || '';
             this.mfaEmail = registerData.email;
-            this.successMessage = 'Conta criada! Configure a autenticacao em duas etapas.';
+            this.successMessage = 'Conta criada! Configure a autenticação em duas etapas.';
             return;
           }
 
@@ -162,16 +162,16 @@ export class RegisterComponent implements OnInit {
           switch (error.status) {
             case 400:
               if (error.error?.message?.includes('email')) {
-                this.errorMessage = 'Dados invalidos. Verifique o formato do email.';
+                this.errorMessage = 'Dados inválidos. Verifique o formato do email.';
               } else {
-                this.errorMessage = 'Dados invalidos. Verifique os campos preenchidos.';
+                this.errorMessage = 'Dados inválidos. Verifique os campos preenchidos.';
               }
               break;
             case 409:
-              this.errorMessage = 'Este email ja esta cadastrado. Tente fazer login ou use outro email.';
+              this.errorMessage = 'Este email já está cadastrado. Tente fazer login ou use outro email.';
               break;
             case 0:
-              this.errorMessage = 'Erro de conexao. Verifique se o servidor esta rodando.';
+              this.errorMessage = 'Erro de conexão. Verifique se o servidor está rodando.';
               break;
             default:
               this.errorMessage = 'Erro interno do servidor. Tente novamente em alguns instantes.';
@@ -209,7 +209,7 @@ export class RegisterComponent implements OnInit {
       },
       error: (error) => {
         this.isVerifyingMfa = false;
-        console.error('Erro na verificacao MFA:', error);
+        console.error('Erro na verificação MFA:', error);
         this.errorMessage = 'Codigo invalido. Verifique o Google Authenticator e tente novamente.';
         this.mfaCode = '';
       }

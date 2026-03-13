@@ -358,7 +358,7 @@
               <div class="card-header-content">
                 <h4 class="card-title">
                   <i class="bi bi-info-circle me-2"></i>
-                  Como a Decisao de Autenticacao Funciona
+                  Como a Decisão de Autenticação Funciona
                 </h4>
                 <button class="btn btn-outline-primary btn-sm" (click)="mostrarDetalhesFeatures = !mostrarDetalhesFeatures">
                   <i class="bi" [class.bi-chevron-down]="!mostrarDetalhesFeatures" [class.bi-chevron-up]="mostrarDetalhesFeatures"></i>
@@ -367,7 +367,7 @@
               </div>
             </div>
             <div class="card-body">
-              <!-- Fluxo de decisao -->
+              <!-- Fluxo de decisão -->
               <div class="decision-flow mb-4">
                 <div class="flow-step">
                   <div class="flow-icon bg-primary">
@@ -375,7 +375,7 @@
                   </div>
                   <div class="flow-content">
                     <h6>1. Login</h6>
-                    <small>Usuario faz login no sistema</small>
+                    <small>Usuário faz login no sistema</small>
                   </div>
                 </div>
                 <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
@@ -385,7 +385,7 @@
                   </div>
                   <div class="flow-content">
                     <h6>2. Coleta</h6>
-                    <small>14 features sao coletadas</small>
+                    <small>14 features são coletadas</small>
                   </div>
                 </div>
                 <div class="flow-arrow"><i class="bi bi-arrow-right"></i></div>
@@ -394,7 +394,7 @@
                     <i class="bi bi-cpu"></i>
                   </div>
                   <div class="flow-content">
-                    <h6>3. Analise IA</h6>
+                    <h6>3. Análise IA</h6>
                     <small>3 modelos calculam o score</small>
                   </div>
                 </div>
@@ -404,7 +404,7 @@
                     <i class="bi bi-shield-check"></i>
                   </div>
                   <div class="flow-content">
-                    <h6>4. Decisao</h6>
+                    <h6>4. Decisão</h6>
                     <small>Permitir, MFA ou Bloquear</small>
                   </div>
                 </div>
@@ -415,14 +415,14 @@
                   </div>
                   <div class="flow-content">
                     <h6>5. Blockchain</h6>
-                    <small>Registro imutavel</small>
+                    <small>Registro imutável</small>
                   </div>
                 </div>
               </div>
 
-              <!-- Limiares de decisao -->
+              <!-- Limiares de decisão -->
               <div class="decision-thresholds mb-4">
-                <h5 class="section-title mb-3">Limiares de Decisao</h5>
+                <h5 class="section-title mb-3">Limiares de Decisão</h5>
                 <div class="thresholds-grid">
                   <div class="threshold-item threshold-safe">
                     <div class="threshold-range">0.0 - 0.3</div>
@@ -435,7 +435,7 @@
                   <div class="threshold-item threshold-warning">
                     <div class="threshold-range">0.3 - 0.7</div>
                     <div class="threshold-label">SUSPEITO</div>
-                    <div class="threshold-desc">Pode exigir autenticacao MFA</div>
+                    <div class="threshold-desc">Pode exigir autenticação MFA</div>
                     <div class="threshold-bar">
                       <div class="threshold-fill" style="width: 70%; background: #ffc107;"></div>
                     </div>
@@ -451,7 +451,7 @@
                 </div>
               </div>
 
-              <!-- Features detalhadas (expandivel) -->
+              <!-- Features detalhadas (expansível) -->
               <div class="features-detail" *ngIf="mostrarDetalhesFeatures">
                 <h5 class="section-title mb-3">14 Features Coletadas a Cada Login</h5>
                 <div class="features-grid">
@@ -459,28 +459,28 @@
                     <div class="feature-icon"><i class="bi bi-clock"></i></div>
                     <div class="feature-content">
                       <h6>Hora do Acesso</h6>
-                      <small>3h da manha e mais suspeito que 14h</small>
+                      <small>3h da manhã é mais suspeito que 14h</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-calendar-week"></i></div>
                     <div class="feature-content">
                       <h6>Dia da Semana</h6>
-                      <small>Domingo vs dia util altera o risco</small>
+                      <small>Domingo vs dia útil altera o risco</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-graph-up-arrow"></i></div>
                     <div class="feature-content">
-                      <h6>Frequencia Semanal</h6>
-                      <small>Aumento subito de acessos e anomalo</small>
+                      <h6>Frequência Semanal</h6>
+                      <small>Aumento súbito de acessos é anômalo</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-hdd-network"></i></div>
                     <div class="feature-content">
                       <h6>IP Conhecido?</h6>
-                      <small>IP novo aumenta o nivel de risco</small>
+                      <small>IP novo aumenta o nível de risco</small>
                     </div>
                   </div>
                   <div class="feature-item">
@@ -493,43 +493,43 @@
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-geo-alt"></i></div>
                     <div class="feature-content">
-                      <h6>Localizacao Conhecida?</h6>
+                      <h6>Localização Conhecida?</h6>
                       <small>Cidade nova gera alerta</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-signpost-split"></i></div>
                     <div class="feature-content">
-                      <h6>Distancia da Localizacao Habitual</h6>
+                      <h6>Distância da Localização Habitual</h6>
                       <small>SP para Recife = alerta de risco</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-alarm"></i></div>
                     <div class="feature-content">
-                      <h6>Diferenca do Horario Habitual</h6>
-                      <small>Sempre loga as 9h, tentou as 3h = suspeito</small>
+                      <h6>Diferença do Horário Habitual</h6>
+                      <small>Sempre loga às 9h, tentou às 3h = suspeito</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-hourglass-split"></i></div>
                     <div class="feature-content">
-                      <h6>Tempo Desde Ultimo Acesso</h6>
+                      <h6>Tempo Desde Último Acesso</h6>
                       <small>30 dias sem logar e volta = suspeito</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-bar-chart-steps"></i></div>
                     <div class="feature-content">
-                      <h6>Media de Sessoes Diarias</h6>
-                      <small>Padrao de uso normal do usuario</small>
+                      <h6>Média de Sessões Diárias</h6>
+                      <small>Padrão de uso normal do usuário</small>
                     </div>
                   </div>
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-distribute-vertical"></i></div>
                     <div class="feature-content">
-                      <h6>Desvio Padrao dos Horarios</h6>
-                      <small>Consistencia do comportamento</small>
+                      <h6>Desvio Padrão dos Horários</h6>
+                      <small>Consistência do comportamento</small>
                     </div>
                   </div>
                   <div class="feature-item">
@@ -549,8 +549,8 @@
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-cursor"></i></div>
                     <div class="feature-content">
-                      <h6>Score de Navegacao</h6>
-                      <small>Padrao de uso dentro do sistema</small>
+                      <h6>Score de Navegação</h6>
+                      <small>Padrão de uso dentro do sistema</small>
                     </div>
                   </div>
                 </div>
@@ -577,7 +577,7 @@
                       <div class="weight-bar">
                         <div class="weight-fill" style="width: 30%; background: linear-gradient(90deg, #f093fb, #f5576c);"></div>
                       </div>
-                      <small class="weight-desc">Classificador supervisionado. Aprende com historico normal vs anomalo.</small>
+                      <small class="weight-desc">Classificador supervisionado. Aprende com histórico normal vs anômalo.</small>
                     </div>
                     <div class="weight-item">
                       <div class="weight-header">
@@ -587,7 +587,7 @@
                       <div class="weight-bar">
                         <div class="weight-fill" style="width: 30%; background: linear-gradient(90deg, #4facfe, #00f2fe);"></div>
                       </div>
-                      <small class="weight-desc">Rede neural com 4 camadas. Captura padroes complexos nao-lineares.</small>
+                      <small class="weight-desc">Rede neural com 4 camadas. Captura padrões complexos não-lineares.</small>
                     </div>
                   </div>
                 </div>
@@ -744,7 +744,7 @@
               <!-- Paginacao Historico -->
               <div class="pagination-container" *ngIf="totalPaginasHistorico > 1">
                 <div class="pagination-info">
-                  Mostrando {{ (paginaHistorico - 1) * tamanhoPaginaHistorico + 1 }} - {{ paginaHistorico * tamanhoPaginaHistorico > historicoAnalises.length ? historicoAnalises.length : paginaHistorico * tamanhoPaginaHistorico }} de {{ historicoAnalises.length }} analises
+                  Mostrando {{ (paginaHistorico - 1) * tamanhoPaginaHistorico + 1 }} - {{ paginaHistorico * tamanhoPaginaHistorico > historicoAnalises.length ? historicoAnalises.length : paginaHistorico * tamanhoPaginaHistorico }} de {{ historicoAnalises.length }} análises
                 </div>
                 <nav>
                   <ul class="pagination pagination-modern">

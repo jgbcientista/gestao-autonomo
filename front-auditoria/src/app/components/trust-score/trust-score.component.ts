@@ -57,15 +57,15 @@ export class TrustScoreComponent implements OnInit {
     this.apiService.getUsuariosCadastrados().subscribe({
       next: (usuarios) => {
         this.usuarios = usuarios;
-        // Seleciona o usuario logado por padrao
+        // Seleciona o usuário logado por padrão
         if (this.usuarioAtual?.email) {
           this.selectedEmail = this.usuarioAtual.email;
           this.onUsuarioSelecionado();
         }
       },
       error: (err) => {
-        console.error('Erro ao carregar usuarios:', err);
-        this.error = 'Erro ao carregar lista de usuarios.';
+        console.error('Erro ao carregar usuários:', err);
+        this.error = 'Erro ao carregar lista de usuários.';
       }
     });
   }
@@ -99,7 +99,7 @@ export class TrustScoreComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erro ao carregar score:', err);
-        this.error = 'Erro ao carregar score de confianca.';
+        this.error = 'Erro ao carregar score de confiança.';
         this.loading = false;
       }
     });
@@ -111,7 +111,7 @@ export class TrustScoreComponent implements OnInit {
         this.statistics = stats;
       },
       error: (err) => {
-        console.error('Erro ao carregar estatisticas:', err);
+        console.error('Erro ao carregar estatísticas:', err);
       }
     });
   }

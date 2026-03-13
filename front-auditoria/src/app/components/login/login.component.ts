@@ -82,16 +82,16 @@ export class LoginComponent implements OnInit {
 
           switch (error.status) {
             case 401:
-              this.errorMessage = 'Email ou senha invalidos. Verifique suas credenciais.';
+              this.errorMessage = 'Email ou senha inválidos. Verifique suas credenciais.';
               break;
             case 423:
               this.errorMessage = 'Sua conta foi bloqueada. Entre em contato com o suporte.';
               break;
             case 403:
-              this.errorMessage = 'Acesso negado pela analise de seguranca. Tente novamente.';
+              this.errorMessage = 'Acesso negado pela análise de segurança. Tente novamente.';
               break;
             case 0:
-              this.errorMessage = 'Erro de conexao. Verifique se o servidor esta rodando.';
+              this.errorMessage = 'Erro de conexão. Verifique se o servidor está rodando.';
               break;
             default:
               this.errorMessage = 'Erro interno do servidor. Tente novamente em alguns instantes.';

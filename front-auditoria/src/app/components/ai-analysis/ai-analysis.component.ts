@@ -56,7 +56,7 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
   monitoramentoAtivo = false;
   intervalId: any = null;
 
-  // Paginacao do historico
+  // Paginação do histórico
   paginaHistorico = 1;
   tamanhoPaginaHistorico = 10;
 
@@ -180,8 +180,8 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
         this.calcularScoresDetalhados();
       },
       error: (erro) => {
-        console.error('Erro ao executar analise completa:', erro);
-        this.error = 'Erro ao executar analise comportamental. Verifique sua conexao com o servidor.';
+        console.error('Erro ao executar análise completa:', erro);
+        this.error = 'Erro ao executar análise comportamental. Verifique sua conexão com o servidor.';
         this.perfilAtual = null;
         this.classificacaoAtual = null;
         this.loading = false;
@@ -232,7 +232,7 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
       },
       error: (erro) => {
         console.error('Erro ao calcular scores:', erro);
-        this.error = 'Erro ao calcular score de anomalia. Verifique sua conexao com o servidor.';
+        this.error = 'Erro ao calcular score de anomalia. Verifique sua conexão com o servidor.';
         this.scoreAtual = null;
         this.calculandoScore = false;
       }
@@ -291,7 +291,7 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
         this.statisticas = estatisticas;
       },
       error: (erro) => {
-        console.error('Erro ao carregar estatisticas:', erro);
+        console.error('Erro ao carregar estatísticas:', erro);
       }
     });
 
@@ -471,7 +471,7 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
     };
   }
 
-  // Metodos de paginacao
+  // Métodos de paginação
   get historicoPaginado(): PerfilComportamentalIA[] {
     const inicio = (this.paginaHistorico - 1) * this.tamanhoPaginaHistorico;
     return this.historicoAnalises.slice(inicio, inicio + this.tamanhoPaginaHistorico);

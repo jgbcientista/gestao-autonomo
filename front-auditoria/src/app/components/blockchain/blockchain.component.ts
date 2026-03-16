@@ -115,10 +115,12 @@ export class BlockchainComponent implements OnInit, OnDestroy {
     if (!this.selectedUserId) {
       this.transacoesUsuario = [];
       this.relatorioUsuario = null;
+      this.carregarTransacoesAltoRisco();
       return;
     }
     this.paginaUsuario = 1;
     this.carregarTransacoesUsuario();
+    this.carregarTransacoesAltoRisco();
   }
 
   carregarTransacoesUsuario(): void {
@@ -162,9 +164,14 @@ export class BlockchainComponent implements OnInit, OnDestroy {
   }
 
   carregarTransacoesAltoRisco(): void {
-    const sub = this.apiService.getBlockchainHighRiskTransactions(this.limiteRisco).subscribe({
+    const request$ = this.selectedUserId
+      ? this.apiService.getBlockchainUserHighRiskTransactions(this.selectedUserId, this.limiteRisco)
+      : this.apiService.getBlockchainHighRiskTransactions(this.limiteRisco);
+
+    const sub = request$.subscribe({
       next: (transacoes) => {
         this.transacoesAltoRisco = Array.isArray(transacoes) ? transacoes : [];
+        this.paginaAltoRisco = 1;
       },
       error: (err) => {
         console.error('Erro ao carregar transações de alto risco:', err);

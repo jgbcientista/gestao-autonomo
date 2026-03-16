@@ -249,6 +249,16 @@ export class ApiService {
     );
   }
 
+  getBlockchainUserHighRiskTransactions(userId: number, limiteRisco: number = 0.7): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/blockchain/auditoria/usuario/${userId}/suspeitas`,
+      {
+        headers: this.getHeaders(),
+        params: { limiteRisco: limiteRisco.toString() }
+      }
+    );
+  }
+
   getBlockchainStatistics(): Observable<any> {
     return this.http.get<any>(
       `${this.baseUrl}/blockchain/auditoria/estatisticas`,

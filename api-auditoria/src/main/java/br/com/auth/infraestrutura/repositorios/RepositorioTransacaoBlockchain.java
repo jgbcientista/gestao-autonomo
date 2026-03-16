@@ -34,8 +34,11 @@ public interface RepositorioTransacaoBlockchain extends JpaRepository<TransacaoB
 
     List<TransacaoBlockchain> findByVerificado(Boolean verificado);
 
-    @Query("SELECT t FROM TransacaoBlockchain t WHERE t.pontuacaoRisco > :pontuacao")
+    @Query("SELECT t FROM TransacaoBlockchain t WHERE t.pontuacaoRisco >= :pontuacao")
     List<TransacaoBlockchain> findByPontuacaoRiscoGreaterThan(@Param("pontuacao") Double pontuacao);
+
+    @Query("SELECT t FROM TransacaoBlockchain t WHERE t.usuarioId = :usuarioId AND t.pontuacaoRisco >= :pontuacao")
+    List<TransacaoBlockchain> findByUsuarioIdAndPontuacaoRiscoGreaterThan(@Param("usuarioId") Long usuarioId, @Param("pontuacao") Double pontuacao);
 
     @Query("SELECT t FROM TransacaoBlockchain t WHERE t.pontuacaoRisco BETWEEN :min AND :max")
     List<TransacaoBlockchain> findByPontuacaoRiscoBetween(@Param("min") Double min, @Param("max") Double max);

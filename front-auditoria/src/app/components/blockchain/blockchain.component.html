@@ -776,6 +776,22 @@
     <!-- ========== ABA: ALTO RISCO ========== -->
     <div *ngIf="abaAtiva === 'alto-risco'">
 
+      <!-- Seleção de Usuário para Alto Risco -->
+      <section class="select-section">
+        <div class="select-card">
+          <div class="select-card-header">
+            <i class="bi bi-person-fill me-2"></i>
+            <h4>Filtrar por Usuário</h4>
+          </div>
+          <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
+            <option [ngValue]="null">-- Todos os usuários --</option>
+            <option *ngFor="let u of usuarios" [ngValue]="u.id">
+              {{ u.nome }} ({{ u.email }})
+            </option>
+          </select>
+        </div>
+      </section>
+
       <section class="transactions-section">
         <div class="analysis-card">
           <div class="card-header" style="background: linear-gradient(135deg, #ef4444, #dc2626);">

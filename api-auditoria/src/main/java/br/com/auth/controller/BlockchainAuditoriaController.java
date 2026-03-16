@@ -127,13 +127,13 @@ public class BlockchainAuditoriaController {
                description = "Consulta transações suspeitas de um usuário específico")
     @GetMapping("/usuario/{usuarioId}/suspeitas")
    // @PreAuthorize("hasRole('ADMIN') or hasRole('AUDITOR')")
-    public ResponseEntity<List<TransacaoBlockchain>> getUserTransactions(
+    public ResponseEntity<List<TransacaoBlockchain>> getUserHighRiskTransactions(
             @PathVariable Long usuarioId,
-            @RequestParam(defaultValue = "0.5") Double limiteRisco) {
+            @RequestParam(defaultValue = "0.7") Double limiteRisco) {
         
         log.debug("Buscando transações suspeitas para usuário {} com risco >= {}", usuarioId, limiteRisco);
-        
-        List<TransacaoBlockchain> transacoes = blockchainService.getHighRiskTransactions(limiteRisco);
+
+        List<TransacaoBlockchain> transacoes = blockchainService.getHighRiskTransactionsByUser(usuarioId, limiteRisco);
         return ResponseEntity.ok(transacoes);
     }
 

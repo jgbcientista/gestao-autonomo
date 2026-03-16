@@ -288,6 +288,10 @@ public class BlockchainService {
         return repositorioTransacaoBlockchain.findByPontuacaoRiscoGreaterThan(riskThreshold);
     }
 
+    public List<TransacaoBlockchain> getHighRiskTransactionsByUser(Long userId, Double riskThreshold) {
+        return repositorioTransacaoBlockchain.findByUsuarioIdAndPontuacaoRiscoGreaterThan(userId, riskThreshold);
+    }
+
     public Optional<TransacaoBlockchain> getTransactionByHash(String txHash) {
         return repositorioTransacaoBlockchain.findByHashTransacao(txHash);
     }

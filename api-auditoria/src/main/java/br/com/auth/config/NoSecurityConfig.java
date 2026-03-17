@@ -16,7 +16,7 @@ import org.springframework.security.web.SecurityFilterChain;
  */
 @Configuration
 @EnableWebSecurity
-@Profile("dev")
+@Profile("no-security")
 @Primary
 public class NoSecurityConfig {
 

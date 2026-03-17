@@ -1,6 +1,6 @@
 @echo off
 echo ================================
-echo    API AUTHOR - AUTH SERVICE
+echo    API AUDITORIA - AUTH SERVICE
 echo ================================
 echo.
 echo Escolha uma opcao:
@@ -23,7 +23,7 @@ echo ========================================
 echo Executando com Docker...
 echo ========================================
 cd ..
-docker-compose up --build auth-service
+docker-compose up --build auditoria-service
 goto end
 
 :maven

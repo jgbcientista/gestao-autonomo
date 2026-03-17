@@ -1,6 +1,6 @@
-# Frontend Author - Sistema de Autenticação Inteligente
+# Frontend Auditoria - Sistema de Autenticação Inteligente
 
-Este é o frontend Angular do Sistema de Autenticação Inteligente, que se integra com a API `api-author` para fornecer uma interface moderna e responsiva para autenticação de usuários.
+Este é o frontend Angular do Sistema de Autenticação Inteligente, que se integra com a API `api-auditoria` para fornecer uma interface moderna e responsiva para autenticação de usuários.
 
 ## 🚀 Tecnologias Utilizadas
 
@@ -38,7 +38,7 @@ Este é o frontend Angular do Sistema de Autenticação Inteligente, que se inte
 ### Pré-requisitos
 - Node.js (versão 18+ recomendada)
 - npm ou yarn
-- API `api-author` rodando na porta 8081
+- API `api-auditoria` rodando na porta 8081
 
 ### Passos para execução
 

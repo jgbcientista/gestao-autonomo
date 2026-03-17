@@ -1,4 +1,4 @@
-# API Author - Serviço de Autenticação e Autorização
+# API Auditoria - Serviço de Autenticação e Autorização
 
 ## Descrição
 Serviço de autenticação e autorização baseado em JWT (JSON Web Token) para sistemas de micro-serviços.
@@ -34,7 +34,7 @@ package org.springframework.security.authentication does not exist
 ### **1. 🔥 Método Mais Fácil - Script Automático**
 ```bash
 # No Windows
-cd api-author
+cd api-auditoria
 run.bat
 
 # Escolha a opção 1 (Docker) no menu
@@ -48,14 +48,14 @@ docker-compose up --build auth-service
 
 ### **3. 🔧 Maven Local (pode ter problemas)**
 ```bash
-cd api-author
+cd api-auditoria
 mvn clean spring-boot:run -s settings.xml
 ```
 
 ## Estrutura do Projeto
 
 ```
-api-author/
+api-auditoria/
 ├── src/
 │   └── main/
 │       ├── java/
@@ -114,7 +114,7 @@ api-author/
 ## 🏗️ **Configurações Realizadas**
 
 ### 1. Reorganização da Estrutura
-- ✅ Movido código fonte para dentro da pasta `api-author/`
+- ✅ Movido código fonte para dentro da pasta `api-auditoria/`
 - ✅ Estrutura Maven padrão implementada
 - ✅ Arquivos `mvnw` e `mvnw.cmd` movidos para permitir execução Maven sem instalação global
 
@@ -142,14 +142,14 @@ docker-compose up --build auth-service
 
 2. **🥈 Script automático**:
 ```bash
-cd api-author
+cd api-auditoria
 run.bat
 # Escolher opção 1 (Docker)
 ```
 
 3. **🥉 Maven com settings.xml**:
 ```bash
-cd api-author
+cd api-auditoria
 mvn clean compile -s settings.xml
 ```
 
@@ -291,7 +291,7 @@ HYPERLEDGER_PEER=peer0.org1.example.com:7051
 Execute o script de teste para verificar todas as funcionalidades:
 
 ```powershell
-# No diretório api-author
+# No diretório api-auditoria
 
 # Teste completo de blockchain (Ethereum + Hyperledger)
 .\test-blockchain-auditoria.ps1

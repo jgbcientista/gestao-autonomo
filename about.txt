@@ -63,7 +63,7 @@ Documentação: Swagger 3.x
 Gerenciamento de dependências: Maven
 Integração e Deploy: Docker + Docker Compose
 
-Precsio que o projeto api-author esteja dentro da pasta: C:\micro-services\api-author (padrão maven)e eu possa rodar o mvn clean install (caso não queira usar o docker)
+Precsio que o projeto api-auditoria esteja dentro da pasta: C:\micro-services\api-auditoria (padrão maven)e eu possa rodar o mvn clean install (caso não queira usar o docker)
 
 
 Segunda:
@@ -79,7 +79,7 @@ Autenticação Tradicional + Score de Confiança Login/senha + resultado IA - De
 Quinta:
 Implementar Registro de Acessos em Blockchain: Cada evento de autenticação (incluindo o score) vai para um blockchain privado (ex: Hyperledger ou Ethereum testnet) e Imutabilidade para auditoria
 
-Preciso criar projeto angular na pasta  C:\micro-services\frontend-author, que tenha a tela de login integrada com a API api-author, tenha uma tela para registar um usuário (integrado com a api também), uma tela principal (dasbord). 
+Preciso criar projeto angular na pasta  C:\micro-services\front-auditoria, que tenha a tela de login integrada com a API api-auditoria, tenha uma tela para registar um usuário (integrado com a api também), uma tela principal (dasbord). 
 Esse projeto tem que ser em ANgular 17 ou superior, utilizando BootStrap
 
 
@@ -140,7 +140,7 @@ spring:
     username: ${MAIL_USERNAME}
     password: ${MAIL_PASSWORD}
 	
-	  cd frontend-author
+	  cd front-auditoria
      npm cache clean --force
      del /f /s /q node_modules
      del /f package-lock.json

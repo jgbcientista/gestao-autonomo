@@ -1,6 +1,6 @@
 @echo off
 echo ================================
-echo    API AUDITORIA - AUTH SERVICE
+echo    API AUDITORIA - AUDITORIA SERVICE
 echo ================================
 echo.
 echo Escolha uma opcao:

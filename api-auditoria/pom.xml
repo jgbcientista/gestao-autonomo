@@ -11,10 +11,10 @@
         <relativePath/>
     </parent>
 
-    <groupId>br.com.auth</groupId>
-    <artifactId>auth-service</artifactId>
+    <groupId>br.com.auditoria</groupId>
+    <artifactId>auditoria-service</artifactId>
     <version>1.0.0</version>
-    <name>auth-service</name>
+    <name>auditoria-service</name>
     <description>Serviço de Autenticação e Autorização</description>
 
     <properties>

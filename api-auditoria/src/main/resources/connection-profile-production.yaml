@@ -1,7 +1,7 @@
 # Connection Profile para Produção - Hyperledger Fabric
 # ⚠️ AJUSTE TODOS OS VALORES CONFORME SUA REDE REAL
 
-name: "production-auth-network"
+name: "production-auditoria-network"
 version: "1.0.0"
 description: "Rede blockchain de produção para auditoria de autenticação"
 

@@ -12,14 +12,14 @@ server:
 
 spring:
   application:
-    name: auth-service
+    name: auditoria-service
   profiles:
     active: dev
   main:
     allow-bean-definition-overriding: true
   # Spring Security habilitado para funcionamento completo
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/auth_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/auditoria_db}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -175,7 +175,7 @@ spring:
       on-profile: dev
   # Usando PostgreSQL também em dev para evitar perda de dados do blockchain
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/auth_db}
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/auditoria_db}
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -253,7 +253,7 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: jdbc:postgresql://localhost:5432/auth_db
+    url: jdbc:postgresql://localhost:5432/auditoria_db
     username: postgres
     password: postgres
     driver-class-name: org.postgresql.Driver
@@ -326,11 +326,11 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/auth-system}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/auth-system/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://localhost:8180/realms/auditoria-system}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://localhost:8180/realms/auditoria-system/protocol/openid-connect/certs}
 
 keycloak:
-  realm: auth-system
+  realm: auditoria-system
   auth-server-url: ${KEYCLOAK_URL:http://localhost:8180}
 
 ---

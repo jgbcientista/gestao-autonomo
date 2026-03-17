@@ -11,7 +11,7 @@ cd ..
 docker-compose up -d
 
 # Reiniciar apenas um serviço
-docker-compose restart auth-service
+docker-compose restart auditoria-service
  
  
 
@@ -43,7 +43,7 @@ run.bat
 ### **2. 🐳 Docker (100% Funcional)**
 ```bash
 # Na raiz do projeto (C:\micro-services\)
-docker-compose up --build auth-service
+docker-compose up --build auditoria-service
 ```
 
 ### **3. 🔧 Maven Local (pode ter problemas)**
@@ -137,7 +137,7 @@ api-auditoria/
 1. **🥇 USAR DOCKER** (100% funcional):
 ```bash
 # Na raiz (C:\micro-services\)
-docker-compose up --build auth-service
+docker-compose up --build auditoria-service
 ```
 
 2. **🥈 Script automático**:
@@ -214,7 +214,7 @@ Os endpoints de autenticação agora retornam:
 
 ### Variáveis Opcionais (com valores padrão)
 - `SERVER_PORT` - Porta do servidor (padrão: 8081)
-- `DB_URL` - URL do banco PostgreSQL (padrão: jdbc:postgresql://localhost:5432/auth_db)
+- `DB_URL` - URL do banco PostgreSQL (padrão: jdbc:postgresql://localhost:5432/auditoria_db)
 - `DB_USERNAME` - Usuário do banco (padrão: postgres)
 - `DB_PASSWORD` - Senha do banco (padrão: postgres)
 - `JWT_SECRET` - Chave secreta para JWT (valor padrão configurado)

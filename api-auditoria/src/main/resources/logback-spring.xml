@@ -13,7 +13,7 @@
         <appender name="LOGSTASH" class="net.logstash.logback.appender.LogstashTcpSocketAppender">
             <destination>${LOGSTASH_HOST:-logstash}:${LOGSTASH_PORT:-5044}</destination>
             <encoder class="net.logstash.logback.encoder.LogstashEncoder">
-                <customFields>{"app_name":"auth-service"}</customFields>
+                <customFields>{"app_name":"auditoria-service"}</customFields>
             </encoder>
             <reconnectionDelay>5 seconds</reconnectionDelay>
         </appender>

@@ -3,7 +3,7 @@
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/auth_db_prod
+    url: jdbc:postgresql://localhost:5432/auditoria_db_prod
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
@@ -70,7 +70,7 @@ logging:
     # Logs específicos do Hyperledger Fabric
     org.hyperledger: INFO
   file:
-    name: /var/log/auth-service/application.log
+    name: /var/log/auditoria-service/application.log
   pattern:
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 

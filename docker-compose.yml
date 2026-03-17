@@ -4,7 +4,7 @@ services:
     image: postgres:16-alpine
     container_name: auth-postgres
     environment:
-      POSTGRES_DB: auth_db
+      POSTGRES_DB: auditoria_db
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
@@ -46,7 +46,7 @@ services:
       dockerfile: Dockerfile.frontend
       args:
         CONFIGURATION: production
-    container_name: auth-frontend
+    container_name: auditoria-frontend
     ports:
       - "4201:4200"
     depends_on:

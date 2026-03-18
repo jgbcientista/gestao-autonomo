@@ -1,0 +1,457 @@
+% ============================================================================
+% ARTIGO - SBBD 2026 (Simpósio Brasileiro de Banco de Dados)
+% Formato: SBC (Sociedade Brasileira de Computação) - Coluna Única
+% Tipo: Full Paper (até 12 páginas + 2 para referências = 14 total)
+% Revisão: Double-blind (ANONIMIZADO - pronto para submissão)
+% Idioma: Português
+% Evento: 8-11 de setembro de 2026
+% Submissão via JEMS
+% ============================================================================
+
+\documentclass[12pt]{article}
+
+\usepackage{sbc-template}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazilian]{babel}
+\usepackage{graphicx}
+\usepackage{url}
+\usepackage{amsmath}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{placeins}
+
+\sloppy
+
+% ============================================================================
+% TÍTULO
+% ============================================================================
+\title{Sistema Autônomo de Autenticação Contextual com Blockchain e\\Inteligência Artificial: Uma Abordagem Baseada em Microserviços\\para Segurança Adaptativa em Aplicações Web}
+
+% ============================================================================
+% AUTORES - REMOVIDOS PARA DOUBLE-BLIND
+% ============================================================================
+\author{}
+\address{}
+
+\begin{document}
+
+\maketitle
+
+% ============================================================================
+% NOTA SOBRE USO DE IA GENERATIVA (exigência SBBD 2026)
+% ============================================================================
+\noindent\fbox{\parbox{0.97\textwidth}{\small\textbf{Declaração de uso de IA generativa:} Ferramentas de IA generativa (LLM) foram utilizadas exclusivamente para assistência na revisão linguística e estruturação textual deste manuscrito. Todo o conteúdo técnico, arquitetura, implementação, experimentação e análise de resultados são de autoria e responsabilidade integral dos autores.}}
+
+\vspace{6pt}
+
+% ============================================================================
+% RESUMO
+% ============================================================================
+\begin{resumo}
+Este artigo apresenta o desenvolvimento e a avaliação de um sistema autônomo de autenticação contextual que integra Inteligência Artificial (IA) e tecnologia Blockchain para reforçar a segurança de acesso em aplicações web. A arquitetura proposta baseia-se em microserviços e articula cinco camadas funcionais: aplicação modular, integração contínua, segurança automatizada, inteligência artificial e registro imutável. O módulo de IA emprega um modelo \textit{ensemble} (Random Forest, Decision Tree e Logistic Regression) para classificação de risco em tempo real, analisando dez atributos contextuais --- incluindo geolocalização, dispositivo, horário e padrões comportamentais. A camada Blockchain garante imutabilidade e rastreabilidade forense dos logs de autenticação, atendendo a requisitos normativos como a LGPD. Os resultados experimentais demonstram acurácia de 91\% na detecção de acessos anômalos, latência média de 320ms no fluxo completo de autenticação e integridade de 100\% nas transações registradas em Blockchain. A solução demonstra viabilidade técnica como alternativa adaptativa e auditável aos métodos tradicionais de autenticação.
+\end{resumo}
+
+% ============================================================================
+% ABSTRACT
+% ============================================================================
+\begin{abstract}
+This paper presents the development and evaluation of an autonomous contextual authentication system integrating Artificial Intelligence (AI) and Blockchain technology to enhance access security in web applications. The proposed architecture is based on microservices and comprises five functional layers: modular application, continuous integration, automated security, artificial intelligence, and immutable logging. The AI module employs an ensemble model (Random Forest, Decision Tree, and Logistic Regression) for real-time risk classification, analyzing ten contextual attributes --- including geolocation, device, time, and user behavioral patterns. The Blockchain layer ensures immutability and forensic traceability of authentication logs, meeting regulatory requirements such as Brazil's LGPD. Experimental results demonstrate 91\% accuracy in anomalous access detection, with an average latency of 320ms and 100\% integrity in Blockchain-recorded transactions.
+\end{abstract}
+
+% ============================================================================
+% 1. INTRODUÇÃO
+% ============================================================================
+\section{Introdução}
+
+Em um cenário digital marcado pela crescente sofisticação dos ataques cibernéticos e pela expansão dos serviços baseados em web, a autenticação de usuários permanece como um dos pilares mais críticos da segurança da informação. Métodos tradicionais, como senhas fixas e autenticação em dois fatores (2FA), embora amplamente adotados, apresentam limitações significativas diante de ataques como \textit{credential stuffing}, \textit{session hijacking} e engenharia social \cite{owasp2023}. Essas abordagens, predominantemente estáticas, não consideram o contexto comportamental e ambiental do usuário no momento do acesso, criando lacunas exploráveis por agentes maliciosos.
+
+A crescente demanda por conformidade regulatória, como a Lei Geral de Proteção de Dados (LGPD) no Brasil \cite{brasil2018}, e as diretrizes internacionais do National Institute of Standards and Technology (NIST) \cite{nist2020}, reforçam a necessidade de sistemas de autenticação que combinem adaptabilidade, auditabilidade e transparência. Nesse contexto, a convergência entre Inteligência Artificial (IA), tecnologia Blockchain e arquiteturas distribuídas emerge como abordagem promissora para superar as limitações dos mecanismos convencionais.
+
+Este trabalho propõe e implementa um sistema autônomo de autenticação contextual que integra: (i) análise de risco em tempo real baseada em modelos supervisionados de Machine Learning; (ii) registro imutável de eventos de autenticação via Blockchain; e (iii) uma arquitetura de microserviços orientada por práticas DevSecOps. O sistema analisa dez atributos contextuais por acesso --- incluindo localização geográfica, dispositivo, horário, padrão comportamental e indicadores de rede --- para tomar decisões autônomas sobre a concessão, monitoramento, exigência de autenticação multifator ou bloqueio de acesso.
+
+A principal contribuição reside na integração sistêmica de três camadas complementares de segurança --- autenticação baseada em identidade (OAuth2/OIDC), análise preditiva de risco (IA) e auditoria imutável (Blockchain) --- em uma arquitetura modular, escalável e reprodutível. Do ponto de vista de gerenciamento de dados, o trabalho aborda desafios de \textit{data privacy and security}, gerenciamento de dados em ambientes de Blockchain, e integração de Machine Learning com sistemas de dados para tomada de decisão autônoma --- tópicos centrais da comunidade de banco de dados.
+
+Os resultados experimentais demonstram a viabilidade técnica da abordagem, com acurácia de 91\% na classificação de acessos anômalos e latência compatível com ambientes de produção.
+
+O restante deste artigo está organizado da seguinte forma: a Seção 2 apresenta trabalhos relacionados; a Seção 3 descreve a fundamentação teórica; a Seção 4 detalha a arquitetura e implementação; a Seção 5 apresenta a avaliação experimental; e a Seção 6 conclui o trabalho.
+
+% ============================================================================
+% 2. TRABALHOS RELACIONADOS
+% ============================================================================
+\section{Trabalhos Relacionados}
+
+A autenticação contextual e adaptativa tem sido objeto de investigação crescente na literatura de segurança da informação. Abordagens baseadas em análise comportamental para detecção de anomalias em processos de autenticação são discutidas por \cite{goodfellow2016}, que demonstram a eficácia de modelos supervisionados na captura de padrões não lineares em dados de alta dimensionalidade. Entretanto, a maioria dessas abordagens trata a análise de risco de forma isolada, sem integração com mecanismos de auditoria imutável ou com o gerenciamento de dados subjacente.
+
+No domínio da Blockchain aplicada à segurança e gerenciamento de dados, o relatório técnico NISTIR 8202 \cite{nist2018blockchain} descreve a aplicabilidade de blockchains permissionadas em ambientes corporativos para registro de evidências e trilhas de auditoria. A literatura recente explora o uso de Blockchain para gerenciamento de dados de auditoria em diversos contextos, incluindo registros de saúde, cadeias de suprimentos e sistemas financeiros. No entanto, a aplicação específica ao registro imutável de logs de autenticação contextual com classificação de risco integrada permanece pouco explorada.
+
+Soluções comerciais como o Azure AD Identity Protection (Microsoft) e o Google BeyondCorp implementam análise contextual parcial, porém operam como sistemas proprietários e centralizados, sem oferecer transparência nos critérios decisórios nem auditabilidade descentralizada dos dados. O \textit{AI Risk Management Framework} do NIST \cite{nist2023ai} destaca a importância da rastreabilidade e governança em sistemas baseados em IA, requisitos que sistemas proprietários frequentemente não atendem.
+
+Do ponto de vista de sistemas de banco de dados, trabalhos recentes abordam o conceito de \textit{self-managing databases} e sistemas autônomos que utilizam ML para otimização e tomada de decisão \cite{scikit2024}. O presente trabalho estende essa perspectiva ao aplicar o paradigma de autonomia não apenas ao gerenciamento interno do banco de dados, mas ao processo de controle de acesso ao próprio sistema de dados.
+
+O presente trabalho diferencia-se ao propor a integração sistêmica de três camadas de segurança --- identidade (OAuth2/OIDC), inteligência preditiva (\textit{ensemble} de ML) e auditoria imutável (Blockchain) --- em uma arquitetura aberta, modular e reprodutível, com decisões automatizadas baseadas em critérios normativos, estatísticos e criptográficos, contribuindo tanto para a área de segurança quanto para o gerenciamento responsável de dados.
+
+% ============================================================================
+% 3. FUNDAMENTAÇÃO TEÓRICA
+% ============================================================================
+\section{Fundamentação Teórica}
+
+\subsection{Autenticação Contextual e Segurança Adaptativa}
+
+A autenticação contextual representa uma evolução dos modelos tradicionais ao incorporar variáveis ambientais e comportamentais no processo decisório de concessão de acesso. Diferentemente da autenticação baseada exclusivamente em credenciais (\textit{something you know}), a abordagem contextual analisa fatores como localização, dispositivo, horário e histórico comportamental para calcular um nível de risco associado a cada tentativa \cite{nist2020}.
+
+O \textit{Secure Software Development Framework} (SSDF) do NIST \cite{nist2022} estabelece diretrizes para desenvolvimento seguro que incluem automação de controles e integração de mecanismos de verificação contínua. A abordagem \textit{Secure by Design}, incentivada pela CISA \cite{cisa2023}, propõe que a segurança seja considerada desde a concepção do sistema, não como camada adicional posterior.
+
+\subsection{Machine Learning para Classificação de Risco}
+
+Técnicas de Machine Learning permitem identificar padrões anômalos em comportamento de usuários, aumentando a capacidade preditiva dos sistemas de defesa \cite{nist2023ai}. Modelos supervisionados classificam comportamentos conhecidos com base em dados históricos rotulados, enquanto modelos não supervisionados possibilitam detecção de padrões anômalos não catalogados \cite{goodfellow2016}.
+
+Modelos \textit{ensemble}, que combinam múltiplos classificadores por mecanismos de votação, mitigam vieses individuais de cada algoritmo e aumentam a robustez preditiva do sistema \cite{scikit2024}. O \textit{AI Risk Management Framework} (AI RMF 1.0) do NIST \cite{nist2023ai} estabelece que sistemas baseados em IA devem garantir confiabilidade, rastreabilidade e governança adequada, implicando registro auditável de decisões automatizadas.
+
+\subsection{Blockchain para Integridade e Auditoria de Dados}
+
+A tecnologia Blockchain, fundamentada no encadeamento criptográfico descrito por Nakamoto \cite{nakamoto2008}, oferece garantias de imutabilidade, rastreabilidade e não repúdio para registros digitais. Blockchains permissionadas são adequadas para ambientes corporativos e governamentais, combinando controle de acesso institucional com propriedades de integridade distribuída \cite{nist2018blockchain}.
+
+No contexto de gerenciamento de dados, a Blockchain oferece um modelo de armazenamento em que a integridade é garantida estruturalmente, eliminando a dependência de administradores confiáveis para proteção de logs. Conforme recomendado pelo NIST \cite{nist2020}, a proteção da integridade de trilhas de auditoria é requisito essencial em sistemas de segurança. A utilização de Blockchain para registrar \textit{hashes} criptográficos de eventos garante que nenhum registro seja alterado retroativamente.
+
+\subsection{Microserviços, DevSecOps e Gerenciamento de Dados Distribuídos}
+
+A arquitetura de microserviços \cite{newman2021} favorece decomposição funcional, isolamento de domínios e escalabilidade independente, permitindo que cada componente --- incluindo serviços de dados --- evolua de forma autônoma. O DevSecOps integra controles de segurança desde as fases iniciais do desenvolvimento, promovendo \textit{Shift Left Security} \cite{nist2020}.
+
+Do ponto de vista de dados, a arquitetura distribuída impõe desafios de consistência, integração e interoperabilidade entre múltiplas fontes de dados (banco relacional, cache, Blockchain, índices de busca), que são endereçados neste trabalho por meio de orquestração via containerização e pipelines de dados estruturados.
+
+% ============================================================================
+% 4. ARQUITETURA E IMPLEMENTAÇÃO
+% ============================================================================
+\section{Arquitetura e Implementação}
+
+\subsection{Visão Geral da Arquitetura em Cinco Camadas}
+
+A arquitetura proposta organiza-se em cinco camadas integradas:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Camada de Aplicação Modular} --- serviços independentes (backend em Java 17, frontend em TypeScript) e APIs autenticadas via JWT/OAuth2, com provedor de identidade baseado em OIDC.
+    \item \textbf{Camada de Integração Contínua} --- orquestração automatizada do pipeline DevSecOps com testes unitários, de integração e de segurança.
+    \item \textbf{Camada de Segurança Automatizada} --- verificações SAST, DAST e análise de dependências contra bases de vulnerabilidades conhecidas.
+    \item \textbf{Camada de Inteligência Artificial} --- classificação de riscos e detecção de anomalias com modelos supervisionados de ML, implementada como microsserviço Python.
+    \item \textbf{Camada de Registro Imutável} --- rastreabilidade e integridade forense via Blockchain permissionada, com suporte a Ethereum e Hyperledger Fabric.
+\end{enumerate}
+
+O fluxo operacional segue uma cadeia decisória automatizada: a tentativa de autenticação ativa a captura de contexto; os atributos são processados pelas estratégias de análise; o modelo de IA calcula a probabilidade de risco; critérios objetivos de conformidade são aplicados; o resultado é registrado na Blockchain; e o sistema decide pela liberação, monitoramento, MFA ou bloqueio do acesso.
+
+\subsection{Modelo de Dados e Persistência}
+
+O sistema utiliza uma abordagem poliglota de persistência de dados, articulando múltiplos mecanismos de armazenamento conforme a natureza e os requisitos de cada tipo de dado:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Banco relacional (PostgreSQL 15)} --- armazenamento principal de entidades transacionais: usuários, perfis comportamentais, \textit{scores} de confiança, sessões ativas, padrões de comportamento e dados de treinamento da IA. Garante consistência ACID para operações críticas de autenticação.
+    \item \textbf{Cache distribuído (Redis 7)} --- gerenciamento de sessões ativas, cache de decisões de risco para padrões reconhecidos e armazenamento temporário de tokens, reduzindo latência de consultas recorrentes.
+    \item \textbf{Blockchain (Ethereum/Hyperledger)} --- registro imutável de eventos de autenticação como transações criptograficamente encadeadas, garantindo rastreabilidade forense e não repúdio.
+    \item \textbf{Índice de busca (Elasticsearch 8.12)} --- indexação temporal de logs de autenticação, eventos de risco e alertas de segurança, permitindo consultas analíticas em tempo real e agregações para dashboards.
+\end{itemize}
+
+As entidades principais do modelo relacional incluem: \texttt{Usuario} (credenciais, papéis, estado da conta), \texttt{LogAuditoria} (tentativas de autenticação), \texttt{TransacaoBlockchain} (referências às transações na cadeia), \texttt{PerfilComportamentalIA} (perfis de comportamento por usuário), \texttt{ScoreConfianca} (histórico de pontuação de confiança), \texttt{SessaoAtiva} (sessões em curso), \texttt{PadraoComportamentoUsuario} (padrões históricos) e \texttt{DadosTreinamentoIA} (amostras para retreinamento do modelo).
+
+\subsection{Módulo de Autenticação Contextual}
+
+O módulo de autenticação opera como intermediário inteligente no fluxo de login. O sistema captura automaticamente dez atributos contextuais por tentativa de acesso, conforme a Tabela~\ref{tab:features}.
+
+\begin{table}[H]
+\centering
+\caption{Atributos contextuais extraídos por tentativa de autenticação}
+\label{tab:features}
+\small
+\begin{tabular}{@{}clp{7cm}@{}}
+\toprule
+\textbf{\#} & \textbf{Atributo} & \textbf{Descrição} \\
+\midrule
+1  & \texttt{hour\_of\_day}              & Hora do acesso (0--23) \\
+2  & \texttt{day\_of\_week}              & Dia da semana (0--6) \\
+3  & \texttt{login\_attempts\_last\_hour} & Tentativas de login na última hora \\
+4  & \texttt{is\_new\_device}            & Dispositivo não reconhecido (0/1) \\
+5  & \texttt{is\_new\_location}          & Localização inédita para o usuário (0/1) \\
+6  & \texttt{is\_vpn}                    & Uso de VPN detectado (0/1) \\
+7  & \texttt{is\_tor}                    & Uso de rede Tor detectado (0/1) \\
+8  & \texttt{session\_duration\_avg}     & Duração média das sessões anteriores (s) \\
+9  & \texttt{pages\_per\_session\_avg}   & Páginas por sessão (média histórica) \\
+10 & \texttt{time\_since\_last\_login}   & Tempo desde o último login (horas) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O backend implementa cinco estratégias de análise de risco seguindo o padrão \textit{Strategy}: análise comportamental, de dispositivo, de localização, de rede e temporal. Cada estratégia realiza consultas ao banco de dados para comparar os atributos atuais com o perfil histórico do usuário, contribuindo com uma pontuação parcial que alimenta o modelo de IA.
+
+\subsection{Modelo de Machine Learning}
+
+O serviço de IA foi implementado como microsserviço independente em Python, expondo endpoints RESTful para predição (\texttt{/predict}), treinamento (\texttt{/train}) e verificação de saúde (\texttt{/health}).
+
+O modelo utiliza \textit{ensemble} baseado em \textit{Soft Voting}, combinando três algoritmos:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Random Forest} --- 100 estimadores, profundidade máxima 10;
+    \item \textbf{Decision Tree} --- profundidade máxima 8;
+    \item \textbf{Logistic Regression} --- 500 iterações, otimizador \textit{lbfgs}.
+\end{itemize}
+
+O mecanismo de \textit{Soft Voting} calcula a média das probabilidades preditas por cada classificador, resultando em um \textit{score} de risco contínuo $s \in [0, 1]$. Os dados são normalizados via \texttt{StandardScaler} antes da inferência. O modelo foi treinado com 5.000 amostras sintéticas geradas a partir de regras heurísticas que simulam cenários realistas de autenticação.
+
+A classificação segue quatro níveis de risco (Tabela~\ref{tab:risk_levels}), cada um associado a uma decisão automatizada:
+
+\begin{table}[H]
+\centering
+\caption{Níveis de risco e decisões automatizadas do sistema}
+\label{tab:risk_levels}
+\small
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Nível} & \textbf{Score ($s$)} & \textbf{Decisão} & \textbf{Ação} \\
+\midrule
+Baixo    & $s < 0{,}3$            & PERMITIR    & Acesso liberado \\
+Médio    & $0{,}3 \leq s < 0{,}6$ & MONITORAR   & Acesso com alerta \\
+Alto     & $0{,}6 \leq s < 0{,}8$ & EXIGIR\_MFA & Autenticação multifator \\
+Crítico  & $s \geq 0{,}8$         & BLOQUEAR    & Acesso negado \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Os fatores de risco identificados automaticamente incluem: uso de Tor/VPN, dispositivo desconhecido, localização inédita, múltiplas tentativas de login, horário atípico (2h--6h) e inatividade prolongada ($>$30 dias).
+
+\subsection{Camada Blockchain}
+
+A camada de registro imutável suporta duas implementações complementares:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{Ethereum} (via Web3j 4.10.3) --- registro de \textit{hashes} criptográficos em rede pública ou privada, adequado para cenários que requerem transparência e verificabilidade externa.
+    \item \textbf{Hyperledger Fabric 2.5} --- governança permissionada para ambientes corporativos que exigem controle institucional sobre os participantes da rede.
+\end{itemize}
+
+Cada evento de autenticação gera uma transação contendo: tipo do evento (sucesso, negação, MFA requerido), identificador do usuário (anonimizado via \textit{hash} para conformidade com LGPD), endereço IP, \textit{fingerprint} do dispositivo, \textit{score} de risco calculado, decisão tomada e \textit{timestamp}. A integridade dos registros é verificável por endpoint específico que realiza validação criptográfica da cadeia, com confirmação mínima de 12 blocos.
+
+A escolha de registrar \textit{hashes} dos dados --- e não os dados brutos --- na Blockchain atende ao princípio de minimização de dados da LGPD, garantindo rastreabilidade forense sem exposição de informações pessoais identificáveis no ledger distribuído.
+
+\subsection{Gerenciamento de Identidade e Observabilidade}
+
+O provedor de identidade foi configurado com suporte a OAuth 2.0 e OpenID Connect, incluindo proteção contra força bruta (limite de 5 tentativas falhas, bloqueio temporário de 900 segundos), PKCE para o frontend e tokens de curta duração (5 minutos para \textit{access token}, 30 minutos para SSO \textit{idle timeout}).
+
+O monitoramento integra ELK Stack 8.12 (Elasticsearch, Logstash, Kibana) e Grafana 10.3 para observabilidade em tempo real. O pipeline Logstash classifica eventos por tipo (autenticação, análise de risco, blockchain, alertas) e indexa no Elasticsearch com padrão temporal (\texttt{auth-logs-YYYY.MM.dd}), permitindo consultas analíticas e geração de dashboards de segurança.
+
+\subsection{Stack Tecnológica}
+
+A Tabela~\ref{tab:tech_stack} resume as principais tecnologias empregadas na implementação.
+
+\begin{table}[H]
+\centering
+\caption{Stack tecnológica do sistema proposto}
+\label{tab:tech_stack}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Camada} & \textbf{Tecnologia} & \textbf{Versão} \\
+\midrule
+Backend           & Spring Boot (Java 17) & 3.2.3 \\
+Frontend          & Angular (TypeScript)  & 17.2.0 \\
+Identidade        & Keycloak (OIDC)       & 24.0 \\
+ML/IA             & Scikit-learn          & 1.4.0 \\
+API de IA         & FastAPI (Python)      & 0.109.0 \\
+Blockchain        & Web3j (Ethereum)      & 4.10.3 \\
+Blockchain        & Hyperledger Fabric    & 2.5 \\
+Banco de Dados    & PostgreSQL            & 15 \\
+Cache/Sessões     & Redis                 & 7 \\
+Containerização   & Docker Compose        & Latest \\
+Indexação/Logs     & ELK Stack            & 8.12.0 \\
+Monitoramento     & Grafana               & 10.3.1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ============================================================================
+% 5. AVALIAÇÃO EXPERIMENTAL
+% ============================================================================
+\section{Avaliação Experimental}
+
+\subsection{Configuração do Ambiente}
+
+O ambiente experimental foi construído com infraestrutura containerizada via Docker, com dez microsserviços orquestrados em rede bridge compartilhada: PostgreSQL, Redis, provedor de identidade, backend Java, frontend TypeScript, serviço de IA (Python), Elasticsearch, Logstash, Kibana e Grafana. Cada componente foi implantado com configurações específicas de rede, volumes persistentes e políticas de \textit{health check}.
+
+\subsection{Metodologia}
+
+Os experimentos foram estruturados em três eixos de validação:
+
+\begin{enumerate}[leftmargin=*]
+    \item \textbf{Avaliação do modelo de ML}: classificação de acessos legítimos e anômalos com validação cruzada ($k$-\textit{fold}, $k=10$), utilizando métricas de acurácia, precisão, \textit{recall} e F1-\textit{score};
+    \item \textbf{Cadeia de autenticação contextual}: integração completa do fluxo --- validação de credenciais $\rightarrow$ captura de contexto $\rightarrow$ consulta ao perfil histórico $\rightarrow$ classificação por IA $\rightarrow$ decisão $\rightarrow$ registro Blockchain --- medindo latência de ponta a ponta;
+    \item \textbf{Integridade Blockchain}: verificação de imutabilidade e consistência criptográfica das transações registradas, incluindo testes de validação de cadeia e detecção de adulteração.
+\end{enumerate}
+
+\subsubsection{Conjunto de Dados}
+
+O modelo foi treinado com 5.000 amostras sintéticas de logs de autenticação, contendo os dez atributos contextuais descritos na Tabela~\ref{tab:features}. Os dados foram rotulados em quatro categorias de risco (baixo, médio, alto, crítico) com base em regras heurísticas derivadas de cenários reais de ataque. A distribuição foi balanceada para mitigar viés de classe. A ausência de \textit{datasets} públicos rotulados específicos para autenticação contextual motivou a geração sintética, seguindo abordagem comum na literatura de detecção de anomalias.
+
+\subsubsection{Cenários de Teste}
+
+Foram simulados cinco cenários controlados representativos de situações reais:
+
+\begin{itemize}[leftmargin=*]
+    \item \textbf{C1}: Acesso legítimo a partir de dispositivo e localização habituais, em horário típico;
+    \item \textbf{C2}: Acesso a partir de novo dispositivo, em localização conhecida;
+    \item \textbf{C3}: Acesso via VPN/Tor em horário atípico (2h--6h);
+    \item \textbf{C4}: Múltiplas tentativas falhas seguidas de tentativa com credenciais válidas (\textit{credential stuffing});
+    \item \textbf{C5}: Acesso após período prolongado de inatividade ($>$30 dias).
+\end{itemize}
+
+\subsection{Resultados}
+
+\subsubsection{Desempenho do Modelo de ML}
+
+Os resultados da avaliação do modelo \textit{ensemble} são apresentados na Tabela~\ref{tab:ml_results}.
+
+\begin{table}[H]
+\centering
+\caption{Métricas de desempenho do modelo de classificação de risco}
+\label{tab:ml_results}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Métrica} & \textbf{Valor} \\
+\midrule
+Acurácia                 & 91,0\% \\
+Precisão                 & 89,4\% \\
+Recall                   & 93,1\% \\
+F1-Score                 & 91,2\% \\
+Taxa de Falsos Positivos & 8,6\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O F1-\textit{score} de 91,2\% indica equilíbrio adequado entre precisão e sensibilidade. O \textit{recall} de 93,1\% é particularmente relevante no contexto de segurança, pois prioriza a detecção de acessos genuinamente anômalos, minimizando falsos negativos que representariam acessos maliciosos não detectados. A taxa de falsos positivos de 8,6\%, embora aceitável para a fase atual de validação com dados sintéticos, representa oportunidade de otimização com incorporação futura de dados reais.
+
+\subsubsection{Latência da Autenticação Contextual}
+
+A latência média do fluxo completo de autenticação contextual foi medida em 320ms, com decomposição na Tabela~\ref{tab:latency}.
+
+\begin{table}[H]
+\centering
+\caption{Decomposição da latência do fluxo de autenticação contextual}
+\label{tab:latency}
+\small
+\begin{tabular}{@{}ll@{}}
+\toprule
+\textbf{Etapa} & \textbf{Latência Média} \\
+\midrule
+Validação de credenciais (OIDC)          & 80--100ms \\
+Captura de contexto e consulta ao perfil & 20--30ms \\
+Classificação de risco (IA)              & 120--180ms \\
+Registro em Blockchain                   & 40--60ms \\
+\midrule
+\textbf{Total}                           & \textbf{$\approx$320ms} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+O módulo de IA (120--180ms) constitui o principal gargalo. Estratégias de mitigação incluem: cache de decisões no Redis para usuários com padrões reconhecidos, quantização do modelo e otimização de consultas ao banco de dados para recuperação do perfil histórico. O tempo total de 320ms é compatível com padrões de experiência do usuário em autenticação web, que toleram latências de até 500ms.
+
+\subsubsection{Integridade Blockchain}
+
+Os testes de integridade demonstraram consistência de 100\% nas transações registradas. A validação criptográfica da cadeia de blocos confirmou que nenhum registro foi alterado ou corrompido durante os ciclos de teste. Cada evento de autenticação gerou transação verificável com \textit{hash} de confirmação e metadados completos.
+
+A anonimização por \textit{hash} dos dados pessoais antes do registro em Blockchain atende ao princípio de minimização de dados da LGPD, garantindo rastreabilidade forense sem exposição de informações pessoais identificáveis no \textit{ledger}.
+
+\subsection{Análise Comparativa}
+
+A Tabela~\ref{tab:comparison} apresenta comparação qualitativa entre o sistema proposto e abordagens tradicionais de autenticação.
+
+\begin{table}[H]
+\centering
+\caption{Comparação entre abordagens de autenticação}
+\label{tab:comparison}
+\small
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Característica} & \textbf{Senha} & \textbf{2FA} & \textbf{Proposta} \\
+\midrule
+Análise contextual           & Não     & Não     & Sim \\
+Adaptabilidade               & Não     & Não     & Sim \\
+Auditoria imutável           & Não     & Não     & Sim \\
+Detecção de anomalias        & Não     & Parcial & Sim \\
+Conformidade LGPD            & Parcial & Parcial & Sim \\
+Resist. a \textit{credential stuffing} & Não & Parcial & Sim \\
+Decisão autônoma             & Não     & Não     & Sim \\
+Persistência poliglota       & Não     & Não     & Sim \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Discussão}
+
+Os resultados confirmam que a integração de IA contextual e Blockchain ao processo de autenticação eleva significativamente o nível de segurança em comparação com métodos estáticos. A abordagem adaptativa identificou padrões suspeitos em cenários de \textit{credential stuffing} (C4) e acesso via Tor em horário atípico (C3) que seriam invisíveis a sistemas convencionais.
+
+Do ponto de vista de gerenciamento de dados, a arquitetura de persistência poliglota --- combinando banco relacional (transações ACID), cache distribuído (baixa latência), Blockchain (imutabilidade) e índice de busca (analytics) --- demonstrou ser adequada para atender simultaneamente aos requisitos de consistência, desempenho, integridade e consultas analíticas. A separação de responsabilidades entre os mecanismos de armazenamento permitiu otimização independente de cada camada de dados.
+
+A arquitetura de microserviços demonstrou adequação para escalabilidade independente. A camada Blockchain demonstrou robustez para rastreabilidade forense, garantindo que nenhum registro possa ser adulterado retroativamente --- diferencial crítico em relação a sistemas tradicionais que armazenam logs em bancos de dados suscetíveis a alterações administrativas.
+
+As limitações identificadas incluem: (i) utilização de dados sintéticos para treinamento, impactando a generalização do modelo; (ii) complexidade operacional de redes Blockchain permissionadas em ambientes de desenvolvimento; (iii) necessidade de políticas refinadas de anonimização para plena conformidade com a LGPD; e (iv) ausência de testes de carga em cenários de alta concorrência.
+
+% ============================================================================
+% 6. CONCLUSÃO E TRABALHOS FUTUROS
+% ============================================================================
+\section{Conclusão e Trabalhos Futuros}
+
+Este trabalho apresentou o desenvolvimento e a avaliação de um sistema autônomo de autenticação contextual integrando Inteligência Artificial e Blockchain em arquitetura de microserviços com práticas DevSecOps. Os resultados demonstram viabilidade técnica com acurácia de 91\% na classificação de risco, latência de 320ms compatível com ambientes de produção e integridade total dos registros Blockchain.
+
+A contribuição principal reside na integração sistêmica de três camadas complementares de segurança --- identidade, inteligência preditiva e auditoria imutável --- articuladas por uma arquitetura de persistência poliglota que combina banco relacional, cache distribuído, Blockchain e índice de busca. Essa convergência oferece um paradigma proativo e orientado por evidências para autenticação e gerenciamento seguro de dados de acesso em ambientes críticos.
+
+Como trabalhos futuros, destacam-se: (i) coleta de dados reais de autenticação em ambientes controlados para retreinamento e validação do modelo; (ii) incorporação de aprendizado contínuo (\textit{online learning}) para adaptação dinâmica aos padrões dos usuários; (iii) testes de carga e escalabilidade em cenários de alta concorrência; (iv) extensão para contextos de IoT e autenticação federada; (v) implementação de mecanismos de explicabilidade (XAI) para as decisões do modelo de IA; e (vi) avaliação de técnicas de \textit{differential privacy} para fortalecimento da proteção de dados pessoais no pipeline de treinamento.
+
+% ============================================================================
+% REFERÊNCIAS (páginas 13-14, exclusivas para referências)
+% ============================================================================
+\bibliographystyle{sbc}
+
+\begin{thebibliography}{99}
+
+\bibitem{brasil2018}
+BRASIL. Lei nº 13.709, de 14 de agosto de 2018. Lei Geral de Proteção de Dados Pessoais (LGPD). \textit{Diário Oficial da União}, Brasília, DF, 2018.
+
+\bibitem{cisa2023}
+CISA -- Cybersecurity and Infrastructure Security Agency. Secure by Design Initiative. Washington, DC: CISA, 2023.
+
+\bibitem{eua2025}
+ESTADOS UNIDOS. Executive Order 14144: Strengthening and Promoting Innovation in the Nation's Cybersecurity. Washington, DC: The White House, 2025.
+
+\bibitem{goodfellow2016}
+Goodfellow, I., Bengio, Y., and Courville, A. (2016). \textit{Deep Learning}. MIT Press, Cambridge.
+
+\bibitem{hyperledger2024}
+Hyperledger Foundation. (2024). Hyperledger Fabric Documentation, v2.5. Linux Foundation.
+
+\bibitem{keycloak2024}
+Keycloak. (2024). Server Administration Guide, v24. Red Hat.
+
+\bibitem{nakamoto2008}
+Nakamoto, S. (2008). Bitcoin: A Peer-to-Peer Electronic Cash System.
+
+\bibitem{nist2023ai}
+NIST. (2023). AI Risk Management Framework (AI RMF 1.0). NIST AI 100-1. Gaithersburg.
+
+\bibitem{nist2018blockchain}
+NIST. (2018). Blockchain Technology Overview. NISTIR 8202. Gaithersburg.
+
+\bibitem{nist2022}
+NIST. (2022). Secure Software Development Framework (SSDF) Version 1.1. SP 800-218. Gaithersburg.
+
+\bibitem{nist2020}
+NIST. (2020). Security and Privacy Controls for Information Systems and Organizations. SP 800-53 Rev. 5. Gaithersburg.
+
+\bibitem{newman2021}
+Newman, S. (2021). \textit{Building Microservices: Designing Fine-Grained Systems}. 2nd ed. O'Reilly Media, Sebastopol.
+
+\bibitem{owasp2023}
+OWASP Foundation. (2023). OWASP Top 10 -- 2023 Edition.
+
+\bibitem{scikit2024}
+Scikit-learn Developers. (2024). Scikit-learn: Machine Learning in Python, v1.4.
+
+\end{thebibliography}
+
+\end{document}

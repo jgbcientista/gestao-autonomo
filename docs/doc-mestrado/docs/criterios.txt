@@ -1,0 +1,18 @@
+Critérios para LIBERAR o acesso
+- Credenciais válidas (login/senha ou token OAuth2)
+- Localização e IP habituais
+- Dispositivo reconhecido (navegador, SO)
+- Horário de acesso dentro do padrão
+- Comportamento consistente com o histórico
+- IA classifica risco como BAIXO (< 30%)
+- Sem tentativas suspeitas recentes
+
+
+Critérios para NEGAR o acesso
+- Credenciais inválidas (senha incorreta ou token inválido)
+- Dispositivo ou IP desconhecido
+- Horário incomum (ex: madrugada)
+- Comportamento fora do padrão esperado
+- IA classifica risco como ALTO ( 70%)
+- Múltiplas tentativas de login falhas
+- Geolocalização contraditória

@@ -1,0 +1,217 @@
+services:
+  # ============================================
+  # INFRAESTRUTURA BASE
+  # ============================================
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: auth-postgres
+    environment:
+      POSTGRES_DB: auth_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - auth-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis (cache e sessoes)
+  redis:
+    image: redis:7-alpine
+    container_name: auth-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - auth-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ============================================
+  # IDENTIDADE E ACESSO
+  # ============================================
+
+  # Keycloak (Identity Provider)
+  keycloak:
+    image: quay.io/keycloak/keycloak:24.0
+    container_name: auth-keycloak
+    command: start-dev --import-realm
+    environment:
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      KC_HTTP_PORT: 8180
+      KC_HEALTH_ENABLED: "true"
+    ports:
+      - "8180:8180"
+    volumes:
+      - ./keycloak/realm-export.json:/opt/keycloak/data/import/realm-export.json
+    networks:
+      - auth-network
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/localhost/8180 && echo -e 'GET /health/ready HTTP/1.1\r\nHost: localhost\r\n\r\n' >&3 && cat <&3 | grep -q '200'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # ============================================
+  # APLICACAO
+  # ============================================
+
+  # Auth Service (Spring Boot API)
+  auth-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod,elk
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/auth_db
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_REDIS_HOST=redis
+      - SPRING_REDIS_PORT=6379
+      - AI_SERVICE_URL=http://ai-service:5000
+      - AI_SERVICE_ENABLED=true
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8180/realms/auth-system
+      - KEYCLOAK_JWK_SET_URI=http://keycloak:8180/realms/auth-system/protocol/openid-connect/certs
+      - LOGSTASH_HOST=logstash
+      - LOGSTASH_PORT=5044
+      - APP_BASE_URL=http://localhost:4200
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - auth-network
+    volumes:
+      - ./api-auditoria/logs:/app/logs
+
+  # Frontend (Angular + Nginx)
+  frontend:
+    build:
+      context: ./front-auditoria
+      dockerfile: Dockerfile.frontend
+      args:
+        CONFIGURATION: production
+    container_name: auth-frontend
+    ports:
+      - "4200:4200"
+    depends_on:
+      - auth-service
+    networks:
+      - auth-network
+
+  # AI Service (Python/FastAPI)
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: auth-ai-service
+    ports:
+      - "5000:5000"
+    networks:
+      - auth-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ============================================
+  # OBSERVABILIDADE (ELK + Grafana)
+  # ============================================
+
+  # Elasticsearch
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.12.0
+    container_name: auth-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.enrollment.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - auth-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 60s
+
+  # Logstash
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.12.0
+    container_name: auth-logstash
+    volumes:
+      - ./elk/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf
+    ports:
+      - "5044:5044"
+    environment:
+      - "LS_JAVA_OPTS=-Xms256m -Xmx256m"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - auth-network
+
+  # Kibana
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.12.0
+    container_name: auth-kibana
+    environment:
+      - ELASTICSEARCH_HOSTS=http://elasticsearch:9200
+    ports:
+      - "5601:5601"
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - auth-network
+
+  # Grafana
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: auth-grafana
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./elk/grafana/datasources:/etc/grafana/provisioning/datasources
+      - ./elk/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./elk/grafana/dashboards/auth-security.json:/var/lib/grafana/dashboards/auth-security.json
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    networks:
+      - auth-network
+
+volumes:
+  postgres_data:
+  elasticsearch_data:
+  grafana_data:
+
+networks:
+  auth-network:
+    driver: bridge

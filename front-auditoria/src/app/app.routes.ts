@@ -8,6 +8,7 @@ import { BlockchainComponent } from './components/blockchain/blockchain.componen
 import { AttackSimulationComponent } from './components/attack-simulation/attack-simulation.component';
 import { GeoHeatmapComponent } from './components/geo-heatmap/geo-heatmap.component';
 import { AiComparisonComponent } from './components/ai-comparison/ai-comparison.component';
+import { DataGeneratorComponent } from './components/data-generator/data-generator.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -21,5 +22,6 @@ export const routes: Routes = [
   { path: 'attack-simulation', component: AttackSimulationComponent, canActivate: [authGuard] },
   { path: 'geo-heatmap', component: GeoHeatmapComponent, canActivate: [authGuard] },
   { path: 'ai-comparison', component: AiComparisonComponent, canActivate: [authGuard] },
+  { path: 'data-generator', component: DataGeneratorComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' }
 ];

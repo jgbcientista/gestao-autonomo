@@ -1,0 +1,329 @@
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="page-navbar-container">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" routerLink="/dashboard"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/trust-score"><i class="bi bi-bullseye me-1"></i>Score de Confiança</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/ai-analysis"><i class="bi bi-cpu-fill me-1"></i>Análise IA</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/blockchain"><i class="bi bi-link-45deg me-1"></i>Blockchain</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/attack-simulation"><i class="bi bi-bug-fill me-1"></i>Simulação Ataques</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/geo-heatmap"><i class="bi bi-globe-americas me-1"></i>Mapa Geográfico</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/ai-comparison"><i class="bi bi-bar-chart-line-fill me-1"></i>Comparação IA</a></li>
+        <li class="nav-item"><a class="nav-link active" routerLink="/data-generator"><i class="bi bi-database-fill-gear me-1"></i>Gerar Dados</a></li>
+      </ul>
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar"><i class="bi bi-person-circle"></i></div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header"><div class="user-info"><strong>{{ usuarioAtual.name }}</strong><small>{{ usuarioAtual.email }}</small></div></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" (click)="logout()"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Main Content -->
+<main class="dashboard-main">
+  <div class="page-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-md-8">
+          <div class="welcome-badge"><i class="bi bi-database-fill-gear me-1"></i> GERAÇÃO DE DADOS</div>
+          <h1 class="hero-title">Gerador de Registros de Acesso</h1>
+          <p class="hero-subtitle">Gere registros de login reais passando pelo fluxo completo: Log de Auditoria + Análise IA (Ensemble) + Hash Blockchain + Trust Score</p>
+        </div>
+        <div class="col-md-4 hero-visual">
+          <div class="ai-indicator">
+            <div class="indicator-circle" [class.active]="gerando">
+              <i class="bi bi-database-fill-gear"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Erro -->
+    <div class="alert alert-danger" *ngIf="erroMensagem">
+      <i class="bi bi-exclamation-triangle me-2"></i>{{ erroMensagem }}
+      <button type="button" class="btn-close float-end" (click)="erroMensagem = ''"></button>
+    </div>
+
+    <!-- Configuração -->
+    <div class="row g-4" *ngIf="!gerando && !resultado">
+      <!-- Seleção de Usuário -->
+      <div class="col-md-6">
+        <div class="config-card">
+          <div class="config-header">
+            <h4><i class="bi bi-person-fill me-2"></i>Seleção de Usuário</h4>
+          </div>
+          <div class="config-body">
+            <label class="form-label">Usuário para gerar registros:</label>
+            <select class="form-select" [(ngModel)]="usuarioSelecionado">
+              <option value="">Selecione um usuário...</option>
+              <option *ngFor="let u of usuarios" [value]="u.email">
+                {{ u.nome }} ({{ u.email }})
+              </option>
+            </select>
+
+            <label class="form-label mt-3">Tipo de registro:</label>
+            <div class="tipo-registro-group">
+              <label class="tipo-registro-option" [class.selected]="tipoRegistro === 'NORMAL'"
+                     (click)="tipoRegistro = 'NORMAL'">
+                <i class="bi bi-check-circle-fill me-1" style="color: #168821;"></i>
+                <div>
+                  <strong>Normal</strong>
+                  <small>Logins legítimos sem anomalias</small>
+                </div>
+              </label>
+              <label class="tipo-registro-option" [class.selected]="tipoRegistro === 'SUSPEITO'"
+                     (click)="tipoRegistro = 'SUSPEITO'">
+                <i class="bi bi-exclamation-triangle-fill me-1" style="color: #E52207;"></i>
+                <div>
+                  <strong>Suspeito</strong>
+                  <small>Tentativas falhadas, IPs anômalos, bloqueios</small>
+                </div>
+              </label>
+              <label class="tipo-registro-option" [class.selected]="tipoRegistro === 'MISTO'"
+                     (click)="tipoRegistro = 'MISTO'">
+                <i class="bi bi-shuffle me-1" style="color: #1351B4;"></i>
+                <div>
+                  <strong>Misto</strong>
+                  <small>Países de risco = suspeito, demais = normal</small>
+                </div>
+              </label>
+            </div>
+
+            <label class="form-label mt-3">Registros por país:</label>
+            <select class="form-select" [(ngModel)]="registrosPorPais">
+              <option [ngValue]="1">1 registro por país</option>
+              <option [ngValue]="2">2 registros por país</option>
+              <option [ngValue]="3">3 registros por país</option>
+              <option [ngValue]="4">4 registros por país</option>
+              <option [ngValue]="5">5 registros por país</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Seleção de Países -->
+      <div class="col-md-6">
+        <div class="config-card">
+          <div class="config-header">
+            <h4><i class="bi bi-globe-americas me-2"></i>Seleção de Países</h4>
+            <button class="btn btn-sm btn-selecionar-todos" (click)="selecionarTodos()">
+              {{ todosSelecionados ? 'Desmarcar Todos' : 'Selecionar Todos' }}
+            </button>
+          </div>
+          <div class="config-body">
+            <div class="paises-grid">
+              <div class="pais-item" *ngFor="let pais of paises"
+                   [class.selecionado]="pais.selecionado"
+                   (click)="togglePais(pais)">
+                <div class="pais-check">
+                  <i class="bi" [class.bi-check-square-fill]="pais.selecionado" [class.bi-square]="!pais.selecionado"></i>
+                </div>
+                <div class="pais-info">
+                  <span class="pais-bandeira">{{ getBandeira(pais.nome) }}</span>
+                  <span class="pais-nome">{{ pais.nome }}</span>
+                  <span class="pais-loc">{{ pais.localizacao }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumo e Botão Gerar -->
+    <div class="resumo-section" *ngIf="!gerando && !resultado && paisesSelecionados.length > 0">
+      <div class="resumo-card">
+        <div class="resumo-info">
+          <div class="resumo-item">
+            <i class="bi bi-globe-americas"></i>
+            <span><strong>{{ paisesSelecionados.length }}</strong> países selecionados</span>
+          </div>
+          <div class="resumo-item">
+            <i class="bi bi-journals"></i>
+            <span><strong>{{ totalRegistrosEstimado }}</strong> registros serão gerados</span>
+          </div>
+          <div class="resumo-item">
+            <i class="bi bi-person-fill"></i>
+            <span>Usuário: <strong>{{ usuarioSelecionado }}</strong></span>
+          </div>
+          <div class="resumo-item">
+            <i class="bi" [class.bi-check-circle-fill]="tipoRegistro === 'NORMAL'"
+                          [class.bi-exclamation-triangle-fill]="tipoRegistro === 'SUSPEITO'"
+                          [class.bi-shuffle]="tipoRegistro === 'MISTO'"></i>
+            <span>Tipo: <strong>{{ tipoRegistro === 'NORMAL' ? 'Normal' : tipoRegistro === 'SUSPEITO' ? 'Suspeito' : 'Misto' }}</strong></span>
+          </div>
+        </div>
+        <button class="btn btn-gerar" (click)="gerarRegistros()" [disabled]="!usuarioSelecionado">
+          <i class="bi bi-play-circle-fill me-2"></i>Gerar Registros
+        </button>
+      </div>
+    </div>
+
+    <!-- Progresso -->
+    <div class="progresso-section" *ngIf="gerando">
+      <div class="progresso-card">
+        <div class="progresso-header">
+          <i class="bi bi-gear-wide-connected spin me-2"></i>
+          <h4>Gerando Registros...</h4>
+        </div>
+        <div class="progress">
+          <div class="progress-bar progress-bar-striped progress-bar-animated"
+               [style.width.%]="progresso"
+               [class.bg-success]="progresso === 100">
+            {{ progresso }}%
+          </div>
+        </div>
+        <p class="progresso-mensagem">{{ mensagemProgresso }}</p>
+        <div class="progresso-detalhes">
+          <div class="detalhe-item">
+            <i class="bi bi-cpu-fill"></i>
+            <span>Análise IA (IF + RF + DL)</span>
+          </div>
+          <div class="detalhe-item">
+            <i class="bi bi-link-45deg"></i>
+            <span>Hash Blockchain (SHA3)</span>
+          </div>
+          <div class="detalhe-item">
+            <i class="bi bi-shield-check"></i>
+            <span>Trust Score</span>
+          </div>
+          <div class="detalhe-item">
+            <i class="bi bi-journal-text"></i>
+            <span>Log Auditoria</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resultado -->
+    <div class="resultado-section" *ngIf="resultado && !gerando">
+      <!-- Estatísticas -->
+      <div class="row g-3 mb-4">
+        <div class="col-md-3">
+          <div class="stat-card stat-success">
+            <div class="stat-icon"><i class="bi bi-check-circle-fill"></i></div>
+            <div class="stat-text">
+              <span class="stat-value">{{ resultado.totalGerados }}</span>
+              <span class="stat-label">Registros Gerados</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card stat-info">
+            <div class="stat-icon"><i class="bi bi-globe-americas"></i></div>
+            <div class="stat-text">
+              <span class="stat-value">{{ resultado.paisesProcessados }}</span>
+              <span class="stat-label">Países Processados</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card" [class.stat-danger]="resultado.totalErros > 0" [class.stat-success]="resultado.totalErros === 0">
+            <div class="stat-icon"><i class="bi" [class.bi-x-circle-fill]="resultado.totalErros > 0" [class.bi-check-circle-fill]="resultado.totalErros === 0"></i></div>
+            <div class="stat-text">
+              <span class="stat-value">{{ resultado.totalErros }}</span>
+              <span class="stat-label">Erros</span>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card stat-primary">
+            <div class="stat-icon"><i class="bi bi-person-fill"></i></div>
+            <div class="stat-text">
+              <span class="stat-value truncate">{{ resultado.usuario }}</span>
+              <span class="stat-label">Usuário</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabela de Registros -->
+      <div class="registros-card">
+        <div class="registros-header">
+          <h4><i class="bi bi-table me-2"></i>Registros Gerados</h4>
+          <button class="btn btn-sm btn-outline-primary" (click)="resultado = null; registrosGerados = []">
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Gerar Novos
+          </button>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Tipo</th>
+                <th>País</th>
+                <th>IP</th>
+                <th>Risk Score IA</th>
+                <th>Trust Score</th>
+                <th>Classificação IA</th>
+                <th>Decisão</th>
+                <th>Falhas</th>
+                <th>Blockchain</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let reg of registrosGerados; let i = index" [class.row-suspeito]="reg.suspeito">
+                <td>{{ i + 1 }}</td>
+                <td>
+                  <span class="tipo-badge" [class.tipo-suspeito]="reg.suspeito" [class.tipo-normal]="!reg.suspeito">
+                    <i class="bi" [class.bi-exclamation-triangle-fill]="reg.suspeito" [class.bi-check-circle-fill]="!reg.suspeito"></i>
+                    {{ reg.suspeito ? 'Suspeito' : 'Normal' }}
+                  </span>
+                </td>
+                <td><span class="bandeira-cell">{{ getBandeira(reg.pais) }} {{ reg.pais }}</span></td>
+                <td><code>{{ reg.ip }}</code></td>
+                <td>
+                  <span class="risk-badge" [ngClass]="getRiskClass(reg.aiRiskScore)">
+                    {{ (reg.aiRiskScore * 100).toFixed(1) }}%
+                  </span>
+                </td>
+                <td>
+                  <span class="trust-badge" [ngClass]="getRiskClass(1 - reg.trustScore)">
+                    {{ (reg.trustScore * 100).toFixed(1) }}%
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="getClassificacaoClass(reg.classificacaoIA)">
+                    {{ reg.classificacaoIA }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="getDecisaoClass(reg.decisao)">
+                    {{ getDecisaoLabel(reg.decisao) }}
+                  </span>
+                </td>
+                <td>
+                  <span *ngIf="reg.tentativasFalhadas > 0" class="falhas-badge">
+                    {{ reg.tentativasFalhadas }}
+                  </span>
+                  <span *ngIf="!reg.tentativasFalhadas || reg.tentativasFalhadas === 0">-</span>
+                </td>
+                <td>
+                  <span class="blockchain-status" [class.success]="isRegistrado(reg.blockchain)" [class.error]="!isRegistrado(reg.blockchain)">
+                    <i class="bi" [class.bi-check-circle-fill]="isRegistrado(reg.blockchain)" [class.bi-x-circle-fill]="!isRegistrado(reg.blockchain)"></i>
+                    {{ isRegistrado(reg.blockchain) ? 'OK' : 'Erro' }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>

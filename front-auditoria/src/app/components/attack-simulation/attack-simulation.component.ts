@@ -218,6 +218,16 @@ export class AttackSimulationComponent implements OnInit {
     }
   }
 
+  getUltimaEtapaScore(): number {
+    if (!this.etapasVisiveis || this.etapasVisiveis.length === 0) return 0;
+    return this.etapasVisiveis[this.etapasVisiveis.length - 1].scoreConfianca || 0;
+  }
+
+  getUltimaEtapaDecisao(): string {
+    if (!this.etapasVisiveis || this.etapasVisiveis.length === 0) return '';
+    return this.etapasVisiveis[this.etapasVisiveis.length - 1].decisao || '';
+  }
+
   getScoreColor(score: number): string {
     if (score >= 0.7) return '#168821';
     if (score >= 0.5) return '#B8860B';

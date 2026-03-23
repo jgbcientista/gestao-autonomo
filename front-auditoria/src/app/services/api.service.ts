@@ -623,4 +623,27 @@ export class ApiService {
       { headers: this.getHeaders() }
     );
   }
+
+  // === GERACAO DE DADOS ===
+  getPaisesDisponiveis(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/api/v1/geracao-dados/paises`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getUsuariosParaGeracao(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/api/v1/geracao-dados/usuarios`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  gerarRegistrosAcesso(email: string, paises: string[], registrosPorPais: number = 5, tipoRegistro: string = 'MISTO'): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/geracao-dados/gerar`,
+      { email, paises, registrosPorPais, tipoRegistro },
+      { headers: this.getHeaders() }
+    );
+  }
 }

@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -140,11 +141,13 @@ public class AutenticacaoController {
     }
 
     @PostMapping("/atualizar-roles")
-    @Operation(summary = "Atualizar roles do usuário", 
-               description = "Atualiza as roles de um usuário no sistema")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "Atualizar roles do usuário",
+               description = "Atualiza as roles de um usuário no sistema (requer ADMIN)")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Roles atualizadas com sucesso"),
         @ApiResponse(responseCode = "400", description = "Dados inválidos"),
+        @ApiResponse(responseCode = "403", description = "Acesso negado"),
         @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
     public ResponseEntity<String> atualizarRoles(@RequestParam String email, @RequestParam String novaRole) {
@@ -154,20 +157,6 @@ public class AutenticacaoController {
         } catch (Exception e) {
             log.error("Erro ao atualizar roles do usuário {}: {}", email, e.getMessage());
             return ResponseEntity.status(400).body("Erro ao atualizar roles do usuário");
-        }
-    }
-
-    @GetMapping("/atualizar-roles-joao")
-    @Operation(summary = "Atualizar roles do João Guedes", 
-               description = "Endpoint temporário para atualizar as roles do usuário João Guedes")
-    public ResponseEntity<String> atualizarRolesJoao() {
-        try {
-            authenticationService.atualizarRoles("joaoguedesdebrito@gmail.com", "ADMIN");
-            log.info("✅ Roles do João Guedes atualizadas para ADMIN");
-            return ResponseEntity.ok("✅ Roles do João Guedes atualizadas para ADMIN com sucesso!");
-        } catch (Exception e) {
-            log.error("❌ Erro ao atualizar roles do João Guedes: {}", e.getMessage());
-            return ResponseEntity.status(500).body("❌ Erro: " + e.getMessage());
         }
     }
 

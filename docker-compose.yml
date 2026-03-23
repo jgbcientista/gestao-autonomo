@@ -26,11 +26,11 @@ services:
       dockerfile: Dockerfile
     container_name: auditoria-api
     ports:
-      - "8080:8081"
+      - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=dev
       - DB_URL=jdbc:postgresql://postgres:5432/auditoria_db
-      - SERVER_PORT=8081
+      - SERVER_PORT=8080
       - DB_USERNAME=postgres
       - DB_PASSWORD=postgres
     depends_on:

@@ -83,7 +83,7 @@ public class BlockchainAuditoriaController {
     @Operation(summary = "Buscar transações por usuário", 
                description = "Consulta todas as transações de um usuário específico")
     @GetMapping("/usuario/{usuarioId}")
-   // @PreAuthorize("hasRole('ADMIN') or hasRole('AUDITOR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AUDITOR')")
     public ResponseEntity<List<TransacaoBlockchain>> getUserTransactions(
             @Parameter(description = "ID do usuário")
             @PathVariable Long usuarioId) {
@@ -126,7 +126,7 @@ public class BlockchainAuditoriaController {
     @Operation(summary = "Transações suspeitas por usuário", 
                description = "Consulta transações suspeitas de um usuário específico")
     @GetMapping("/usuario/{usuarioId}/suspeitas")
-   // @PreAuthorize("hasRole('ADMIN') or hasRole('AUDITOR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AUDITOR')")
     public ResponseEntity<List<TransacaoBlockchain>> getUserHighRiskTransactions(
             @PathVariable Long usuarioId,
             @RequestParam(defaultValue = "0.7") Double limiteRisco) {
@@ -213,7 +213,7 @@ public class BlockchainAuditoriaController {
     @Operation(summary = "Relatório de auditoria por usuário", 
                description = "Gera relatório completo de auditoria para um usuário")
     @GetMapping("/relatorio/usuario/{usuarioId}")
-    //@PreAuthorize("hasRole('ADMIN') or hasRole('AUDITOR')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('AUDITOR')")
     public ResponseEntity<Map<String, Object>> gerarRelatorioUsuario(
             @PathVariable Long usuarioId) {
         

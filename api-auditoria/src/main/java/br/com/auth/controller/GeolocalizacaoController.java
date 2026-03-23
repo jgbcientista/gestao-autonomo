@@ -1,5 +1,9 @@
 package br.com.auth.controller;
 
+import br.com.auth.dominio.entidades.LogAuditoria;
+import br.com.auth.dominio.entidades.Usuario;
+import br.com.auth.infraestrutura.repositorios.RepositorioLogAuditoria;
+import br.com.auth.infraestrutura.repositorios.RepositorioUsuario;
 import br.com.auth.service.ServicoGeolocalizacao;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Controller para testes e demonstração do serviço de geolocalização
@@ -24,6 +29,8 @@ import java.util.Map;
 public class GeolocalizacaoController {
 
     private final ServicoGeolocalizacao servicoGeolocalizacao;
+    private final RepositorioLogAuditoria repositorioLogAuditoria;
+    private final RepositorioUsuario repositorioUsuario;
 
     @GetMapping("/ip/{ipAddress}")
     @Operation(summary = "Obter geolocalização por IP", 
@@ -190,19 +197,57 @@ public class GeolocalizacaoController {
     @GetMapping("/usuario/{userId}/historico")
     @Operation(summary = "Obter histórico de localização do usuário",
                description = "Retorna o histórico de localizações acessadas por um usuário")
-    public ResponseEntity<Map<String, Object>> obterHistoricoLocalizacaoUsuario(
+    public ResponseEntity<?> obterHistoricoLocalizacaoUsuario(
             @Parameter(description = "ID do usuário")
             @PathVariable Long userId) {
 
         log.info("Obtendo histórico de localização para usuário: {}", userId);
 
-        Map<String, Object> resultado = new HashMap<>();
-        resultado.put("userId", userId);
-        resultado.put("historico", List.of());
-        resultado.put("totalRegistros", 0);
-        resultado.put("consultadoEm", java.time.LocalDateTime.now().toString());
+        try {
+            Usuario usuario = repositorioUsuario.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        return ResponseEntity.ok(resultado);
+            List<LogAuditoria> logs = repositorioLogAuditoria.findByUsuario(usuario);
+
+            List<Map<String, Object>> historico = logs.stream()
+                    .sorted((a, b) -> {
+                        if (a.getDataHora() == null) return 1;
+                        if (b.getDataHora() == null) return -1;
+                        return b.getDataHora().compareTo(a.getDataHora());
+                    })
+                    .map(logEntry -> {
+                        Map<String, Object> item = new HashMap<>();
+                        item.put("dataHora", logEntry.getDataHora());
+                        item.put("enderecoIp", logEntry.getEnderecoIp());
+                        item.put("localizacao", logEntry.getLocalizacao());
+                        item.put("dispositivo", logEntry.getAgenteUsuario() != null
+                                ? logEntry.getAgenteUsuario() : logEntry.getInfoDispositivo());
+                        item.put("tipoEvento", logEntry.getTipoEvento());
+                        item.put("sucesso", logEntry.isSucesso());
+                        item.put("nivelRisco", calcularNivelRisco(logEntry));
+                        return item;
+                    })
+                    .collect(Collectors.toList());
+
+            return ResponseEntity.ok(historico);
+
+        } catch (Exception e) {
+            log.error("Erro ao obter histórico de localização para usuário: {}", userId, e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of("erro", "Erro ao obter histórico: " + e.getMessage()));
+        }
+    }
+
+    private String calcularNivelRisco(LogAuditoria log) {
+        if (!log.isSucesso()) return "ALTO";
+        String loc = log.getLocalizacao();
+        if (loc != null && !loc.contains("BR") && !loc.contains("Brasil") && !loc.contains("São Paulo")) {
+            return "ALTO";
+        }
+        if (loc != null && !loc.contains("São Paulo") && !loc.contains("Salvador")) {
+            return "MEDIO";
+        }
+        return "BAIXO";
     }
 
     @GetMapping("/teste-completo")

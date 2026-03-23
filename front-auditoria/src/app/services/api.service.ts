@@ -76,6 +76,18 @@ export class ApiService {
     );
   }
 
+  logout(token: string): Observable<any> {
+    const headers = new HttpHeaders({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`
+    });
+    return this.http.post(
+      `${this.baseUrl}/api/v1/autenticacao/logout`,
+      null,
+      { headers }
+    );
+  }
+
   getStatus(): Observable<string> {
     return this.http.get(
       `${this.baseUrl}/api/v1/autenticacao/status`, 

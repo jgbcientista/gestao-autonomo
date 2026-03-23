@@ -1,6 +1,6 @@
 import { Injectable, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { BehaviorSubject, Observable, tap, of } from 'rxjs';
+import { BehaviorSubject, Observable, tap, of, catchError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ApiService } from './api.service';
 import { KeycloakService } from './keycloak.service';
@@ -181,6 +181,13 @@ export class AuthService {
   logout(): void {
     if (environment.useKeycloak && this.keycloakService.isLoggedIn()) {
       this.keycloakService.logout();
+    }
+
+    const token = this.isBrowser ? localStorage.getItem('auth_token') : null;
+    if (token) {
+      this.apiService.logout(token).pipe(
+        catchError(() => of(null))
+      ).subscribe();
     }
 
     if (this.isBrowser) {

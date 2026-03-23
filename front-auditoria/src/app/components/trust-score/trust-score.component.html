@@ -278,6 +278,90 @@
           <p class="ts-contextual-text">{{ getDescricaoContextual() }}</p>
         </div>
 
+        <!-- Historico de Localizacoes -->
+        <div *ngIf="locationHistory.length > 0" class="ts-card ts-locations-card">
+          <div class="ts-card-header">
+            <i class="bi bi-geo-alt-fill"></i>
+            <h3>Histórico de Localizações de Acesso</h3>
+            <span class="ts-location-count">{{ locationHistory.length }} registros</span>
+          </div>
+
+          <div class="table-responsive">
+            <table class="ts-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Data/Hora</th>
+                  <th>Endereço IP</th>
+                  <th>Localização</th>
+                  <th>Dispositivo</th>
+                  <th>Risco</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let loc of locationPagedData; let i = index"
+                    [class.ts-row-danger]="loc.nivelRisco === 'ALTO' || loc.risco === 'ALTO'">
+                  <td class="ts-td-index">{{ (locationPage - 1) * locationPageSize + i + 1 }}</td>
+                  <td class="ts-td-date">{{ loc.dataHora || loc.timestamp || loc.criadoEm | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="ts-td-ip">{{ loc.ip || loc.enderecoIp || '-' }}</td>
+                  <td class="ts-td-location">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    {{ loc.localizacao || loc.cidade || loc.location || '-' }}
+                  </td>
+                  <td class="ts-td-device">{{ loc.dispositivo || loc.userAgent || loc.agenteUsuario || '-' }}</td>
+                  <td>
+                    <span class="ts-risk-badge"
+                          [class.ts-risk-baixo]="loc.nivelRisco === 'BAIXO' || loc.risco === 'BAIXO'"
+                          [class.ts-risk-medio]="loc.nivelRisco === 'MEDIO' || loc.risco === 'MEDIO'"
+                          [class.ts-risk-alto]="loc.nivelRisco === 'ALTO' || loc.risco === 'ALTO'">
+                      {{ loc.nivelRisco || loc.risco || 'N/A' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="ts-status-badge"
+                          [class.ts-status-sucesso]="loc.sucesso !== false"
+                          [class.ts-status-falha]="loc.sucesso === false">
+                      {{ loc.sucesso !== false ? 'Sucesso' : 'Falha' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginação -->
+          <div class="ts-pagination-container" *ngIf="locationTotalPages > 1">
+            <span class="ts-pagination-info">
+              Página {{ locationPage }} de {{ locationTotalPages }} ({{ locationHistory.length }} registros)
+            </span>
+            <nav>
+              <ul class="pagination ts-pagination">
+                <li class="page-item" [class.disabled]="locationPage === 1">
+                  <a class="page-link" (click)="goToLocationPage(locationPage - 1)">
+                    <i class="bi bi-chevron-left"></i>
+                  </a>
+                </li>
+                <li class="page-item" *ngFor="let p of locationPages"
+                    [class.active]="p === locationPage">
+                  <a class="page-link" (click)="goToLocationPage(p)">{{ p }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="locationPage === locationTotalPages">
+                  <a class="page-link" (click)="goToLocationPage(locationPage + 1)">
+                    <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+
+        <!-- Loading locations -->
+        <div *ngIf="loadingLocations" class="ts-card" style="text-align: center; padding: 2rem;">
+          <div class="ts-spinner" style="margin: 0 auto;"></div>
+          <p style="margin-top: 0.75rem; color: #555; font-size: 0.8125rem;">Carregando histórico de localizações...</p>
+        </div>
+
         <!-- Ajuste Manual -->
         <div class="ts-card ts-adjust-card">
           <div class="ts-card-header">

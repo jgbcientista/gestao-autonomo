@@ -4,7 +4,7 @@ export const environment = {
   aiApiUrl: '/ai-api',
   useKeycloak: false,
   keycloak: {
-    url: 'http://localhost:8180',
+    url: '',
     realm: 'auth-system',
     clientId: 'auth-frontend'
   }

@@ -35,6 +35,12 @@ export class TrustScoreComponent implements OnInit {
   // Decisao simulada
   decisaoSimulada: any = null;
 
+  // Historico de localizacoes
+  locationHistory: any[] = [];
+  locationPage = 1;
+  locationPageSize = 8;
+  loadingLocations = false;
+
   constructor(
     private apiService: ApiService,
     private authService: AuthService,
@@ -74,10 +80,12 @@ export class TrustScoreComponent implements OnInit {
     if (!this.selectedEmail) {
       this.trustScore = null;
       this.decisaoSimulada = null;
+      this.locationHistory = [];
       return;
     }
     this.loadTrustScoreData();
     this.loadDecisaoSimulada();
+    this.loadLocationHistory();
   }
 
   refreshData(): void {
@@ -151,6 +159,49 @@ export class TrustScoreComponent implements OnInit {
         this.loading = false;
       }
     });
+  }
+
+  private loadLocationHistory(): void {
+    const usuario = this.usuarios.find(u => u.email === this.selectedEmail);
+    if (!usuario?.id) return;
+
+    this.loadingLocations = true;
+    this.locationPage = 1;
+
+    this.apiService.getUserLocationHistory(usuario.id).subscribe({
+      next: (data) => {
+        this.locationHistory = Array.isArray(data) ? data : [];
+        this.loadingLocations = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar histórico de localizações:', err);
+        this.locationHistory = [];
+        this.loadingLocations = false;
+      }
+    });
+  }
+
+  get locationPagedData(): any[] {
+    const start = (this.locationPage - 1) * this.locationPageSize;
+    return this.locationHistory.slice(start, start + this.locationPageSize);
+  }
+
+  get locationTotalPages(): number {
+    return Math.ceil(this.locationHistory.length / this.locationPageSize);
+  }
+
+  get locationPages(): number[] {
+    const pages: number[] = [];
+    for (let i = 1; i <= this.locationTotalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  goToLocationPage(page: number): void {
+    if (page >= 1 && page <= this.locationTotalPages) {
+      this.locationPage = page;
+    }
   }
 
   getScoreColor(score: number): string {

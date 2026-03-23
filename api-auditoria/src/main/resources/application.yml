@@ -1,5 +1,5 @@
 server:
-  port: ${SERVER_PORT:8081}
+  port: ${SERVER_PORT:8080}
   servlet:
     session:
       timeout: 30m
@@ -43,10 +43,10 @@ spring:
           provider_disables_autocommit: false
     open-in-view: false
   mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${MAIL_USERNAME:joaoguedesdebrito@gmail.com}
-    password: ${MAIL_PASSWORD:sua_senha_de_app}
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
     properties:
       mail:
         smtp:
@@ -75,7 +75,7 @@ springdoc:
   default-produces-media-type: application/json
   # Configurações para evitar duplicação de path
   servers:
-    url: http://localhost:8081
+    url: http://localhost:8080
   # Não usar prefix automático
   use-management-port: false
 
@@ -253,9 +253,9 @@ spring:
     activate:
       on-profile: prod
   datasource:
-    url: jdbc:postgresql://localhost:5432/auditoria_db
-    username: postgres
-    password: postgres
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/auditoria_db}
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 5

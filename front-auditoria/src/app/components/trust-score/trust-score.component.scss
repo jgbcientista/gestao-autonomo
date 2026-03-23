@@ -3,7 +3,7 @@
 // Navbar container
 .ts-navbar-container {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
   padding: 0 1rem;
   display: flex;
@@ -15,7 +15,7 @@
 // Container
 .ts-container {
   padding: 0 1rem 2rem;
-  max-width: 1200px;
+  max-width: 1600px;
   margin: 0 auto;
 }
 
@@ -893,7 +893,7 @@
 }
 
 // Responsive
-@media (max-width: 1200px) {
+@media (max-width: 1600px) {
   .ts-row-top {
     grid-template-columns: 1fr 1fr;
   }

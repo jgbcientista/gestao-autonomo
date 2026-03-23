@@ -1,0 +1,281 @@
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="page-navbar-container">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item"><a class="nav-link" routerLink="/dashboard"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/trust-score"><i class="bi bi-bullseye me-1"></i>Score de Confiança</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/ai-analysis"><i class="bi bi-cpu-fill me-1"></i>Análise IA</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/blockchain"><i class="bi bi-link-45deg me-1"></i>Blockchain</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/attack-simulation"><i class="bi bi-bug-fill me-1"></i>Simulação Ataques</a></li>
+        <li class="nav-item"><a class="nav-link active" routerLink="/geo-heatmap"><i class="bi bi-globe-americas me-1"></i>Mapa Geográfico</a></li>
+        <li class="nav-item"><a class="nav-link" routerLink="/ai-comparison"><i class="bi bi-bar-chart-line-fill me-1"></i>Comparação IA</a></li>
+      </ul>
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar"><i class="bi bi-person-circle"></i></div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header"><div class="user-info"><strong>{{ usuarioAtual.name }}</strong><small>{{ usuarioAtual.email }}</small></div></li>
+            <li><hr class="dropdown-divider"></li>
+            <li><a class="dropdown-item" href="#" (click)="logout()"><i class="bi bi-box-arrow-right me-2"></i>Sair</a></li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<main class="dashboard-main">
+  <div class="page-container">
+
+    <!-- Hero -->
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="hero-content">
+            <div class="welcome-badge"><i class="bi bi-globe-americas me-2"></i>Mapa Geográfico</div>
+            <h1 class="hero-title">Mapa de Acessos Geográficos</h1>
+            <p class="hero-subtitle">Visualize de onde os acessos foram realizados, detecte padrões geográficos suspeitos e viagens impossíveis.</p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="hero-visual">
+            <div class="ai-indicator">
+              <div class="indicator-circle"><i class="bi bi-globe-americas"></i></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Seleção de Usuário -->
+    <section class="select-section">
+      <div class="select-card">
+        <div class="select-card-header">
+          <i class="bi bi-person-fill me-2"></i>
+          <h4>Selecionar Usuário</h4>
+        </div>
+        <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
+          <option [ngValue]="null">-- Selecione um usuário --</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.id">
+            {{ u.nome }} ({{ u.email }})
+          </option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Loading -->
+    <div *ngIf="loading" class="loading-card">
+      <div class="spinner-border text-primary" role="status" style="width:1.5rem;height:1.5rem;"></div>
+      <span>Carregando dados do mapa...</span>
+    </div>
+
+    <!-- Erro -->
+    <div *ngIf="error" class="alert-card alert-danger-card">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <span>{{ error }}</span>
+    </div>
+
+    <!-- Mapa SVG -->
+    <section class="map-section" *ngIf="todosOsPontos.length > 0 && !loading">
+
+      <!-- Stats Bar -->
+      <div class="map-stats">
+        <div class="stat-pill stat-green">
+          <i class="bi bi-circle-fill"></i>
+          <span>{{ acessosNormais.length }} locais normais</span>
+        </div>
+        <div class="stat-pill stat-red">
+          <i class="bi bi-circle-fill"></i>
+          <span>{{ acessosSuspeitos.length }} locais suspeitos</span>
+        </div>
+        <div class="stat-pill stat-blue">
+          <i class="bi bi-dash-lg"></i>
+          <span>{{ conexoes.length }} conexões</span>
+        </div>
+        <div class="stat-pill stat-danger" *ngIf="viagensImpossiveis.length > 0">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>{{ viagensImpossiveis.length }} viagens impossíveis</span>
+        </div>
+      </div>
+
+      <div class="map-container">
+        <svg [attr.viewBox]="'0 0 ' + mapWidth + ' ' + mapHeight" class="world-map"
+             xmlns="http://www.w3.org/2000/svg">
+
+          <!-- Background -->
+          <rect width="100%" height="100%" fill="#E3F2FD" rx="4"/>
+
+          <!-- Simplified continent outlines -->
+          <!-- Americas -->
+          <path d="M 180 80 Q 200 100 210 140 Q 220 160 200 200 Q 190 230 195 260 Q 200 280 210 300 Q 220 340 230 360 Q 240 380 235 400 L 220 420 Q 200 400 190 370 Q 180 340 175 300 Q 170 260 160 240 Q 150 220 155 200 Q 160 180 170 160 Q 175 140 180 120 Z" fill="#C5D4EB" stroke="#A0B4D0" stroke-width="0.5"/>
+          <path d="M 220 80 Q 260 70 280 90 Q 290 110 280 130 Q 270 150 250 160 Q 240 165 230 160 Q 220 150 210 140 Z" fill="#C5D4EB" stroke="#A0B4D0" stroke-width="0.5"/>
+          <!-- Europe -->
+          <path d="M 470 80 Q 490 70 520 75 Q 540 80 550 100 Q 540 120 520 130 Q 500 140 480 135 Q 460 130 455 110 Q 450 90 470 80 Z" fill="#C5D4EB" stroke="#A0B4D0" stroke-width="0.5"/>
+          <!-- Africa -->
+          <path d="M 490 160 Q 510 150 530 160 Q 550 180 560 220 Q 560 260 550 300 Q 540 330 520 350 Q 500 340 490 310 Q 480 280 475 240 Q 470 200 480 170 Z" fill="#C5D4EB" stroke="#A0B4D0" stroke-width="0.5"/>
+          <!-- Asia -->
+          <path d="M 560 60 Q 600 50 650 55 Q 700 60 740 70 Q 780 80 800 100 Q 810 120 790 140 Q 770 150 740 155 Q 700 160 660 155 Q 620 150 590 140 Q 570 130 560 110 Q 555 90 560 60 Z" fill="#C5D4EB" stroke="#A0B4D0" stroke-width="0.5"/>
+          <!-- India -->
+          <path d="M 660 160 Q 680 155 690 175 Q 695 200 685 230 Q 675 240 665 225 Q 655 200 655 180 Z" fill="#C5D4EB" stroke="#A0B4D0" stroke-width="0.5"/>
+          <!-- Australia -->
+          <path d="M 770 300 Q 800 290 830 300 Q 850 320 840 350 Q 820 370 790 365 Q 770 350 760 330 Q 755 310 770 300 Z" fill="#C5D4EB" stroke="#A0B4D0" stroke-width="0.5"/>
+          <!-- Japan -->
+          <path d="M 810 100 Q 820 90 825 105 Q 825 120 815 130 Q 810 120 810 100 Z" fill="#C5D4EB" stroke="#A0B4D0" stroke-width="0.5"/>
+
+          <!-- Grid lines -->
+          <g stroke="#A0B4D0" stroke-width="0.2" opacity="0.3">
+            <line x1="0" y1="250" x2="1000" y2="250"/>
+            <line x1="500" y1="0" x2="500" y2="500"/>
+            <line *ngFor="let i of [100,200,300,400,600,700,800,900]" [attr.x1]="i" y1="0" [attr.x2]="i" y2="500" stroke-dasharray="4,4"/>
+            <line *ngFor="let i of [100,150,200,300,350,400,450]" x1="0" [attr.y1]="i" x2="1000" [attr.y2]="i" stroke-dasharray="4,4"/>
+          </g>
+
+          <!-- Connection lines -->
+          <g *ngFor="let conn of conexoes">
+            <line
+              [attr.x1]="projectX(conn.origem.longitude)"
+              [attr.y1]="projectY(conn.origem.latitude)"
+              [attr.x2]="projectX(conn.destino.longitude)"
+              [attr.y2]="projectY(conn.destino.latitude)"
+              [attr.stroke]="getConnectionColor(conn)"
+              [attr.stroke-width]="conn.viagemImpossivel ? 2 : 1"
+              [attr.stroke-dasharray]="getConnectionDash(conn)"
+              [attr.opacity]="getConnectionOpacity(conn)"
+              fill="none"/>
+          </g>
+
+          <!-- Normal access dots -->
+          <g *ngFor="let ponto of acessosNormais">
+            <circle
+              [attr.cx]="projectX(ponto.longitude)"
+              [attr.cy]="projectY(ponto.latitude)"
+              [attr.r]="getDotRadius(ponto.contagem)"
+              [attr.fill]="getDotColor(ponto)"
+              fill-opacity="0.7"
+              stroke="white" stroke-width="1.5"
+              class="map-dot"
+              (mouseenter)="showTooltip($event, ponto)"
+              (mouseleave)="hideTooltip()"/>
+          </g>
+
+          <!-- Suspicious access dots -->
+          <g *ngFor="let ponto of acessosSuspeitos">
+            <circle
+              [attr.cx]="projectX(ponto.longitude)"
+              [attr.cy]="projectY(ponto.latitude)"
+              [attr.r]="getDotRadius(ponto.contagem) + 3"
+              [attr.fill]="getDotColor(ponto)"
+              fill-opacity="0.15"
+              [attr.stroke]="getDotColor(ponto)"
+              stroke-width="1"/>
+            <circle
+              [attr.cx]="projectX(ponto.longitude)"
+              [attr.cy]="projectY(ponto.latitude)"
+              [attr.r]="getDotRadius(ponto.contagem)"
+              [attr.fill]="getDotColor(ponto)"
+              fill-opacity="0.8"
+              stroke="white" stroke-width="1.5"
+              class="map-dot"
+              (mouseenter)="showTooltip($event, ponto)"
+              (mouseleave)="hideTooltip()"/>
+          </g>
+        </svg>
+
+        <!-- Tooltip -->
+        <div class="map-tooltip" *ngIf="tooltipVisible && tooltipData"
+             [style.left.px]="tooltipX" [style.top.px]="tooltipY">
+          <div class="tooltip-city">
+            <i class="bi bi-geo-alt-fill me-1"></i>{{ tooltipData.cidade }}
+          </div>
+          <div class="tooltip-detail">Acessos: <strong>{{ tooltipData.contagem }}</strong></div>
+          <div class="tooltip-detail" *ngIf="tooltipData.falhas">Falhas: <strong class="text-danger">{{ tooltipData.falhas }}</strong></div>
+          <div class="tooltip-detail">Risco: <strong [style.color]="getDotColor(tooltipData)">{{ tooltipData.nivelRisco }}</strong></div>
+        </div>
+      </div>
+
+      <!-- Legenda -->
+      <div class="map-legend">
+        <h5><i class="bi bi-list-ul me-1"></i>Legenda</h5>
+        <div class="legend-items">
+          <div class="legend-item"><span class="legend-dot" style="background:#168821;"></span>Acesso Normal</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#B8860B;"></span>Risco Médio</div>
+          <div class="legend-item"><span class="legend-dot" style="background:#E52207;"></span>Risco Alto / Falha</div>
+          <div class="legend-item"><span class="legend-line" style="background:#1351B4;"></span>Conexão Normal</div>
+          <div class="legend-item"><span class="legend-line dashed" style="background:#E52207;"></span>Viagem Impossível</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Viagens Impossiveis -->
+    <section class="travel-section" *ngIf="viagensImpossiveis.length > 0">
+      <div class="travel-card">
+        <div class="travel-header">
+          <i class="bi bi-exclamation-triangle-fill me-2" style="color:#E52207;"></i>
+          <h4>Viagens Impossíveis Detectadas</h4>
+          <span class="travel-count">{{ viagensImpossiveis.length }}</span>
+        </div>
+        <div class="travel-list">
+          <div class="travel-item" *ngFor="let v of viagensImpossiveis">
+            <div class="travel-route">
+              <span class="travel-city">{{ v.origem.cidade }}</span>
+              <i class="bi bi-arrow-right mx-2" style="color:#E52207;"></i>
+              <span class="travel-city">{{ v.destino.cidade }}</span>
+            </div>
+            <div class="travel-details">
+              <span class="travel-tag"><i class="bi bi-signpost-split me-1"></i>{{ v.distanciaKm | number:'1.0-0' }} km</span>
+              <span class="travel-tag"><i class="bi bi-clock me-1"></i>{{ v.intervaloMinutos }} min</span>
+              <span class="travel-tag danger"><i class="bi bi-speedometer me-1"></i>{{ v.velocidadeKmH | number:'1.0-0' }} km/h</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabela de Locais -->
+    <section class="locations-table-section" *ngIf="todosOsPontos.length > 0">
+      <div class="table-card">
+        <div class="table-header">
+          <i class="bi bi-table me-2"></i>
+          <h4>Detalhes dos Locais de Acesso</h4>
+        </div>
+        <div class="table-responsive">
+          <table class="loc-detail-table">
+            <thead>
+              <tr>
+                <th>Cidade</th>
+                <th>Acessos</th>
+                <th>Falhas</th>
+                <th>Risco</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let p of todosOsPontos" [class.row-danger]="p.nivelRisco === 'ALTO'">
+                <td><i class="bi bi-geo-alt me-1"></i>{{ p.cidade }}</td>
+                <td><strong>{{ p.contagem }}</strong></td>
+                <td>
+                  <span [style.color]="(p.falhas || 0) > 0 ? '#E52207' : '#168821'">{{ p.falhas || 0 }}</span>
+                </td>
+                <td>
+                  <span class="risk-pill"
+                        [class.risk-baixo]="p.nivelRisco === 'BAIXO'"
+                        [class.risk-medio]="p.nivelRisco === 'MEDIO'"
+                        [class.risk-alto]="p.nivelRisco === 'ALTO'">
+                    {{ p.nivelRisco }}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </div>
+</main>

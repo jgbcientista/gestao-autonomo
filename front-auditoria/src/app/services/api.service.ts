@@ -543,6 +543,70 @@ export class ApiService {
     );
   }
 
+  // === SIMULAÇÃO DE ATAQUES ===
+  simularForcaBruta(email: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/simulacao/forca-bruta/${email}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  simularCredentialStuffing(email: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/simulacao/credential-stuffing/${email}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  simularViagemImpossivel(email: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/simulacao/viagem-impossivel/${email}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  simularSequestroDispositivo(email: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/simulacao/sequestro-dispositivo/${email}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  resetarSimulacao(email: string): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/simulacao/resetar/${email}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // === MAPA GEOGRÁFICO ===
+  getMapaAcessos(userId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/geolocalizacao/usuario/${userId}/mapa-acessos`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // === COMPARAÇÃO DE MODELOS IA ===
+  getComparacaoModelos(userId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/ia/comparacao-modelos/${userId}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getMetricasModelos(): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/ia/metricas-modelos`,
+      { headers: this.getHeaders() }
+    );
+  }
+
   // === FUNCIONALIDADES ESPECÍFICAS ===
   regenerateApiKey(): Observable<any> {
     return this.http.post<any>(

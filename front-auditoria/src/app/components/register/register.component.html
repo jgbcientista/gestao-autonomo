@@ -24,7 +24,7 @@
           </div>
 
           <div class="card-body">
-            <!-- Formulario de Registro -->
+            <!-- Formulário de Registro -->
             <form *ngIf="!showMfaSetup" [formGroup]="registerForm" (ngSubmit)="onSubmit()">
               <div class="form-floating mb-3">
                 <input
@@ -39,13 +39,13 @@
                 </label>
                 <div class="invalid-feedback" *ngIf="registerForm.get('name')?.invalid && registerForm.get('name')?.touched">
                   <div *ngIf="registerForm.get('name')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Nome e obrigatorio
+                    <i class="bi bi-exclamation-circle me-1"></i>Nome é obrigatório
                   </div>
                   <div *ngIf="registerForm.get('name')?.errors?.['minlength']">
                     <i class="bi bi-exclamation-circle me-1"></i>Nome deve ter pelo menos 2 caracteres
                   </div>
                   <div *ngIf="registerForm.get('name')?.errors?.['maxlength']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Nome deve ter no maximo 100 caracteres
+                    <i class="bi bi-exclamation-circle me-1"></i>Nome deve ter no máximo 100 caracteres
                   </div>
                 </div>
               </div>
@@ -63,10 +63,10 @@
                 </label>
                 <div class="invalid-feedback" *ngIf="registerForm.get('email')?.invalid && registerForm.get('email')?.touched">
                   <div *ngIf="registerForm.get('email')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Email e obrigatorio
+                    <i class="bi bi-exclamation-circle me-1"></i>Email é obrigatório
                   </div>
                   <div *ngIf="registerForm.get('email')?.errors?.['email']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Email deve ter um formato valido
+                    <i class="bi bi-exclamation-circle me-1"></i>Email deve ter um formato válido
                   </div>
                 </div>
               </div>
@@ -78,7 +78,7 @@
                   id="password"
                   formControlName="password"
                   [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
-                  placeholder="Senha (minimo 6 caracteres)">
+                  placeholder="Senha (mínimo 6 caracteres)">
                 <label for="password">
                   <i class="bi bi-lock me-2"></i>Senha
                 </label>
@@ -90,7 +90,7 @@
                 </button>
                 <div class="invalid-feedback" *ngIf="registerForm.get('password')?.invalid && registerForm.get('password')?.touched">
                   <div *ngIf="registerForm.get('password')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Senha e obrigatoria
+                    <i class="bi bi-exclamation-circle me-1"></i>Senha é obrigatória
                   </div>
                   <div *ngIf="registerForm.get('password')?.errors?.['minlength']">
                     <i class="bi bi-exclamation-circle me-1"></i>Senha deve ter pelo menos 6 caracteres
@@ -117,10 +117,10 @@
                 </button>
                 <div class="invalid-feedback" *ngIf="registerForm.get('confirmPassword')?.invalid && registerForm.get('confirmPassword')?.touched">
                   <div *ngIf="registerForm.get('confirmPassword')?.errors?.['required']">
-                    <i class="bi bi-exclamation-circle me-1"></i>Confirmacao de senha e obrigatoria
+                    <i class="bi bi-exclamation-circle me-1"></i>Confirmação de senha é obrigatória
                   </div>
                   <div *ngIf="registerForm.errors?.['mismatch']">
-                    <i class="bi bi-exclamation-circle me-1"></i>As senhas nao coincidem
+                    <i class="bi bi-exclamation-circle me-1"></i>As senhas não coincidem
                   </div>
                 </div>
               </div>
@@ -137,7 +137,7 @@
 
               <div class="password-strength mb-4" *ngIf="registerForm.get('password')?.value">
                 <div class="strength-label">
-                  <small>Forca da senha:</small>
+                  <small>Força da senha:</small>
                   <span class="strength-text" [class]="getPasswordStrengthClass()">
                     {{ getPasswordStrengthText() }}
                   </span>
@@ -164,7 +164,7 @@
 
               <div class="text-center">
                 <p class="login-text">
-                  Ja tem uma conta?
+                  Já tem uma conta?
                 </p>
                 <a routerLink="/login" class="btn btn-outline-light btn-login">
                   <i class="bi bi-box-arrow-in-right me-2"></i>
@@ -173,13 +173,13 @@
               </div>
             </form>
 
-            <!-- Configuracao MFA apos registro -->
+            <!-- Configuração MFA após registro -->
             <div *ngIf="showMfaSetup" class="mfa-setup">
               <div class="text-center mb-4">
                 <div class="mfa-icon mb-3">
                   <i class="bi bi-qr-code-scan" style="font-size: 3rem; color: #667eea;"></i>
                 </div>
-                <h4 style="color: #1e293b; font-weight: 700;">Configurar Autenticacao em Duas Etapas</h4>
+                <h4 style="color: #1e293b; font-weight: 700;">Configurar Autenticação em Duas Etapas</h4>
                 <p style="color: #64748b;">
                   Escaneie o QR Code abaixo com o Google Authenticator
                 </p>
@@ -195,7 +195,7 @@
               <!-- Chave secreta manual -->
               <div class="mb-4 p-3" style="background: #f1f5f9; border-radius: 12px; border: 1px solid #e2e8f0;">
                 <small style="color: #64748b;">
-                  <i class="bi bi-key me-1"></i> Nao consegue escanear? Insira manualmente:
+                  <i class="bi bi-key me-1"></i> Não consegue escanear? Insira manualmente:
                 </small>
                 <div class="mt-2" style="font-family: monospace; color: #667eea; font-size: 0.85rem; word-break: break-all; letter-spacing: 2px; font-weight: 600;">
                   {{ mfaSecret }}
@@ -208,7 +208,7 @@
                   <div class="mb-2"><strong>1.</strong> Instale o Google Authenticator no celular</div>
                   <div class="mb-2"><strong>2.</strong> Abra o app e toque em "+" para adicionar conta</div>
                   <div class="mb-2"><strong>3.</strong> Escaneie o QR Code acima</div>
-                  <div><strong>4.</strong> Informe o codigo de 6 digitos gerado abaixo</div>
+                  <div><strong>4.</strong> Informe o código de 6 dígitos gerado abaixo</div>
                 </div>
               </div>
 
@@ -224,7 +224,7 @@
                   style="font-size: 1.5rem; letter-spacing: 0.5rem; font-weight: bold;"
                   (keyup.enter)="onVerifyMfa()">
                 <label for="mfaCodeRegister">
-                  <i class="bi bi-key me-2"></i>Codigo de 6 digitos
+                  <i class="bi bi-key me-2"></i>Código de 6 dígitos
                 </label>
               </div>
 
@@ -246,7 +246,7 @@
                   (click)="onVerifyMfa()">
                   <span *ngIf="isVerifyingMfa" class="spinner-grow spinner-grow-sm me-2" role="status"></span>
                   <i *ngIf="!isVerifyingMfa" class="bi bi-check-circle me-2"></i>
-                  {{ isVerifyingMfa ? 'Verificando...' : 'Confirmar Configuracao' }}
+                  {{ isVerifyingMfa ? 'Verificando...' : 'Confirmar Configuração' }}
                 </button>
               </div>
             </div>

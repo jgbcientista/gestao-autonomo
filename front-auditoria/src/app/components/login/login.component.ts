@@ -67,7 +67,7 @@ export class LoginComponent implements OnInit {
           if (response.requiresMfa) {
             this.showMfaChallenge = true;
             this.mfaEmail = this.loginForm.value.email;
-            this.mfaMessage = response.mfaMessage || 'Informe o codigo do Google Authenticator';
+            this.mfaMessage = response.mfaMessage || 'Informe o código do Google Authenticator';
             return;
           }
 
@@ -105,7 +105,7 @@ export class LoginComponent implements OnInit {
 
   onSubmitMfa(): void {
     if (!this.mfaCode || this.mfaCode.length !== 6) {
-      this.errorMessage = 'Informe o codigo de 6 digitos do Google Authenticator.';
+      this.errorMessage = 'Informe o código de 6 dígitos do Google Authenticator.';
       return;
     }
 
@@ -122,8 +122,8 @@ export class LoginComponent implements OnInit {
       },
       error: (error) => {
         this.isValidatingMfa = false;
-        console.error('Erro na validacao MFA:', error);
-        this.errorMessage = 'Codigo MFA invalido. Tente novamente.';
+        console.error('Erro na validação MFA:', error);
+        this.errorMessage = 'Código MFA inválido. Tente novamente.';
         this.mfaCode = '';
       }
     });

@@ -27,6 +27,21 @@
             <i class="bi bi-link-45deg me-1"></i>Blockchain
           </a>
         </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/attack-simulation">
+            <i class="bi bi-bug-fill me-1"></i>Simulação Ataques
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/geo-heatmap">
+            <i class="bi bi-globe-americas me-1"></i>Mapa Geográfico
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/ai-comparison">
+            <i class="bi bi-bar-chart-line-fill me-1"></i>Comparação IA
+          </a>
+        </li>
       </ul>
 
       <ul class="navbar-nav">
@@ -277,7 +292,7 @@
                   <div class="feature-item">
                     <div class="feature-icon"><i class="bi bi-person-fill"></i></div>
                     <div class="feature-content">
-                      <h6>ID e Email do Usuario</h6>
+                      <h6>ID e Email do Usuário</h6>
                       <small>Identidade do usuário autenticado</small>
                     </div>
                   </div>
@@ -393,7 +408,7 @@
                   <span class="detail-value">{{ transacaoBuscada.tipoEvento }}</span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">Usuario</span>
+                  <span class="detail-label">Usuário</span>
                   <span class="detail-value">{{ transacaoBuscada.usuarioEmail || ('ID: ' + transacaoBuscada.usuarioId) }}</span>
                 </div>
                 <div class="detail-item">
@@ -414,7 +429,7 @@
                   </span>
                 </div>
                 <div class="detail-item">
-                  <span class="detail-label">Decisao</span>
+                  <span class="detail-label">Decisão</span>
                   <span class="detail-value">
                     <span class="decisao-badge" [ngClass]="getDecisaoClass(transacaoBuscada.decisao)">
                       {{ transacaoBuscada.decisao }}
@@ -549,7 +564,7 @@
                     <th>Hash dos Dados</th>
                     <th>Tipo Evento</th>
                     <th>Risco</th>
-                    <th>Decisao</th>
+                    <th>Decisão</th>
                     <th>Status</th>
                     <th>IP</th>
                     <th>Rede</th>
@@ -677,7 +692,7 @@
                 <span class="detail-value">{{ transacaoSelecionada.tipoEvento }}</span>
               </div>
               <div class="detail-item">
-                <span class="detail-label">Usuario</span>
+                <span class="detail-label">Usuário</span>
                 <span class="detail-value">{{ transacaoSelecionada.usuarioEmail }}</span>
               </div>
               <div class="detail-item">
@@ -689,7 +704,7 @@
                 </span>
               </div>
               <div class="detail-item">
-                <span class="detail-label">Decisao</span>
+                <span class="detail-label">Decisão</span>
                 <span class="detail-value">
                   <span class="decisao-badge" [ngClass]="getDecisaoClass(transacaoSelecionada.decisao)">
                     {{ transacaoSelecionada.decisao }}

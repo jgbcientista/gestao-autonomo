@@ -5,6 +5,9 @@ import { DashboardComponent } from './components/dashboard/dashboard.component';
 import { TrustScoreComponent } from './components/trust-score/trust-score.component';
 import { AiAnalysisComponent } from './components/ai-analysis/ai-analysis.component';
 import { BlockchainComponent } from './components/blockchain/blockchain.component';
+import { AttackSimulationComponent } from './components/attack-simulation/attack-simulation.component';
+import { GeoHeatmapComponent } from './components/geo-heatmap/geo-heatmap.component';
+import { AiComparisonComponent } from './components/ai-comparison/ai-comparison.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -15,5 +18,8 @@ export const routes: Routes = [
   { path: 'trust-score', component: TrustScoreComponent, canActivate: [authGuard] },
   { path: 'ai-analysis', component: AiAnalysisComponent, canActivate: [authGuard] },
   { path: 'blockchain', component: BlockchainComponent, canActivate: [authGuard] },
+  { path: 'attack-simulation', component: AttackSimulationComponent, canActivate: [authGuard] },
+  { path: 'geo-heatmap', component: GeoHeatmapComponent, canActivate: [authGuard] },
+  { path: 'ai-comparison', component: AiComparisonComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' }
 ];

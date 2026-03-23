@@ -214,7 +214,7 @@ export class TrustScoreComponent implements OnInit {
   getDecisaoLabel(decisao: string): string {
     switch (decisao) {
       case 'PERMITIR': return 'Acesso Permitido';
-      case 'EXIGIR_MFA': return 'Exige Autenticacao MFA';
+      case 'EXIGIR_MFA': return 'Exige Autenticação MFA';
       case 'BLOQUEAR': return 'Acesso Bloqueado';
       case 'PERMITIR_COM_MONITORAMENTO': return 'Permitido com Monitoramento';
       default: return decisao;

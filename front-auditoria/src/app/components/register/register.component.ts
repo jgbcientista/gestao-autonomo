@@ -140,7 +140,7 @@ export class RegisterComponent implements OnInit {
         next: (response) => {
           this.isLoading = false;
 
-          // Se o backend retornou QR code MFA, mostrar tela de configuracao
+          // Se o backend retornou QR code MFA, mostrar tela de configuração
           if (response.mfaQrCode) {
             this.showMfaSetup = true;
             this.mfaQrCode = response.mfaQrCode;
@@ -192,7 +192,7 @@ export class RegisterComponent implements OnInit {
 
   onVerifyMfa(): void {
     if (!this.mfaCode || this.mfaCode.length !== 6) {
-      this.errorMessage = 'Informe o codigo de 6 digitos do Google Authenticator.';
+      this.errorMessage = 'Informe o código de 6 dígitos do Google Authenticator.';
       return;
     }
 
@@ -210,7 +210,7 @@ export class RegisterComponent implements OnInit {
       error: (error) => {
         this.isVerifyingMfa = false;
         console.error('Erro na verificação MFA:', error);
-        this.errorMessage = 'Codigo invalido. Verifique o Google Authenticator e tente novamente.';
+        this.errorMessage = 'Código inválido. Verifique o Google Authenticator e tente novamente.';
         this.mfaCode = '';
       }
     });

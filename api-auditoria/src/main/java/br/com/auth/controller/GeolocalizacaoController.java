@@ -250,8 +250,139 @@ public class GeolocalizacaoController {
         return "BAIXO";
     }
 
+    @GetMapping("/usuario/{userId}/mapa-acessos")
+    @Operation(summary = "Obter dados de mapa de acessos",
+               description = "Retorna dados agregados de localização para visualização em mapa")
+    public ResponseEntity<?> obterMapaAcessos(
+            @Parameter(description = "ID do usuário")
+            @PathVariable Long userId) {
+
+        log.info("Obtendo dados de mapa de acessos para usuário: {}", userId);
+
+        try {
+            Usuario usuario = repositorioUsuario.findById(userId)
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+
+            List<LogAuditoria> logs = repositorioLogAuditoria.findByUsuario(usuario);
+
+            // Coordenadas conhecidas para cidades de demonstração
+            Map<String, double[]> coordenadasCidades = Map.ofEntries(
+                Map.entry("São Paulo, BR", new double[]{-23.5505, -46.6333}),
+                Map.entry("Rio de Janeiro, BR", new double[]{-22.9068, -43.1729}),
+                Map.entry("Salvador, BR", new double[]{-12.9714, -38.5124}),
+                Map.entry("Brasília, BR", new double[]{-15.7975, -47.8919}),
+                Map.entry("Belo Horizonte, BR", new double[]{-19.9167, -43.9345}),
+                Map.entry("Recife, BR", new double[]{-8.0476, -34.8770}),
+                Map.entry("Curitiba, BR", new double[]{-25.4284, -49.2733}),
+                Map.entry("Porto Alegre, BR", new double[]{-30.0346, -51.2177}),
+                Map.entry("New York, US", new double[]{40.7128, -74.0060}),
+                Map.entry("Columbus, US", new double[]{39.9612, -82.9988}),
+                Map.entry("Paris, FR", new double[]{48.8566, 2.3522}),
+                Map.entry("Frankfurt, DE", new double[]{50.1109, 8.6821}),
+                Map.entry("Mumbai, IN", new double[]{19.0760, 72.8777}),
+                Map.entry("Tokyo, JP", new double[]{35.6762, 139.6503}),
+                Map.entry("London, GB", new double[]{51.5074, -0.1278}),
+                Map.entry("Sydney, AU", new double[]{-33.8688, 151.2093}),
+                Map.entry("Amsterdam, NL", new double[]{52.3676, 4.9041}),
+                Map.entry("Seoul, KR", new double[]{37.5665, 126.9780}),
+                Map.entry("Menlo Park, US", new double[]{37.4529, -122.1817}),
+                Map.entry("San Francisco, US", new double[]{37.7749, -122.4194}),
+                Map.entry("Berlin, DE", new double[]{52.5200, 13.4050}),
+                Map.entry("Moscow, RU", new double[]{55.7558, 37.6173}),
+                Map.entry("Nairobi, KE", new double[]{-1.2921, 36.8219}),
+                Map.entry("Lagos, NG", new double[]{6.5244, 3.3792})
+            );
+
+            // Agregar acessos por localização
+            Map<String, List<LogAuditoria>> acessosPorLocal = logs.stream()
+                    .filter(l -> l.getLocalizacao() != null)
+                    .collect(Collectors.groupingBy(LogAuditoria::getLocalizacao));
+
+            List<Map<String, Object>> acessosNormais = new java.util.ArrayList<>();
+            List<Map<String, Object>> acessosSuspeitos = new java.util.ArrayList<>();
+
+            acessosPorLocal.forEach((local, logsLocal) -> {
+                double[] coords = coordenadasCidades.getOrDefault(local, null);
+                if (coords == null) return;
+
+                String nivelRisco = calcularNivelRisco(logsLocal.get(0));
+                long falhas = logsLocal.stream().filter(l -> !l.isSucesso()).count();
+
+                Map<String, Object> ponto = new java.util.HashMap<>();
+                ponto.put("latitude", coords[0]);
+                ponto.put("longitude", coords[1]);
+                ponto.put("cidade", local);
+                ponto.put("contagem", logsLocal.size());
+                ponto.put("falhas", falhas);
+                ponto.put("nivelRisco", nivelRisco);
+                ponto.put("ultimoAcesso", logsLocal.stream()
+                        .map(LogAuditoria::getDataHora)
+                        .filter(java.util.Objects::nonNull)
+                        .max(java.time.LocalDateTime::compareTo)
+                        .orElse(null));
+
+                if ("ALTO".equals(nivelRisco) || falhas > 0) {
+                    acessosSuspeitos.add(ponto);
+                } else {
+                    acessosNormais.add(ponto);
+                }
+            });
+
+            // Detectar viagens impossíveis (conexões entre acessos sequenciais)
+            List<Map<String, Object>> conexoes = new java.util.ArrayList<>();
+            List<LogAuditoria> logsCronologicos = logs.stream()
+                    .filter(l -> l.getDataHora() != null && l.getLocalizacao() != null)
+                    .sorted((a, b) -> a.getDataHora().compareTo(b.getDataHora()))
+                    .collect(Collectors.toList());
+
+            for (int i = 1; i < logsCronologicos.size(); i++) {
+                LogAuditoria anterior = logsCronologicos.get(i - 1);
+                LogAuditoria atual = logsCronologicos.get(i);
+
+                double[] coordsAnterior = coordenadasCidades.getOrDefault(anterior.getLocalizacao(), null);
+                double[] coordsAtual = coordenadasCidades.getOrDefault(atual.getLocalizacao(), null);
+
+                if (coordsAnterior == null || coordsAtual == null) continue;
+                if (anterior.getLocalizacao().equals(atual.getLocalizacao())) continue;
+
+                double distanciaKm = servicoGeolocalizacao.calcularDistancia(
+                        coordsAnterior[0], coordsAnterior[1],
+                        coordsAtual[0], coordsAtual[1]);
+
+                long intervaloMinutos = java.time.Duration.between(anterior.getDataHora(), atual.getDataHora()).toMinutes();
+                if (intervaloMinutos <= 0) intervaloMinutos = 1;
+
+                double velocidadeKmH = (distanciaKm / intervaloMinutos) * 60;
+                boolean viagemImpossivel = velocidadeKmH > 900; // Mais rápido que avião comercial
+
+                Map<String, Object> conexao = new java.util.HashMap<>();
+                conexao.put("origem", Map.of("latitude", coordsAnterior[0], "longitude", coordsAnterior[1], "cidade", anterior.getLocalizacao()));
+                conexao.put("destino", Map.of("latitude", coordsAtual[0], "longitude", coordsAtual[1], "cidade", atual.getLocalizacao()));
+                conexao.put("distanciaKm", Math.round(distanciaKm));
+                conexao.put("intervaloMinutos", intervaloMinutos);
+                conexao.put("velocidadeKmH", Math.round(velocidadeKmH));
+                conexao.put("viagemImpossivel", viagemImpossivel);
+
+                conexoes.add(conexao);
+            }
+
+            Map<String, Object> resultado = new java.util.HashMap<>();
+            resultado.put("acessosNormais", acessosNormais);
+            resultado.put("acessosSuspeitos", acessosSuspeitos);
+            resultado.put("conexoes", conexoes);
+            resultado.put("totalAcessos", logs.size());
+
+            return ResponseEntity.ok(resultado);
+
+        } catch (Exception e) {
+            log.error("Erro ao obter dados de mapa para usuário: {}", userId, e);
+            return ResponseEntity.badRequest()
+                    .body(Map.of("erro", "Erro ao obter dados do mapa: " + e.getMessage()));
+        }
+    }
+
     @GetMapping("/teste-completo")
-    @Operation(summary = "Teste completo do serviço de geolocalização", 
+    @Operation(summary = "Teste completo do serviço de geolocalização",
                description = "Executa uma bateria de testes para demonstrar todas as funcionalidades")
     public ResponseEntity<Map<String, Object>> testeCompleto() {
         

@@ -60,6 +60,12 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
   paginaHistorico = 1;
   tamanhoPaginaHistorico = 10;
 
+  // Histórico de localizações
+  locationHistory: any[] = [];
+  locationPage = 1;
+  locationPageSize = 8;
+  loadingLocations = false;
+
   private subscriptions = new Subscription();
 
   constructor(
@@ -122,6 +128,7 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
 
     this.paginaHistorico = 1;
     this.carregarDadosUsuario();
+    this.loadLocationHistory();
     this.iniciarMonitoramento();
   }
 
@@ -492,6 +499,49 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
   mudarPaginaHistorico(pagina: number): void {
     if (pagina >= 1 && pagina <= this.totalPaginasHistorico) {
       this.paginaHistorico = pagina;
+    }
+  }
+
+  // Histórico de localizações
+  private loadLocationHistory(): void {
+    if (!this.selectedUserId) return;
+
+    this.loadingLocations = true;
+    this.locationPage = 1;
+
+    this.apiService.getUserLocationHistory(this.selectedUserId).subscribe({
+      next: (data) => {
+        this.locationHistory = Array.isArray(data) ? data : [];
+        this.loadingLocations = false;
+      },
+      error: (err) => {
+        console.error('Erro ao carregar histórico de localizações:', err);
+        this.locationHistory = [];
+        this.loadingLocations = false;
+      }
+    });
+  }
+
+  get locationPagedData(): any[] {
+    const start = (this.locationPage - 1) * this.locationPageSize;
+    return this.locationHistory.slice(start, start + this.locationPageSize);
+  }
+
+  get locationTotalPages(): number {
+    return Math.ceil(this.locationHistory.length / this.locationPageSize);
+  }
+
+  get locationPages(): number[] {
+    const pages: number[] = [];
+    for (let i = 1; i <= this.locationTotalPages; i++) {
+      pages.push(i);
+    }
+    return pages;
+  }
+
+  goToLocationPage(page: number): void {
+    if (page >= 1 && page <= this.locationTotalPages) {
+      this.locationPage = page;
     }
   }
 

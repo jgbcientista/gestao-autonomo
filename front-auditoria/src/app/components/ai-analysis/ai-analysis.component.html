@@ -204,6 +204,97 @@
       </div>
     </section>
 
+    <!-- Histórico de Localizações -->
+    <section class="locations-section" *ngIf="locationHistory.length > 0">
+      <div class="analysis-card">
+        <div class="card-header">
+          <div class="card-header-content">
+            <h4 class="card-title">
+              <i class="bi bi-geo-alt-fill me-2"></i>
+              Histórico de Localizações de Acesso
+            </h4>
+            <span class="location-count-badge">{{ locationHistory.length }} registros</span>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="loc-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Data/Hora</th>
+                  <th>Endereço IP</th>
+                  <th>Localização</th>
+                  <th>Dispositivo</th>
+                  <th>Risco</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let loc of locationPagedData; let i = index"
+                    [class.row-danger]="loc.nivelRisco === 'ALTO'">
+                  <td class="td-index">{{ (locationPage - 1) * locationPageSize + i + 1 }}</td>
+                  <td class="td-date">{{ loc.dataHora | date:'dd/MM/yyyy HH:mm' }}</td>
+                  <td class="td-ip">{{ loc.enderecoIp || '-' }}</td>
+                  <td class="td-location">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    {{ loc.localizacao || '-' }}
+                  </td>
+                  <td class="td-device">{{ loc.dispositivo || '-' }}</td>
+                  <td>
+                    <span class="risk-badge-loc"
+                          [class.risk-baixo]="loc.nivelRisco === 'BAIXO'"
+                          [class.risk-medio]="loc.nivelRisco === 'MEDIO'"
+                          [class.risk-alto]="loc.nivelRisco === 'ALTO'">
+                      {{ loc.nivelRisco || 'N/A' }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="status-badge-loc"
+                          [class.status-sucesso]="loc.sucesso !== false"
+                          [class.status-falha]="loc.sucesso === false">
+                      {{ loc.sucesso !== false ? 'Sucesso' : 'Falha' }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Paginação -->
+          <div class="loc-pagination-container" *ngIf="locationTotalPages > 1">
+            <span class="loc-pagination-info">
+              Página {{ locationPage }} de {{ locationTotalPages }} ({{ locationHistory.length }} registros)
+            </span>
+            <nav>
+              <ul class="pagination loc-pagination">
+                <li class="page-item" [class.disabled]="locationPage === 1">
+                  <a class="page-link" (click)="goToLocationPage(locationPage - 1)">
+                    <i class="bi bi-chevron-left"></i>
+                  </a>
+                </li>
+                <li class="page-item" *ngFor="let p of locationPages"
+                    [class.active]="p === locationPage">
+                  <a class="page-link" (click)="goToLocationPage(p)">{{ p }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="locationPage === locationTotalPages">
+                  <a class="page-link" (click)="goToLocationPage(locationPage + 1)">
+                    <i class="bi bi-chevron-right"></i>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Loading locations -->
+    <div *ngIf="loadingLocations" class="analysis-card" style="text-align: center; padding: 2rem;">
+      <div class="spinner-border text-primary" role="status" style="width: 1.5rem; height: 1.5rem;"></div>
+      <p style="margin-top: 0.75rem; color: #555; font-size: 0.8125rem;">Carregando histórico de localizações...</p>
+    </div>
+
     <!-- Cards principais -->
     <section class="analysis-section" *ngIf="!loading || perfilAtual">
       <div class="row g-4">

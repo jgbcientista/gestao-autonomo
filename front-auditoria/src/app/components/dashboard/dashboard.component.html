@@ -283,133 +283,70 @@
             </div>
           </div>
 
+          <div class="feature-card" routerLink="/attack-simulation">
+            <div class="feature-icon"><i class="bi bi-bug-fill"></i></div>
+            <div class="feature-content">
+              <h4 class="feature-title">Simulação de Ataques</h4>
+              <p class="feature-description">Simule ataques como força bruta, credential stuffing e viagem impossível para testar as defesas do sistema.</p>
+              <div class="feature-status">
+                <span class="status-dot warning"></span>
+                <span class="status-text">Ambiente de Teste</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+
+          <div class="feature-card" routerLink="/geo-heatmap">
+            <div class="feature-icon"><i class="bi bi-globe-americas"></i></div>
+            <div class="feature-content">
+              <h4 class="feature-title">Mapa Geográfico</h4>
+              <p class="feature-description">Visualize a distribuição geográfica dos acessos e identifique padrões de localização suspeitos.</p>
+              <div class="feature-status">
+                <span class="status-dot success"></span>
+                <span class="status-text">Monitoramento Ativo</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+
+          <div class="feature-card" routerLink="/ai-comparison">
+            <div class="feature-icon"><i class="bi bi-bar-chart-line-fill"></i></div>
+            <div class="feature-content">
+              <h4 class="feature-title">Comparação de Modelos IA</h4>
+              <p class="feature-description">Compare lado a lado o desempenho dos modelos Isolation Forest, Random Forest e Deep Learning.</p>
+              <div class="feature-status">
+                <span class="status-dot success"></span>
+                <span class="status-text">3 Modelos Ativos</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+
+          <div class="feature-card" routerLink="/data-generator">
+            <div class="feature-icon"><i class="bi bi-database-fill-gear"></i></div>
+            <div class="feature-content">
+              <h4 class="feature-title">Gerador de Dados</h4>
+              <p class="feature-description">Gere registros de acesso passando pelo fluxo completo: Auditoria + IA + Blockchain + Trust Score.</p>
+              <div class="feature-status">
+                <span class="status-dot success"></span>
+                <span class="status-text">Pronto para Gerar</span>
+              </div>
+            </div>
+            <div class="feature-arrow">
+              <i class="bi bi-arrow-right"></i>
+            </div>
+          </div>
+
         </div>
       </div>
     </section>
 
-    <!-- Main Content Grid -->
-    <section class="content-section">
-      <div class="row g-4">
-        <!-- User Info Card -->
-        <div class="col-lg-8">
-          <div class="info-card" data-aos="fade-right">
-            <div class="card-header">
-              <div class="header-content">
-                <h4 class="card-title">
-                  <i class="bi bi-person-lines-fill me-2"></i>
-                  Informações da Conta
-                </h4>
-                <span class="card-badge">Verificado</span>
-              </div>
-            </div>
-            <div class="card-body">
-              <div class="user-details">
-                <div class="detail-row">
-                  <div class="detail-label">
-                    <i class="bi bi-person me-2"></i>
-                    Nome Completo
-                  </div>
-                  <div class="detail-value">{{ currentUser?.name }}</div>
-                </div>
-                <div class="detail-row">
-                  <div class="detail-label">
-                    <i class="bi bi-envelope me-2"></i>
-                    Email
-                  </div>
-                  <div class="detail-value">{{ currentUser?.email }}</div>
-                </div>
-                <div class="detail-row">
-                  <div class="detail-label">
-                    <i class="bi bi-clock me-2"></i>
-                    Última Sessão
-                  </div>
-                  <div class="detail-value">{{ lastLogin || 'Em andamento' }}</div>
-                </div>
-                <div class="detail-row">
-                  <div class="detail-label">
-                    <i class="bi bi-shield-check me-2"></i>
-                    Status de Segurança
-                  </div>
-                  <div class="detail-value">
-                    <span class="security-level high">Alto</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Quick Actions Card -->
-        <div class="col-lg-4">
-          <div class="actions-card" data-aos="fade-left">
-            <div class="card-header">
-              <h4 class="card-title">
-                <i class="bi bi-lightning-charge me-2"></i>
-                Ações Rápidas
-              </h4>
-            </div>
-            <div class="card-body">
-              <div class="action-buttons">
-                <button class="action-btn primary-action" (click)="checkSystemStatus()">
-                  <div class="btn-icon">
-                    <i class="bi bi-arrow-clockwise"></i>
-                  </div>
-                  <div class="btn-content">
-                    <span class="btn-title">Atualizar Status</span>
-                    <small class="btn-subtitle">Verificar sistema</small>
-                  </div>
-                </button>
-
-                <button class="action-btn secondary-action" (click)="logout()">
-                  <div class="btn-icon">
-                    <i class="bi bi-box-arrow-right"></i>
-                  </div>
-                  <div class="btn-content">
-                    <span class="btn-title">Fazer Logout</span>
-                    <small class="btn-subtitle">Sair com segurança</small>
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- System Health Card -->
-          <div class="health-card mt-4" data-aos="fade-left" data-aos-delay="100">
-            <div class="card-header">
-              <h4 class="card-title">
-                <i class="bi bi-heart-pulse me-2"></i>
-                Saúde do Sistema
-              </h4>
-            </div>
-            <div class="card-body">
-              <div class="health-metrics">
-                <div class="metric">
-                  <div class="metric-label">CPU</div>
-                  <div class="metric-bar">
-                    <div class="metric-fill" [style.width.%]="cpuPercent"></div>
-                  </div>
-                  <div class="metric-value">{{ cpuPercent | number:'1.0-1' }}%</div>
-                </div>
-                <div class="metric">
-                  <div class="metric-label">Memória</div>
-                  <div class="metric-bar">
-                    <div class="metric-fill" [style.width.%]="memoryPercent"></div>
-                  </div>
-                  <div class="metric-value">{{ memoryPercent | number:'1.0-1' }}%</div>
-                </div>
-                <div class="metric">
-                  <div class="metric-label">IA Load</div>
-                  <div class="metric-bar">
-                    <div class="metric-fill ai-metric" [style.width.%]="iaLoadPercent"></div>
-                  </div>
-                  <div class="metric-value">{{ iaLoadPercent | number:'1.0-0' }}%</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
   </div>
 </main>
 

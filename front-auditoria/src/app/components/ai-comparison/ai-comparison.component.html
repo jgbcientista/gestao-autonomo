@@ -84,11 +84,77 @@
     </div>
 
     <!-- Content -->
-    <div *ngIf="!loading && (metricas | keyvalue)?.length">
+    <div *ngIf="!loading && ((metricas | keyvalue)?.length || analises.length || selectedUserId)">
 
       <!-- Metrics Cards -->
       <section class="metrics-section">
         <h2 class="section-title"><i class="bi bi-speedometer2 me-2"></i>Métricas por Modelo</h2>
+
+        <!-- Explicação dos Modelos -->
+        <div class="models-explanation-card">
+          <div class="models-explanation-header">
+            <i class="bi bi-lightbulb-fill me-2"></i>
+            <h5>Entendendo os Modelos de IA</h5>
+          </div>
+          <div class="models-explanation-body">
+            <div class="model-explain-item">
+              <div class="model-explain-number" style="background: #1351B4;">1</div>
+              <div class="model-explain-content">
+                <strong>Isolation Forest</strong> — Algoritmo de detecção de anomalias. Isola pontos "estranhos" nos dados. Funciona bem para identificar acessos que fogem completamente do padrão (ex: login de um país novo, horário nunca visto). <span class="model-peso-tag" style="background: #1351B415; color: #1351B4;">Peso no ensemble: 40%</span>
+              </div>
+            </div>
+            <div class="model-explain-item">
+              <div class="model-explain-number" style="background: #168821;">2</div>
+              <div class="model-explain-content">
+                <strong>Random Forest</strong> — Algoritmo de classificação supervisionada baseado em múltiplas árvores de decisão. Classifica o acesso como legítimo ou suspeito com base em features como horário, localização, dispositivo. <span class="model-peso-tag" style="background: #16882115; color: #168821;">Peso no ensemble: 30%</span>
+              </div>
+            </div>
+            <div class="model-explain-item">
+              <div class="model-explain-number" style="background: #B8860B;">3</div>
+              <div class="model-explain-content">
+                <strong>Deep Learning</strong> — Rede neural que captura padrões mais complexos e não-lineares no comportamento do usuário (sequências de navegação, combinações sutis de features). <span class="model-peso-tag" style="background: #B8860B15; color: #B8860B;">Peso no ensemble: 30%</span>
+              </div>
+            </div>
+          </div>
+          <div class="models-explanation-footer">
+            <div class="ensemble-formula-section">
+              <h6><i class="bi bi-calculator me-1"></i>Resultado Final — Ensemble (média ponderada)</h6>
+              <div class="formula-box">
+                <code>scoreEnsemble = (IsolationForest × 0.4) + (RandomForest × 0.3) + (DeepLearning × 0.3)</code>
+              </div>
+              <p class="ensemble-note">O score ensemble é ajustado pelo <strong>Trust Score</strong> (confiança histórica) do usuário, e então classificado:</p>
+            </div>
+            <div class="classification-table">
+              <table class="table-classificacao">
+                <thead>
+                  <tr>
+                    <th>Score</th>
+                    <th>Classificação</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td><code>&lt; 0.5</code></td>
+                    <td><span class="class-badge-inline" style="background: #16882115; color: #168821;">ESPERADO</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>0.5 – 0.7</code></td>
+                    <td><span class="class-badge-inline" style="background: #B8860B15; color: #B8860B;">SUSPEITO</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>0.7 – 0.9</code></td>
+                    <td><span class="class-badge-inline" style="background: #E5220715; color: #E52207;">ANOMALO</span></td>
+                  </tr>
+                  <tr>
+                    <td><code>≥ 0.9</code></td>
+                    <td><span class="class-badge-inline" style="background: #8B000015; color: #8B0000;">ALTAMENTE_SUSPEITO</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
         <div class="metrics-grid">
           <div class="metric-card" *ngFor="let m of modelos" [style.border-top-color]="m.cor">
             <div class="metric-header">
@@ -129,36 +195,70 @@
             <i class="bi bi-diagram-3 me-2"></i>
             <h4>Gráfico Radar - Comparação</h4>
           </div>
-          <div class="radar-container">
-            <svg [attr.viewBox]="'0 0 ' + radarSize + ' ' + radarSize" class="radar-svg">
-              <!-- Grid -->
-              <polygon *ngFor="let level of [0.2, 0.4, 0.6, 0.8, 1.0]"
-                       [attr.points]="getGridPolygon(level)"
-                       fill="none" stroke="#EDEDED" stroke-width="0.5"/>
-              <!-- Axes -->
-              <line *ngFor="let label of radarLabels; let i = index"
-                    [attr.x1]="radarCenter" [attr.y1]="radarCenter"
-                    [attr.x2]="getRadarLabelPos(i, radarLabels.length).x"
-                    [attr.y2]="getRadarLabelPos(i, radarLabels.length).y"
-                    stroke="#EDEDED" stroke-width="0.5"/>
-              <!-- Labels -->
-              <text *ngFor="let label of radarLabels; let i = index"
-                    [attr.x]="getRadarLabelPos(i, radarLabels.length).x"
-                    [attr.y]="getRadarLabelPos(i, radarLabels.length).y"
-                    text-anchor="middle" font-size="9" fill="#555">{{ label }}</text>
+          <div class="radar-with-explanation">
+            <div class="radar-container">
+              <svg [attr.viewBox]="'0 0 ' + radarSize + ' ' + radarSize" class="radar-svg">
+                <!-- Grid -->
+                <polygon *ngFor="let level of [0.2, 0.4, 0.6, 0.8, 1.0]"
+                         [attr.points]="getGridPolygon(level)"
+                         fill="none" stroke="#EDEDED" stroke-width="0.5"/>
+                <!-- Axes -->
+                <line *ngFor="let label of radarLabels; let i = index"
+                      [attr.x1]="radarCenter" [attr.y1]="radarCenter"
+                      [attr.x2]="getRadarLabelPos(i, radarLabels.length).x"
+                      [attr.y2]="getRadarLabelPos(i, radarLabels.length).y"
+                      stroke="#EDEDED" stroke-width="0.5"/>
+                <!-- Labels -->
+                <text *ngFor="let label of radarLabels; let i = index"
+                      [attr.x]="getRadarLabelPos(i, radarLabels.length).x"
+                      [attr.y]="getRadarLabelPos(i, radarLabels.length).y"
+                      text-anchor="middle" font-size="9" fill="#555">{{ label }}</text>
 
-              <!-- Model polygons -->
-              <polygon [attr.points]="getRadarPolygon(getModelRadarScores('isolationForest'))"
-                       fill="#1351B4" fill-opacity="0.1" stroke="#1351B4" stroke-width="1.5"/>
-              <polygon [attr.points]="getRadarPolygon(getModelRadarScores('randomForest'))"
-                       fill="#168821" fill-opacity="0.1" stroke="#168821" stroke-width="1.5"/>
-              <polygon [attr.points]="getRadarPolygon(getModelRadarScores('deepLearning'))"
-                       fill="#B8860B" fill-opacity="0.1" stroke="#B8860B" stroke-width="1.5"/>
-            </svg>
-            <div class="radar-legend">
-              <span class="radar-legend-item"><span class="legend-color" style="background:#1351B4;"></span>Isolation Forest</span>
-              <span class="radar-legend-item"><span class="legend-color" style="background:#168821;"></span>Random Forest</span>
-              <span class="radar-legend-item"><span class="legend-color" style="background:#B8860B;"></span>Deep Learning</span>
+                <!-- Model polygons -->
+                <polygon [attr.points]="getRadarPolygon(getModelRadarScores('isolationForest'))"
+                         fill="#1351B4" fill-opacity="0.1" stroke="#1351B4" stroke-width="1.5"/>
+                <polygon [attr.points]="getRadarPolygon(getModelRadarScores('randomForest'))"
+                         fill="#168821" fill-opacity="0.1" stroke="#168821" stroke-width="1.5"/>
+                <polygon [attr.points]="getRadarPolygon(getModelRadarScores('deepLearning'))"
+                         fill="#B8860B" fill-opacity="0.1" stroke="#B8860B" stroke-width="1.5"/>
+              </svg>
+              <div class="radar-legend">
+                <span class="radar-legend-item"><span class="legend-color" style="background:#1351B4;"></span>Isolation Forest</span>
+                <span class="radar-legend-item"><span class="legend-color" style="background:#168821;"></span>Random Forest</span>
+                <span class="radar-legend-item"><span class="legend-color" style="background:#B8860B;"></span>Deep Learning</span>
+              </div>
+            </div>
+
+            <!-- Explicação dos Eixos -->
+            <div class="radar-explanation">
+              <h5 class="radar-explain-title"><i class="bi bi-info-circle me-1"></i>Como Ler o Gráfico</h5>
+              <p class="radar-explain-intro">Cada modelo forma um polígono colorido. Quanto <strong>maior a área</strong>, melhor o desempenho geral. Os 5 eixos medem:</p>
+              <div class="radar-axes-list">
+                <div class="radar-axis-item">
+                  <span class="axis-name">Precisão</span>
+                  <span class="axis-desc">Dos acessos classificados como suspeitos, quantos realmente eram. Evita <strong>alarmes falsos</strong>.</span>
+                </div>
+                <div class="radar-axis-item">
+                  <span class="axis-name">Recall</span>
+                  <span class="axis-desc">Dos acessos realmente suspeitos, quantos o modelo detectou. Evita <strong>deixar passar</strong>.</span>
+                </div>
+                <div class="radar-axis-item">
+                  <span class="axis-name">F1-Score</span>
+                  <span class="axis-desc">Média harmônica entre Precisão e Recall. Representa o <strong>equilíbrio</strong> entre os dois.</span>
+                </div>
+                <div class="radar-axis-item">
+                  <span class="axis-name">Consistência</span>
+                  <span class="axis-desc">Baseado na % de concordância entre os 3 modelos. Quanto mais <strong>concordam</strong>, mais consistente.</span>
+                </div>
+                <div class="radar-axis-item">
+                  <span class="axis-name">Velocidade</span>
+                  <span class="axis-desc">Tempo de processamento do modelo. Todos operam em <strong>milissegundos</strong>.</span>
+                </div>
+              </div>
+              <div class="radar-explain-tip">
+                <i class="bi bi-lightbulb-fill me-1"></i>
+                Se um polígono está "achatado" em algum eixo, o modelo é fraco naquele aspecto. O <strong>Ensemble</strong> combina os três para compensar as fraquezas individuais.
+              </div>
             </div>
           </div>
         </div>

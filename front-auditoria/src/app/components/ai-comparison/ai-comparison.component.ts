@@ -120,8 +120,10 @@ export class AiComparisonComponent implements OnInit {
   }
 
   loadMetricas(): void {
+    console.log('[AI-Comparison] Carregando métricas dos modelos...');
     this.apiService.getMetricasModelos().subscribe({
       next: (data) => {
+        console.log('[AI-Comparison] Dados recebidos da API:', data);
         // Map API field names (precisaoMedia -> precisao, recallMedio -> recall, etc.)
         const mapped: { [key: string]: MetricaModelo } = {};
         for (const key of ['isolationForest', 'randomForest', 'deepLearning']) {
@@ -145,9 +147,10 @@ export class AiComparisonComponent implements OnInit {
           };
         }
         this.metricas = mapped;
+        console.log('[AI-Comparison] Métricas mapeadas:', this.metricas);
       },
-      error: () => {
-        console.error('Erro ao carregar métricas');
+      error: (err) => {
+        console.error('[AI-Comparison] Erro ao carregar métricas:', err);
       }
     });
   }

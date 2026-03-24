@@ -87,7 +87,10 @@ public class ServicoMFA {
     public boolean validarCodigo(String segredo, String codigo) {
         TimeProvider provedor = new SystemTimeProvider();
         CodeGenerator gerador = new DefaultCodeGenerator();
-        CodeVerifier verificador = new DefaultCodeVerifier(gerador, provedor);
+        DefaultCodeVerifier verificador = new DefaultCodeVerifier(gerador, provedor);
+        // Permitir ±1 período (30s antes/depois) para compensar dessincronização de relógio
+        verificador.setTimePeriod(30);
+        verificador.setAllowedTimePeriodDiscrepancy(2);
 
         return verificador.isValidCode(segredo, codigo);
     }

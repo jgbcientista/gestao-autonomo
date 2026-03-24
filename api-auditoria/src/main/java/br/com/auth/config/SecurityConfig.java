@@ -103,11 +103,14 @@ public class SecurityConfig {
         // Permitir origens específicas apenas
         configuration.setAllowedOrigins(Arrays.asList(
             "http://localhost:4200",    // Angular dev server
-            "http://localhost:3000",    // React/Node dev server  
+            "http://localhost:3000",    // React/Node dev server
             "http://localhost:4202",    // Angular dev server alternativo
             "http://127.0.0.1:4200",
             "http://127.0.0.1:3000",
-            "http://127.0.0.1:4202"
+            "http://127.0.0.1:4202",
+            "http://209.50.240.20:4200", // VPS frontend
+            "http://209.50.240.20:8080", // VPS API
+            "http://209.50.240.20"       // VPS sem porta
         ));
         
         // Permitir métodos HTTP específicos

@@ -34,6 +34,7 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: ${DB_SCHEMA:public}
         jdbc:
           batch_size: 25
           fetch_size: 25
@@ -190,6 +191,7 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: ${DB_SCHEMA:public}
         jdbc:
           batch_size: 25
           fetch_size: 25
@@ -252,6 +254,9 @@ spring:
   config:
     activate:
       on-profile: prod
+  sql:
+    init:
+      mode: always
   datasource:
     url: ${DB_URL:jdbc:postgresql://localhost:5432/auditoria_db}
     username: ${DB_USERNAME:postgres}
@@ -268,6 +273,7 @@ spring:
       hibernate:
         format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
+        default_schema: ${DB_SCHEMA:login_inteligente}
   # Redis habilitado no profile prod
   data:
     redis:

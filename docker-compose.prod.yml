@@ -1,22 +1,4 @@
 services:
-  # PostgreSQL Database
-  postgres:
-    image: postgres:16-alpine
-    container_name: auditoria-postgres
-    env_file: .env.production
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    networks:
-      - auditoria-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    restart: always
-
   # Backend (Spring Boot API)
   api:
     image: ghcr.io/jgbcientista/sistema-autonomo-autenticacao-blockchain-ia/api:latest
@@ -24,9 +6,6 @@ services:
     env_file: .env.production
     ports:
       - "8080:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
     networks:
       - auditoria-network
     restart: always
@@ -42,9 +21,6 @@ services:
     networks:
       - auditoria-network
     restart: always
-
-volumes:
-  postgres_data:
 
 networks:
   auditoria-network:

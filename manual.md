@@ -11,3 +11,7 @@
 
 **Reiniciar tudo:**
   docker-compose restart
+  
+  
+  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
+  https://github.com/settings/tokens

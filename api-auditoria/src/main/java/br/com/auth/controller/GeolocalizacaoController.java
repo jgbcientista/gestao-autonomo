@@ -265,33 +265,72 @@ public class GeolocalizacaoController {
 
             List<LogAuditoria> logs = repositorioLogAuditoria.findByUsuario(usuario);
 
-            // Coordenadas conhecidas para cidades de demonstração
-            Map<String, double[]> coordenadasCidades = Map.ofEntries(
-                Map.entry("São Paulo, BR", new double[]{-23.5505, -46.6333}),
-                Map.entry("Rio de Janeiro, BR", new double[]{-22.9068, -43.1729}),
-                Map.entry("Salvador, BR", new double[]{-12.9714, -38.5124}),
-                Map.entry("Brasília, BR", new double[]{-15.7975, -47.8919}),
-                Map.entry("Belo Horizonte, BR", new double[]{-19.9167, -43.9345}),
-                Map.entry("Recife, BR", new double[]{-8.0476, -34.8770}),
-                Map.entry("Curitiba, BR", new double[]{-25.4284, -49.2733}),
-                Map.entry("Porto Alegre, BR", new double[]{-30.0346, -51.2177}),
-                Map.entry("New York, US", new double[]{40.7128, -74.0060}),
-                Map.entry("Columbus, US", new double[]{39.9612, -82.9988}),
-                Map.entry("Paris, FR", new double[]{48.8566, 2.3522}),
-                Map.entry("Frankfurt, DE", new double[]{50.1109, 8.6821}),
-                Map.entry("Mumbai, IN", new double[]{19.0760, 72.8777}),
-                Map.entry("Tokyo, JP", new double[]{35.6762, 139.6503}),
-                Map.entry("London, GB", new double[]{51.5074, -0.1278}),
-                Map.entry("Sydney, AU", new double[]{-33.8688, 151.2093}),
-                Map.entry("Amsterdam, NL", new double[]{52.3676, 4.9041}),
-                Map.entry("Seoul, KR", new double[]{37.5665, 126.9780}),
-                Map.entry("Menlo Park, US", new double[]{37.4529, -122.1817}),
-                Map.entry("San Francisco, US", new double[]{37.7749, -122.4194}),
-                Map.entry("Berlin, DE", new double[]{52.5200, 13.4050}),
-                Map.entry("Moscow, RU", new double[]{55.7558, 37.6173}),
-                Map.entry("Nairobi, KE", new double[]{-1.2921, 36.8219}),
-                Map.entry("Lagos, NG", new double[]{6.5244, 3.3792})
-            );
+            // Coordenadas conhecidas para cidades (ambos formatos: codigo pais e nome pais)
+            Map<String, double[]> coordenadasCidades = new java.util.HashMap<>();
+            // Brasil
+            coordenadasCidades.put("São Paulo, BR", new double[]{-23.5505, -46.6333});
+            coordenadasCidades.put("Sao Paulo, Brasil", new double[]{-23.5505, -46.6333});
+            coordenadasCidades.put("Sao Paulo, BR", new double[]{-23.5505, -46.6333});
+            coordenadasCidades.put("Rio de Janeiro, BR", new double[]{-22.9068, -43.1729});
+            coordenadasCidades.put("Rio de Janeiro, Brasil", new double[]{-22.9068, -43.1729});
+            coordenadasCidades.put("Salvador, BR", new double[]{-12.9714, -38.5124});
+            coordenadasCidades.put("Salvador, Brasil", new double[]{-12.9714, -38.5124});
+            coordenadasCidades.put("Brasília, BR", new double[]{-15.7975, -47.8919});
+            coordenadasCidades.put("Brasilia, Brasil", new double[]{-15.7975, -47.8919});
+            coordenadasCidades.put("Belo Horizonte, BR", new double[]{-19.9167, -43.9345});
+            coordenadasCidades.put("Belo Horizonte, Brasil", new double[]{-19.9167, -43.9345});
+            coordenadasCidades.put("Recife, BR", new double[]{-8.0476, -34.8770});
+            coordenadasCidades.put("Recife, Brasil", new double[]{-8.0476, -34.8770});
+            coordenadasCidades.put("Curitiba, BR", new double[]{-25.4284, -49.2733});
+            coordenadasCidades.put("Curitiba, Brasil", new double[]{-25.4284, -49.2733});
+            coordenadasCidades.put("Porto Alegre, BR", new double[]{-30.0346, -51.2177});
+            coordenadasCidades.put("Porto Alegre, Brasil", new double[]{-30.0346, -51.2177});
+            // EUA
+            coordenadasCidades.put("New York, US", new double[]{40.7128, -74.0060});
+            coordenadasCidades.put("New York, USA", new double[]{40.7128, -74.0060});
+            coordenadasCidades.put("Columbus, US", new double[]{39.9612, -82.9988});
+            coordenadasCidades.put("Columbus, USA", new double[]{39.9612, -82.9988});
+            coordenadasCidades.put("Menlo Park, US", new double[]{37.4529, -122.1817});
+            coordenadasCidades.put("Menlo Park, USA", new double[]{37.4529, -122.1817});
+            coordenadasCidades.put("San Francisco, US", new double[]{37.7749, -122.4194});
+            coordenadasCidades.put("San Francisco, USA", new double[]{37.7749, -122.4194});
+            // Europa
+            coordenadasCidades.put("Paris, FR", new double[]{48.8566, 2.3522});
+            coordenadasCidades.put("Paris, France", new double[]{48.8566, 2.3522});
+            coordenadasCidades.put("Frankfurt, DE", new double[]{50.1109, 8.6821});
+            coordenadasCidades.put("Frankfurt, Germany", new double[]{50.1109, 8.6821});
+            coordenadasCidades.put("London, GB", new double[]{51.5074, -0.1278});
+            coordenadasCidades.put("London, UK", new double[]{51.5074, -0.1278});
+            coordenadasCidades.put("London, England", new double[]{51.5074, -0.1278});
+            coordenadasCidades.put("Amsterdam, NL", new double[]{52.3676, 4.9041});
+            coordenadasCidades.put("Amsterdam, Netherlands", new double[]{52.3676, 4.9041});
+            coordenadasCidades.put("Berlin, DE", new double[]{52.5200, 13.4050});
+            coordenadasCidades.put("Berlin, Germany", new double[]{52.5200, 13.4050});
+            coordenadasCidades.put("Berlin, Alemanha", new double[]{52.5200, 13.4050});
+            coordenadasCidades.put("Moscow, RU", new double[]{55.7558, 37.6173});
+            coordenadasCidades.put("Moscow, Russia", new double[]{55.7558, 37.6173});
+            // Asia
+            coordenadasCidades.put("Mumbai, IN", new double[]{19.0760, 72.8777});
+            coordenadasCidades.put("Mumbai, India", new double[]{19.0760, 72.8777});
+            coordenadasCidades.put("Tokyo, JP", new double[]{35.6762, 139.6503});
+            coordenadasCidades.put("Tokyo, Japan", new double[]{35.6762, 139.6503});
+            coordenadasCidades.put("Tokyo, Japao", new double[]{35.6762, 139.6503});
+            coordenadasCidades.put("Seoul, KR", new double[]{37.5665, 126.9780});
+            coordenadasCidades.put("Seoul, South Korea", new double[]{37.5665, 126.9780});
+            coordenadasCidades.put("Beijing, CN", new double[]{39.9042, 116.4074});
+            coordenadasCidades.put("Beijing, China", new double[]{39.9042, 116.4074});
+            coordenadasCidades.put("Tehran, IR", new double[]{35.6892, 51.3890});
+            coordenadasCidades.put("Tehran, Iran", new double[]{35.6892, 51.3890});
+            coordenadasCidades.put("Pyongyang, KP", new double[]{39.0392, 125.7625});
+            coordenadasCidades.put("Pyongyang, North Korea", new double[]{39.0392, 125.7625});
+            // Africa
+            coordenadasCidades.put("Nairobi, KE", new double[]{-1.2921, 36.8219});
+            coordenadasCidades.put("Nairobi, Kenya", new double[]{-1.2921, 36.8219});
+            coordenadasCidades.put("Lagos, NG", new double[]{6.5244, 3.3792});
+            coordenadasCidades.put("Lagos, Nigeria", new double[]{6.5244, 3.3792});
+            // Oceania
+            coordenadasCidades.put("Sydney, AU", new double[]{-33.8688, 151.2093});
+            coordenadasCidades.put("Sydney, Australia", new double[]{-33.8688, 151.2093});
 
             // Agregar acessos por localização
             Map<String, List<LogAuditoria>> acessosPorLocal = logs.stream()

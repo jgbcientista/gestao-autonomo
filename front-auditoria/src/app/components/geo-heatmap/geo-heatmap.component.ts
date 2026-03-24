@@ -168,6 +168,12 @@ export class GeoHeatmapComponent implements OnInit {
     return [...this.acessosNormais, ...this.acessosSuspeitos];
   }
 
+  formatarData(data: string | null | undefined): string {
+    if (!data) return '-';
+    const d = new Date(data);
+    return d.toLocaleDateString('pt-BR') + ' ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+  }
+
   voltarDashboard(): void {
     this.router.navigate(['/dashboard']);
   }

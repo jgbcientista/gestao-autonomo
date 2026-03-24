@@ -83,6 +83,12 @@
       <span>{{ error }}</span>
     </div>
 
+    <!-- Sem dados -->
+    <div *ngIf="selectedUserId && !loading && !error && todosOsPontos.length === 0 && totalAcessos >= 0" class="alert-card" style="background:#f0f4f8;border:1px solid #d4e0ed;border-radius:8px;padding:24px;text-align:center;margin-bottom:20px;">
+      <i class="bi bi-geo-alt" style="font-size:2rem;color:#8c9bab;"></i>
+      <p style="margin:12px 0 0;color:#5c6a7a;">Nenhum dado de localização encontrado para este usuario.</p>
+    </div>
+
     <!-- Mapa SVG -->
     <section class="map-section" *ngIf="todosOsPontos.length > 0 && !loading">
 
@@ -198,6 +204,7 @@
           <div class="tooltip-detail">Acessos: <strong>{{ tooltipData.contagem }}</strong></div>
           <div class="tooltip-detail" *ngIf="tooltipData.falhas">Falhas: <strong class="text-danger">{{ tooltipData.falhas }}</strong></div>
           <div class="tooltip-detail">Risco: <strong [style.color]="getDotColor(tooltipData)">{{ tooltipData.nivelRisco }}</strong></div>
+          <div class="tooltip-detail" *ngIf="tooltipData.ultimoAcesso"><i class="bi bi-clock me-1"></i>{{ formatarData(tooltipData.ultimoAcesso) }}</div>
         </div>
       </div>
 
@@ -253,6 +260,7 @@
                 <th>Cidade</th>
                 <th>Acessos</th>
                 <th>Falhas</th>
+                <th>Ultimo Acesso</th>
                 <th>Risco</th>
               </tr>
             </thead>
@@ -262,6 +270,9 @@
                 <td><strong>{{ p.contagem }}</strong></td>
                 <td>
                   <span [style.color]="(p.falhas || 0) > 0 ? '#E52207' : '#168821'">{{ p.falhas || 0 }}</span>
+                </td>
+                <td>
+                  <i class="bi bi-clock me-1" style="color:#8c9bab;"></i>{{ formatarData(p.ultimoAcesso) }}
                 </td>
                 <td>
                   <span class="risk-pill"

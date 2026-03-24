@@ -234,23 +234,32 @@ public class AuthenticationService implements IServicoAutenticacao {
 
     private void registrarLogAuditoria(Usuario usuario, String evento, HttpServletRequest request) {
         try {
-            Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(request.getRemoteAddr());
+            String ip = request != null ? request.getRemoteAddr() : "0.0.0.0";
+            String userAgent = request != null ? request.getHeader("User-Agent") : "unknown";
+
+            Map<String, String> localizacao = servicoGeolocalizacao.obterLocalizacao(ip);
             String locationStr = String.format("%s, %s", localizacao.get("cidade"), localizacao.get("pais"));
-            
-            LogAuditoria log = LogAuditoria.builder()
+
+            log.info("Registrando log de auditoria - usuario: {}, evento: {}, ip: {}, localizacao: {}",
+                     usuario.getEmail(), evento, ip, locationStr);
+
+            LocalDateTime agora = LocalDateTime.now();
+            LogAuditoria logAuditoria = LogAuditoria.builder()
                 .usuario(usuario)
                 .tipoEvento(evento)
-                .enderecoIp(request.getRemoteAddr())
-                .agenteUsuario(request.getHeader("User-Agent"))
+                .enderecoIp(ip)
+                .agenteUsuario(userAgent)
                 .localizacao(locationStr)
-                .infoDispositivo(request.getHeader("User-Agent"))
-                .dataHora(LocalDateTime.now())
+                .infoDispositivo(userAgent)
+                .dataHora(agora)
+                .criadoEm(agora)
                 .sucesso(true)
                 .build();
-            
-            repositorioLogAuditoria.save(log);
+
+            repositorioLogAuditoria.save(logAuditoria);
+            log.info("Log de auditoria salvo com sucesso para usuario: {}", usuario.getEmail());
         } catch (Exception e) {
-            log.error("Erro ao registrar log de auditoria", e);
+            log.error("ERRO ao registrar log de auditoria: {}", e.getMessage(), e);
         }
     }
 
@@ -511,6 +520,31 @@ public class AuthenticationService implements IServicoAutenticacao {
             repositorioUsuario.save(usuario);
 
             log.info("Login bem-sucedido para usuário: {}", requisicao.getEmail());
+
+            // Registrar log de auditoria
+            try {
+                String ip = requisicao.getIpAddress() != null ? requisicao.getIpAddress() : "127.0.0.1";
+                String userAgent = requisicao.getUserAgent() != null ? requisicao.getUserAgent() : "Web";
+                Map<String, String> geoLoc = servicoGeolocalizacao.obterLocalizacao(ip);
+                String locationStr = String.format("%s, %s", geoLoc.get("cidade"), geoLoc.get("pais"));
+
+                LocalDateTime agora = LocalDateTime.now();
+                LogAuditoria logAuditoria = LogAuditoria.builder()
+                    .usuario(usuario)
+                    .tipoEvento("LOGIN_SUCCESS")
+                    .enderecoIp(ip)
+                    .agenteUsuario(userAgent)
+                    .localizacao(locationStr)
+                    .infoDispositivo(userAgent)
+                    .dataHora(agora)
+                    .criadoEm(agora)
+                    .sucesso(true)
+                    .build();
+                repositorioLogAuditoria.save(logAuditoria);
+                log.info("Log de auditoria salvo para usuario: {}", usuario.getEmail());
+            } catch (Exception logEx) {
+                log.error("Erro ao registrar log de auditoria: {}", logEx.getMessage(), logEx);
+            }
 
             // Registrar no blockchain com score real da IA
             try {

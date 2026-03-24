@@ -269,6 +269,7 @@ public class GeolocalizacaoController {
             Map<String, double[]> coordenadasCidades = new java.util.HashMap<>();
             // Brasil
             coordenadasCidades.put("São Paulo, BR", new double[]{-23.5505, -46.6333});
+            coordenadasCidades.put("São Paulo, Brasil", new double[]{-23.5505, -46.6333});
             coordenadasCidades.put("Sao Paulo, Brasil", new double[]{-23.5505, -46.6333});
             coordenadasCidades.put("Sao Paulo, BR", new double[]{-23.5505, -46.6333});
             coordenadasCidades.put("Rio de Janeiro, BR", new double[]{-22.9068, -43.1729});

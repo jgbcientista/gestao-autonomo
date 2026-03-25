@@ -280,9 +280,9 @@ spring:
       repositories:
         enabled: false
   redis:
-    host: localhost
-    port: 6379
-    password: 
+    host: ${REDIS_HOST:172.17.0.1}
+    port: ${REDIS_PORT:6379}
+    password: ${REDIS_PASSWORD:}
     timeout: 2000ms
 
 # Configurações específicas do profile prod
@@ -295,7 +295,7 @@ blockchain:
   enabled: true
 
 app:
-  base-url: ${APP_BASE_URL:http://localhost:4200}
+  base-url: ${APP_BASE_URL:http://209.50.240.20:4200}
 
 # Swagger habilitado no profile prod
 springdoc:

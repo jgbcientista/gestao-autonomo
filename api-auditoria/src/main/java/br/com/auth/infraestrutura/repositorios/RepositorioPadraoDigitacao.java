@@ -11,7 +11,7 @@ import java.util.Optional;
 @Repository
 public interface RepositorioPadraoDigitacao extends JpaRepository<PadraoDigitacao, Long> {
 
-    Optional<PadraoDigitacao> findByUsuarioAndEhBaselineTrue(Usuario usuario);
+    Optional<PadraoDigitacao> findTopByUsuarioAndEhBaselineTrueOrderByCriadoEmDesc(Usuario usuario);
 
     List<PadraoDigitacao> findByUsuarioOrderByCriadoEmDesc(Usuario usuario);
 

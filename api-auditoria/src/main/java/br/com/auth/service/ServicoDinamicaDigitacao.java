@@ -73,7 +73,7 @@ public class ServicoDinamicaDigitacao {
                 .build();
 
         // Se baseline existe, calcular similaridade
-        Optional<PadraoDigitacao> baselineOpt = repositorioPadraoDigitacao.findByUsuarioAndEhBaselineTrue(usuario);
+        Optional<PadraoDigitacao> baselineOpt = repositorioPadraoDigitacao.findTopByUsuarioAndEhBaselineTrueOrderByCriadoEmDesc(usuario);
         if (baselineOpt.isPresent()) {
             double similaridade = calcularSimilaridade(
                     mediaHold, mediaFlight, desvioHold, desvioFlight,
@@ -98,7 +98,7 @@ public class ServicoDinamicaDigitacao {
         Usuario usuario = repositorioUsuario.findById(usuarioId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario nao encontrado: " + usuarioId));
 
-        Optional<PadraoDigitacao> baselineOpt = repositorioPadraoDigitacao.findByUsuarioAndEhBaselineTrue(usuario);
+        Optional<PadraoDigitacao> baselineOpt = repositorioPadraoDigitacao.findTopByUsuarioAndEhBaselineTrueOrderByCriadoEmDesc(usuario);
         if (baselineOpt.isEmpty()) {
             log.warn("Baseline nao encontrado para usuario: {}. Retornando 1.0 (sem referencia)", usuarioId);
             return 1.0;
@@ -129,7 +129,7 @@ public class ServicoDinamicaDigitacao {
         Usuario usuario = repositorioUsuario.findById(usuarioId)
                 .orElseThrow(() -> new NoSuchElementException("Usuario nao encontrado: " + usuarioId));
 
-        Optional<PadraoDigitacao> baseline = repositorioPadraoDigitacao.findByUsuarioAndEhBaselineTrue(usuario);
+        Optional<PadraoDigitacao> baseline = repositorioPadraoDigitacao.findTopByUsuarioAndEhBaselineTrueOrderByCriadoEmDesc(usuario);
         List<PadraoDigitacao> amostrasRecentes = repositorioPadraoDigitacao.findByUsuarioOrderByCriadoEmDesc(usuario);
         long totalAmostras = repositorioPadraoDigitacao.countByUsuario(usuario);
 
@@ -214,7 +214,7 @@ public class ServicoDinamicaDigitacao {
                 .orElse(0.0);
 
         // Remover baseline anterior
-        Optional<PadraoDigitacao> baselineAnterior = repositorioPadraoDigitacao.findByUsuarioAndEhBaselineTrue(usuario);
+        Optional<PadraoDigitacao> baselineAnterior = repositorioPadraoDigitacao.findTopByUsuarioAndEhBaselineTrueOrderByCriadoEmDesc(usuario);
         baselineAnterior.ifPresent(b -> {
             b.setEhBaseline(false);
             repositorioPadraoDigitacao.save(b);

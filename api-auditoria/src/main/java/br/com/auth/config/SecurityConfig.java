@@ -77,7 +77,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/health/**").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                 .requestMatchers("/api/v1/configuracoes/**").hasRole("ADMIN")
-                .requestMatchers("/api/v1/gestao-acesso/**").hasAnyRole("GESTOR", "ADMIN")
+                .requestMatchers("/api/v1/gestao-acesso/**").hasRole("ADMIN")
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

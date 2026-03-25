@@ -60,6 +60,10 @@ export class GeoHeatmapComponent implements OnInit {
     private router: Router
   ) {}
 
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
   ngOnInit(): void {
     this.usuarioAtual = this.authService.getCurrentUser();
     if (!this.usuarioAtual) {

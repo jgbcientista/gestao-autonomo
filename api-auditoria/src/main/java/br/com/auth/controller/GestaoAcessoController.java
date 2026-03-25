@@ -9,8 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @RestController
@@ -136,6 +138,101 @@ public class GestaoAcessoController {
             log.error("Erro ao listar usuarios: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError()
                     .body(Map.of("erro", "Erro ao listar usuarios: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{usuarioId}/perfil")
+    @Operation(summary = "Alterar perfil/role de um usuario")
+    public ResponseEntity<?> alterarPerfil(@PathVariable Long usuarioId, @RequestBody Map<String, String> body) {
+        try {
+            Usuario usuario = repositorioUsuario.findById(usuarioId).orElse(null);
+
+            if (usuario == null) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Usuario nao encontrado"));
+            }
+
+            String novoPerfil = body.get("perfil");
+            if (novoPerfil == null || novoPerfil.isBlank()) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Perfil nao informado"));
+            }
+
+            Set<String> novosPerfis = new HashSet<>();
+            novosPerfis.add(novoPerfil);
+            usuario.setPerfis(novosPerfis);
+            repositorioUsuario.save(usuario);
+
+            log.info("Perfil do usuario {} alterado para {}", usuario.getEmail(), novoPerfil);
+
+            return ResponseEntity.ok(Map.of(
+                    "mensagem", "Perfil alterado com sucesso",
+                    "id", usuario.getId(),
+                    "perfis", usuario.getPerfis().toString()
+            ));
+        } catch (Exception e) {
+            log.error("Erro ao alterar perfil do usuario {}: {}", usuarioId, e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("erro", "Erro ao alterar perfil: " + e.getMessage()));
+        }
+    }
+
+    @PutMapping("/{usuarioId}")
+    @Operation(summary = "Editar dados de um usuario")
+    public ResponseEntity<?> editarUsuario(@PathVariable Long usuarioId, @RequestBody Map<String, String> body) {
+        try {
+            Usuario usuario = repositorioUsuario.findById(usuarioId).orElse(null);
+
+            if (usuario == null) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Usuario nao encontrado"));
+            }
+
+            if (body.containsKey("nome") && !body.get("nome").isBlank()) {
+                usuario.setNome(body.get("nome"));
+            }
+            if (body.containsKey("email") && !body.get("email").isBlank()) {
+                usuario.setEmail(body.get("email"));
+            }
+            if (body.containsKey("statusConta") && !body.get("statusConta").isBlank()) {
+                usuario.setStatusConta(body.get("statusConta"));
+            }
+
+            repositorioUsuario.save(usuario);
+
+            log.info("Usuario {} editado com sucesso", usuario.getEmail());
+
+            return ResponseEntity.ok(Map.of(
+                    "mensagem", "Usuario editado com sucesso",
+                    "id", usuario.getId(),
+                    "nome", usuario.getNome(),
+                    "email", usuario.getEmail(),
+                    "statusConta", usuario.getStatusConta()
+            ));
+        } catch (Exception e) {
+            log.error("Erro ao editar usuario {}: {}", usuarioId, e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("erro", "Erro ao editar usuario: " + e.getMessage()));
+        }
+    }
+
+    @DeleteMapping("/{usuarioId}")
+    @Operation(summary = "Excluir um usuario")
+    public ResponseEntity<?> excluirUsuario(@PathVariable Long usuarioId) {
+        try {
+            Usuario usuario = repositorioUsuario.findById(usuarioId).orElse(null);
+
+            if (usuario == null) {
+                return ResponseEntity.badRequest().body(Map.of("erro", "Usuario nao encontrado"));
+            }
+
+            String email = usuario.getEmail();
+            repositorioUsuario.delete(usuario);
+
+            log.info("Usuario {} excluido com sucesso", email);
+
+            return ResponseEntity.ok(Map.of("mensagem", "Usuario excluido com sucesso"));
+        } catch (Exception e) {
+            log.error("Erro ao excluir usuario {}: {}", usuarioId, e.getMessage(), e);
+            return ResponseEntity.internalServerError()
+                    .body(Map.of("erro", "Erro ao excluir usuario: " + e.getMessage()));
         }
     }
 }

@@ -14,6 +14,7 @@ import { ExplicabilidadeIAComponent } from './components/explicabilidade-ia/expl
 import { DerivaComportamentalComponent } from './components/deriva-comportamental/deriva-comportamental.component';
 import { GestaoAcessoComponent } from './components/gestao-acesso/gestao-acesso.component';
 import { authGuard } from './guards/auth.guard';
+import { adminGuard } from './guards/admin.guard';
 
 export const routes: Routes = [
   { path: '', redirectTo: '/login', pathMatch: 'full' },
@@ -30,6 +31,6 @@ export const routes: Routes = [
   { path: 'keystroke-profile', component: KeystrokeProfileComponent, canActivate: [authGuard] },
   { path: 'explicabilidade-ia', component: ExplicabilidadeIAComponent, canActivate: [authGuard] },
   { path: 'deriva-comportamental', component: DerivaComportamentalComponent, canActivate: [authGuard] },
-  { path: 'gestao-acesso', component: GestaoAcessoComponent, canActivate: [authGuard] },
+  { path: 'gestao-acesso', component: GestaoAcessoComponent, canActivate: [adminGuard] },
   { path: '**', redirectTo: '/login' }
 ];

@@ -32,7 +32,7 @@
             <li><a class="dropdown-item" routerLink="/blockchain"><i class="bi bi-link-45deg me-2"></i>Blockchain</a></li>
             <li><a class="dropdown-item" routerLink="/attack-simulation"><i class="bi bi-bug-fill me-2"></i>Simulação Ataques</a></li>
             <li><a class="dropdown-item" routerLink="/keystroke-profile"><i class="bi bi-keyboard-fill me-2"></i>Keystroke</a></li>
-            <li><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
+            <li *ngIf="isAdmin"><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -80,7 +80,7 @@
   </div>
 </div>
 
-<!-- Conteudo Principal -->
+<!-- Conteúdo Principal -->
 <main class="dashboard-main">
   <div class="page-container">
     <!-- Hero Section -->
@@ -90,13 +90,13 @@
           <div class="hero-content">
             <div class="welcome-badge">
               <i class="bi bi-lightbulb-fill me-2"></i>
-              Inteligencia Artificial Explicavel
+              Inteligência Artificial Explicável
             </div>
             <h1 class="hero-title">
-              <span class="highlight">Explicabilidade da IA</span> - Por que esta decisao?
+              <span class="highlight">Explicabilidade da IA</span> - Por que esta decisão?
             </h1>
             <p class="hero-subtitle">
-              Entenda como a IA tomou cada decisao de autenticacao, quais fatores contribuiram e por que.
+              Entenda como a IA tomou cada decisão de autenticação, quais fatores contribuíram e por quê.
             </p>
           </div>
         </div>
@@ -112,15 +112,15 @@
       </div>
     </section>
 
-    <!-- Selecao de Usuario -->
+    <!-- Seleção de Usuário -->
     <section class="select-section">
       <div class="select-card">
         <div class="select-card-header">
           <i class="bi bi-person-fill me-2"></i>
-          <h4>Selecionar Usuario</h4>
+          <h4>Selecionar Usuário</h4>
         </div>
         <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
-          <option [ngValue]="null">-- Selecione um usuario para analise --</option>
+          <option [ngValue]="null">-- Selecione um usuário para análise --</option>
           <option *ngFor="let u of usuarios" [ngValue]="u.id">
             {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
           </option>
@@ -157,13 +157,13 @@
               </div>
             </div>
             <h4>Carregando explicabilidade da IA...</h4>
-            <p>Analisando fatores de decisao</p>
+            <p>Analisando fatores de decisão</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Conteudo -->
+    <!-- Conteúdo -->
     <section class="analysis-section" *ngIf="explicabilidade && !loading">
       <div class="row g-4">
 
@@ -180,7 +180,7 @@
               </span>
             </div>
             <div class="decision-content">
-              <h3 class="decision-title">Classificacao: {{ explicabilidade.classificacao }}</h3>
+              <h3 class="decision-title">Classificação: {{ explicabilidade.classificacao }}</h3>
               <div class="decision-details">
                 <span class="decision-score">Score: {{ formatarScore(explicabilidade.score || 0) }}</span>
                 <span class="decision-separator">|</span>
@@ -190,14 +190,14 @@
           </div>
         </div>
 
-        <!-- Motivo da Decisao -->
+        <!-- Motivo da Decisão -->
         <div class="col-12" *ngIf="explicabilidade.motivoDecisao">
           <div class="analysis-card">
             <div class="card-header">
               <div class="card-header-content">
                 <h4 class="card-title">
                   <i class="bi bi-chat-text-fill me-2"></i>
-                  Motivo da Decisao
+                  Motivo da Decisão
                 </h4>
               </div>
             </div>
@@ -207,14 +207,14 @@
           </div>
         </div>
 
-        <!-- Contribuicao dos Fatores -->
+        <!-- Contribuição dos Fatores -->
         <div class="col-lg-8" *ngIf="explicabilidade.fatores && explicabilidade.fatores.length > 0">
           <div class="analysis-card">
             <div class="card-header">
               <div class="card-header-content">
                 <h4 class="card-title">
                   <i class="bi bi-bar-chart-fill me-2"></i>
-                  Contribuicao dos Fatores
+                  Contribuição dos Fatores
                 </h4>
               </div>
             </div>
@@ -291,14 +291,14 @@
           </div>
         </div>
 
-        <!-- Comparacao com Perfil Habitual -->
+        <!-- Comparação com Perfil Habitual -->
         <div class="col-12" *ngIf="comparacao && comparacao.fatores && comparacao.fatores.length > 0">
           <div class="analysis-card">
             <div class="card-header">
               <div class="card-header-content">
                 <h4 class="card-title">
                   <i class="bi bi-arrow-left-right me-2"></i>
-                  Comparacao com Perfil Habitual
+                  Comparação com Perfil Habitual
                 </h4>
               </div>
             </div>
@@ -309,8 +309,8 @@
                     <tr>
                       <th>Fator</th>
                       <th>Valor Atual</th>
-                      <th>Media Historica</th>
-                      <th>Variacao</th>
+                      <th>Média Histórica</th>
+                      <th>Variação</th>
                     </tr>
                   </thead>
                   <tbody>

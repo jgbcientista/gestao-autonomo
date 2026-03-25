@@ -31,7 +31,7 @@
             <li><a class="dropdown-item" routerLink="/blockchain"><i class="bi bi-link-45deg me-2"></i>Blockchain</a></li>
             <li><a class="dropdown-item" routerLink="/attack-simulation"><i class="bi bi-bug-fill me-2"></i>Simulação Ataques</a></li>
             <li><a class="dropdown-item" routerLink="/keystroke-profile"><i class="bi bi-keyboard-fill me-2"></i>Keystroke</a></li>
-            <li><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
+            <li *ngIf="isAdmin"><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -171,9 +171,10 @@
               <th>ID</th>
               <th>Nome</th>
               <th>Email</th>
-              <th>Perfis</th>
+              <th>Perfil</th>
               <th>Status</th>
               <th>Data Cadastro</th>
+              <th>Ações</th>
             </tr>
           </thead>
           <tbody>
@@ -187,7 +188,7 @@
               </td>
               <td>{{ usuario.email }}</td>
               <td>
-                <span class="badge badge-info me-1">{{ usuario.perfis }}</span>
+                <span class="badge" [ngClass]="getPerfilClass(usuario.perfis)">{{ getPerfilLabel(usuario.perfis) }}</span>
               </td>
               <td>
                 <span class="badge" [ngClass]="getStatusClass(usuario.statusConta)">
@@ -195,6 +196,19 @@
                 </span>
               </td>
               <td>{{ usuario.criadoEm | date:'dd/MM/yyyy HH:mm' }}</td>
+              <td>
+                <div class="action-buttons">
+                  <button class="btn btn-sm btn-outline-primary" (click)="abrirModalEditar(usuario)" title="Editar">
+                    <i class="bi bi-pencil-fill"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-warning" (click)="abrirModalPerfil(usuario)" title="Alterar Perfil">
+                    <i class="bi bi-person-gear"></i>
+                  </button>
+                  <button class="btn btn-sm btn-outline-danger" (click)="abrirModalExcluir(usuario)" title="Excluir">
+                    <i class="bi bi-trash-fill"></i>
+                  </button>
+                </div>
+              </td>
             </tr>
           </tbody>
         </table>
@@ -202,3 +216,92 @@
     </div>
   </div>
 </main>
+
+<!-- Modal Editar Usuário -->
+<div class="modal-overlay" *ngIf="modalEditarAberto" (click)="fecharModalEditar()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header-custom">
+      <h5><i class="bi bi-pencil-fill me-2"></i>Editar Usuário</h5>
+      <button class="btn-close-modal" (click)="fecharModalEditar()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body-custom">
+      <div class="form-group mb-3">
+        <label class="form-label">Nome</label>
+        <input type="text" class="form-control" [(ngModel)]="editNome">
+      </div>
+      <div class="form-group mb-3">
+        <label class="form-label">Email</label>
+        <input type="email" class="form-control" [(ngModel)]="editEmail">
+      </div>
+      <div class="form-group mb-3">
+        <label class="form-label">Status</label>
+        <select class="form-select" [(ngModel)]="editStatus">
+          <option value="ATIVO">Ativo</option>
+          <option value="PENDENTE_APROVACAO_GESTOR">Pendente</option>
+          <option value="REJEITADO">Rejeitado</option>
+          <option value="BLOQUEADO">Bloqueado</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer-custom">
+      <button class="btn btn-secondary" (click)="fecharModalEditar()">Cancelar</button>
+      <button class="btn btn-primary" (click)="salvarEdicao()">
+        <i class="bi bi-check-lg me-1"></i>Salvar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Alterar Perfil -->
+<div class="modal-overlay" *ngIf="modalPerfilAberto" (click)="fecharModalPerfil()">
+  <div class="modal-container" (click)="$event.stopPropagation()">
+    <div class="modal-header-custom">
+      <h5><i class="bi bi-person-gear me-2"></i>Alterar Perfil</h5>
+      <button class="btn-close-modal" (click)="fecharModalPerfil()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body-custom">
+      <p class="mb-3">Alterar perfil de <strong>{{ usuarioAlterandoPerfil?.nome }}</strong>:</p>
+      <div class="form-group">
+        <label class="form-label">Perfil</label>
+        <select class="form-select" [(ngModel)]="novoPerfil">
+          <option *ngFor="let p of perfisDisponiveis" [value]="p">
+            {{ p === 'USUARIO_PADRAO' ? 'Usuário' : p === 'ADMIN' ? 'Administrador' : p === 'GESTOR' ? 'Gestor' : 'Auditor' }}
+          </option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-footer-custom">
+      <button class="btn btn-secondary" (click)="fecharModalPerfil()">Cancelar</button>
+      <button class="btn btn-primary" (click)="salvarPerfil()">
+        <i class="bi bi-check-lg me-1"></i>Salvar Perfil
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Confirmar Exclusão -->
+<div class="modal-overlay" *ngIf="modalExcluirAberto" (click)="fecharModalExcluir()">
+  <div class="modal-container modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header-custom modal-header-danger">
+      <h5><i class="bi bi-exclamation-triangle-fill me-2"></i>Confirmar Exclusão</h5>
+      <button class="btn-close-modal" (click)="fecharModalExcluir()">
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="modal-body-custom text-center">
+      <i class="bi bi-trash-fill text-danger" style="font-size: 3rem;"></i>
+      <p class="mt-3">Tem certeza que deseja excluir o usuário <strong>{{ usuarioExcluindo?.nome }}</strong>?</p>
+      <p class="text-muted" style="font-size: 0.85rem;">Esta ação não pode ser desfeita.</p>
+    </div>
+    <div class="modal-footer-custom">
+      <button class="btn btn-secondary" (click)="fecharModalExcluir()">Cancelar</button>
+      <button class="btn btn-danger" (click)="confirmarExclusao()">
+        <i class="bi bi-trash-fill me-1"></i>Excluir
+      </button>
+    </div>
+  </div>
+</div>

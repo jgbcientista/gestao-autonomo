@@ -32,7 +32,7 @@
             <li><a class="dropdown-item" routerLink="/blockchain"><i class="bi bi-link-45deg me-2"></i>Blockchain</a></li>
             <li><a class="dropdown-item" routerLink="/attack-simulation"><i class="bi bi-bug-fill me-2"></i>Simulação Ataques</a></li>
             <li><a class="dropdown-item" routerLink="/keystroke-profile"><i class="bi bi-keyboard-fill me-2"></i>Keystroke</a></li>
-            <li><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
+            <li *ngIf="isAdmin"><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -80,7 +80,7 @@
   </div>
 </div>
 
-<!-- Conteudo Principal -->
+<!-- Conteúdo Principal -->
 <main class="dashboard-main">
   <div class="page-container">
     <!-- Hero Section -->
@@ -90,13 +90,13 @@
           <div class="hero-content">
             <div class="welcome-badge">
               <i class="bi bi-activity me-2"></i>
-              Monitoramento Continuo
+              Monitoramento Contínuo
             </div>
             <h1 class="hero-title">
-              <span class="highlight">Deteccao de Deriva Comportamental</span>
+              <span class="highlight">Detecção de Deriva Comportamental</span>
             </h1>
             <p class="hero-subtitle">
-              Monitore mudancas graduais ou abruptas no comportamento do usuario ao longo do tempo.
+              Monitore mudanças graduais ou abruptas no comportamento do usuário ao longo do tempo.
             </p>
           </div>
         </div>
@@ -112,15 +112,15 @@
       </div>
     </section>
 
-    <!-- Selecao de Usuario -->
+    <!-- Seleção de Usuário -->
     <section class="select-section">
       <div class="select-card">
         <div class="select-card-header">
           <i class="bi bi-person-fill me-2"></i>
-          <h4>Selecionar Usuario</h4>
+          <h4>Selecionar Usuário</h4>
         </div>
         <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
-          <option [ngValue]="null">-- Selecione um usuario para analise --</option>
+          <option [ngValue]="null">-- Selecione um usuário para análise --</option>
           <option *ngFor="let u of usuarios" [ngValue]="u.id">
             {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
           </option>
@@ -157,13 +157,13 @@
               </div>
             </div>
             <h4>Analisando deriva comportamental...</h4>
-            <p>Comparando padroes historicos com comportamento recente</p>
+            <p>Comparando padrões históricos com comportamento recente</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Conteudo -->
+    <!-- Conteúdo -->
     <section class="analysis-section" *ngIf="deriva && !loading">
       <div class="row g-4">
 
@@ -217,7 +217,7 @@
                   </div>
                 </div>
                 <div class="gauge-labels">
-                  <span>0.0 Estavel</span>
+                  <span>0.0 Estável</span>
                   <span>0.5</span>
                   <span>1.0 Ruptura</span>
                 </div>
@@ -226,14 +226,14 @@
           </div>
         </div>
 
-        <!-- Janelas de Analise -->
+        <!-- Janelas de Análise -->
         <div class="col-lg-6">
           <div class="analysis-card">
             <div class="card-header">
               <div class="card-header-content">
                 <h4 class="card-title">
                   <i class="bi bi-calendar-range me-2"></i>
-                  Janelas de Analise
+                  Janelas de Análise
                 </h4>
               </div>
             </div>

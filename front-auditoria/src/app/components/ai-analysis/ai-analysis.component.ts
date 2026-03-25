@@ -74,6 +74,10 @@ export class AiAnalysisComponent implements OnInit, OnDestroy {
     private router: Router
   ) {}
 
+  get isAdmin(): boolean {
+    return this.authService.isAdmin();
+  }
+
   // Getter para data atual
   get dataAtual(): Date {
     return new Date();

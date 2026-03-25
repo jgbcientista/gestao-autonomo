@@ -32,7 +32,7 @@
             <li><a class="dropdown-item" routerLink="/blockchain"><i class="bi bi-link-45deg me-2"></i>Blockchain</a></li>
             <li><a class="dropdown-item" routerLink="/attack-simulation"><i class="bi bi-bug-fill me-2"></i>Simulação Ataques</a></li>
             <li><a class="dropdown-item" routerLink="/keystroke-profile"><i class="bi bi-keyboard-fill me-2"></i>Keystroke</a></li>
-            <li><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
+            <li *ngIf="isAdmin"><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
           </ul>
         </li>
         <li class="nav-item">
@@ -338,7 +338,7 @@
             <div class="feature-icon"><i class="bi bi-keyboard-fill"></i></div>
             <div class="feature-content">
               <h4 class="feature-title">Keystroke Dynamics</h4>
-              <p class="feature-description">Analise biometrica baseada no padrao de digitacao do usuario para autenticacao continua.</p>
+              <p class="feature-description">Análise biométrica baseada no padrão de digitação do usuário para autenticação contínua.</p>
               <div class="feature-status">
                 <span class="status-dot success"></span>
                 <span class="status-text">Biometria Ativa</span>
@@ -353,7 +353,7 @@
             <div class="feature-icon"><i class="bi bi-lightbulb-fill"></i></div>
             <div class="feature-content">
               <h4 class="feature-title">Explicabilidade da IA</h4>
-              <p class="feature-description">Entenda como a IA tomou cada decisao de autenticacao, quais fatores contribuiram e por que.</p>
+              <p class="feature-description">Entenda como a IA tomou cada decisão de autenticação, quais fatores contribuíram e por quê.</p>
               <div class="feature-status">
                 <span class="status-dot warning"></span>
                 <span class="status-text">XAI Ativo</span>
@@ -368,7 +368,7 @@
             <div class="feature-icon"><i class="bi bi-activity"></i></div>
             <div class="feature-content">
               <h4 class="feature-title">Deriva Comportamental</h4>
-              <p class="feature-description">Monitore mudancas graduais ou abruptas no comportamento do usuario ao longo do tempo.</p>
+              <p class="feature-description">Monitore mudanças graduais ou abruptas no comportamento do usuário ao longo do tempo.</p>
               <div class="feature-status">
                 <span class="status-dot success"></span>
                 <span class="status-text">Monitoramento Ativo</span>
@@ -382,8 +382,8 @@
           <div class="feature-card" routerLink="/gestao-acesso">
             <div class="feature-icon"><i class="bi bi-person-check-fill"></i></div>
             <div class="feature-content">
-              <h4 class="feature-title">Gestao de Acesso</h4>
-              <p class="feature-description">Aprove ou rejeite solicitacoes de acesso de novos usuarios ao sistema.</p>
+              <h4 class="feature-title">Gestão de Acesso</h4>
+              <p class="feature-description">Aprove ou rejeite solicitações de acesso de novos usuários ao sistema.</p>
               <div class="feature-status">
                 <span class="status-dot warning"></span>
                 <span class="status-text">Controle Ativo</span>
@@ -401,7 +401,7 @@
     <!-- Versão do Sistema -->
     <div class="version-footer text-center mt-4 mb-2">
       <span class="version-badge">
-        <i class="bi bi-tag-fill me-1"></i>Versao {{ appVersion }}
+        <i class="bi bi-tag-fill me-1"></i>Versão {{ appVersion }}
       </span>
     </div>
 

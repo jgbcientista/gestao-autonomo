@@ -739,4 +739,27 @@ export class ApiService {
       { headers: this.getHeaders() }
     );
   }
+
+  alterarPerfilUsuario(usuarioId: number, perfil: string): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}/api/v1/gestao-acesso/${usuarioId}/perfil`,
+      { perfil },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  editarUsuario(usuarioId: number, dados: any): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}/api/v1/gestao-acesso/${usuarioId}`,
+      dados,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  excluirUsuario(usuarioId: number): Observable<any> {
+    return this.http.delete<any>(
+      `${this.baseUrl}/api/v1/gestao-acesso/${usuarioId}`,
+      { headers: this.getHeaders() }
+    );
+  }
 }

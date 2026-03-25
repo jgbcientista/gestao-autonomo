@@ -93,7 +93,7 @@ public class Usuario implements UserDetails {
     @Builder.Default
     private Boolean autenticacaoDoisFatoresHabilitada = false;
 
-    @Column(name = "segredo_dois_fatores", length = 32)
+    @Column(name = "segredo_dois_fatores", length = 64)
     private String segredoDoisFatores;
 
     @Column(name = "lock_reason", length = 255)

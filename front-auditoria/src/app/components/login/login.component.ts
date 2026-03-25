@@ -113,7 +113,11 @@ export class LoginComponent implements OnInit {
               this.errorMessage = 'Sua conta foi bloqueada. Entre em contato com o suporte.';
               break;
             case 403:
-              this.errorMessage = 'Acesso negado pela análise de segurança. Tente novamente.';
+              if (error.error?.mfaMessage) {
+                this.errorMessage = error.error.mfaMessage;
+              } else {
+                this.errorMessage = 'Acesso negado pela análise de segurança. Tente novamente.';
+              }
               break;
             case 0:
               this.errorMessage = 'Erro de conexão. Verifique se o servidor está rodando.';

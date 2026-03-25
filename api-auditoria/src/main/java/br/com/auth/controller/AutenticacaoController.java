@@ -83,13 +83,19 @@ public class AutenticacaoController {
             return ResponseEntity.ok(resposta);
             
         } catch (RuntimeException e) {
-            log.warn("Falha na autenticação para usuário {}: {}", 
+            log.warn("Falha na autenticação para usuário {}: {}",
                     requisicao.getEmail(), e.getMessage());
-            
+
             // Retorna diferentes códigos baseado no tipo de erro
-            if (e.getMessage().contains("bloqueada")) {
+            if (e.getMessage() != null && e.getMessage().contains("CONTA_PENDENTE")) {
+                String mensagem = e.getMessage().replace("CONTA_PENDENTE:", "");
+                return ResponseEntity.status(403)
+                    .body(AuthenticationResponse.builder()
+                        .mfaMessage(mensagem)
+                        .build());
+            } else if (e.getMessage() != null && e.getMessage().contains("bloqueada")) {
                 return ResponseEntity.status(423).build(); // Locked
-            } else if (e.getMessage().contains("negado pela análise de IA")) {
+            } else if (e.getMessage() != null && e.getMessage().contains("negado pela análise de IA")) {
                 return ResponseEntity.status(403).build(); // Forbidden
             } else {
                 return ResponseEntity.status(401).build(); // Unauthorized

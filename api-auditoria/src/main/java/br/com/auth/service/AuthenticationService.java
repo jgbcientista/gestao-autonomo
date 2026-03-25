@@ -91,6 +91,8 @@ public class AuthenticationService implements IServicoAutenticacao {
                 .autenticacaoDoisFatoresHabilitada(false)
                 .build();
 
+        usuario.setStatusConta("PENDENTE_APROVACAO_GESTOR");
+
         repositorioUsuario.save(usuario);
         log.info("Usuário {} registrado com sucesso, Roles: {}", usuario.getEmail(), usuario.getPerfis());
 
@@ -117,6 +119,12 @@ public class AuthenticationService implements IServicoAutenticacao {
         try {
             var usuario = repositorioUsuario.findByEmail(request.getEmail())
                     .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+            // Verificar se conta está pendente de aprovação
+            if ("PENDENTE_APROVACAO_GESTOR".equals(usuario.getStatusConta())) {
+                log.warn("Tentativa de login com conta pendente de aprovação: {}", request.getEmail());
+                throw new BadCredentialsException("CONTA_PENDENTE:Sua conta está aguardando aprovação do gestor.");
+            }
 
             if (usuario.getAccountLocked() != null && usuario.getAccountLocked()) {
                 log.warn("Tentativa de login em conta bloqueada: {}", request.getEmail());
@@ -357,6 +365,8 @@ public class AuthenticationService implements IServicoAutenticacao {
                     .autenticacaoDoisFatoresHabilitada(false)
                     .build();
 
+            usuario.setStatusConta("PENDENTE_APROVACAO_GESTOR");
+
             // Salva o usuário
             Usuario usuarioSalvo = repositorioUsuario.save(usuario);
             log.info("Usuário {} salvo com sucesso, ID: {}, Roles: {}",
@@ -402,8 +412,9 @@ public class AuthenticationService implements IServicoAutenticacao {
         // Verifica por email específico
         if (adminEmails.contains(email.toLowerCase())) {
             roles.add("ADMIN");
+            roles.add("GESTOR");
             roles.add("USER");
-            log.info("Usuário {} definido como ADMIN por email específico", email);
+            log.info("Usuário {} definido como ADMIN/GESTOR por email específico", email);
             return roles;
         }
         
@@ -434,6 +445,12 @@ public class AuthenticationService implements IServicoAutenticacao {
         try {
             var usuario = repositorioUsuario.findByEmail(requisicao.getEmail())
                     .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado"));
+
+            // Verificar se conta está pendente de aprovação
+            if ("PENDENTE_APROVACAO_GESTOR".equals(usuario.getStatusConta())) {
+                log.warn("Tentativa de login com conta pendente de aprovação: {}", requisicao.getEmail());
+                throw new BadCredentialsException("CONTA_PENDENTE:Sua conta está aguardando aprovação do gestor.");
+            }
 
             if (usuario.getAccountLocked() != null && usuario.getAccountLocked()) {
                 log.warn("Tentativa de login em conta bloqueada: {}", requisicao.getEmail());
@@ -747,6 +764,7 @@ public class AuthenticationService implements IServicoAutenticacao {
             .email(request.getEmail())
             .senha(passwordEncoder.encode(request.getPassword()))
             .perfis(perfis)
+            .statusConta("PENDENTE_APROVACAO_GESTOR")
             .contaBloqueada(false)
             .tentativasLoginFalhadas(0)
             .autenticacaoDoisFatoresHabilitada(false)

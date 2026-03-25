@@ -99,6 +99,10 @@ public class Usuario implements UserDetails {
     @Column(name = "lock_reason", length = 255)
     private String lockReason;
 
+    @Column(name = "status_conta", length = 40)
+    @Builder.Default
+    private String statusConta = "PENDENTE_APROVACAO_GESTOR";
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return perfis.stream()
@@ -223,5 +227,13 @@ public class Usuario implements UserDetails {
 
     public void setLockReason(String lockReason) {
         this.lockReason = lockReason;
+    }
+
+    public String getStatusConta() {
+        return statusConta;
+    }
+
+    public void setStatusConta(String statusConta) {
+        this.statusConta = statusConta;
     }
 } 

@@ -708,4 +708,35 @@ export class ApiService {
       { headers: this.getHeaders() }
     );
   }
+
+  // === GESTAO DE ACESSO ===
+  getUsuariosPendentes(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/api/v1/gestao-acesso/pendentes`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  aprovarUsuario(usuarioId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/gestao-acesso/aprovar/${usuarioId}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  rejeitarUsuario(usuarioId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/gestao-acesso/rejeitar/${usuarioId}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getTodosUsuarios(): Observable<any[]> {
+    return this.http.get<any[]>(
+      `${this.baseUrl}/api/v1/gestao-acesso/todos`,
+      { headers: this.getHeaders() }
+    );
+  }
 }

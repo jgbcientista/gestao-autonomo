@@ -45,4 +45,7 @@ public class AuthenticationResponse {
 
     @Schema(description = "Score de risco calculado pela IA ensemble", example = "0.15")
     private Double aiRiskScore;
+
+    @Schema(description = "Status da conta do usuario", example = "ATIVO")
+    private String statusConta;
 } 

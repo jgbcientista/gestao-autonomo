@@ -173,10 +173,11 @@ export class RegisterComponent implements OnInit {
             return;
           }
 
-          this.successMessage = `Conta criada com sucesso! Bem-vindo, ${response.name}!`;
+          this.successMessage = 'Conta criada com sucesso! Sua conta está aguardando aprovação do gestor para acesso ao sistema.';
+          // Don't redirect to dashboard - user needs approval first
           setTimeout(() => {
-            this.router.navigate(['/dashboard']);
-          }, 2000);
+            this.router.navigate(['/login']);
+          }, 3000);
         },
         error: (error) => {
           this.isLoading = false;

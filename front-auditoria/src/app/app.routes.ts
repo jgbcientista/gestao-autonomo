@@ -12,6 +12,7 @@ import { DataGeneratorComponent } from './components/data-generator/data-generat
 import { KeystrokeProfileComponent } from './components/keystroke-profile/keystroke-profile.component';
 import { ExplicabilidadeIAComponent } from './components/explicabilidade-ia/explicabilidade-ia.component';
 import { DerivaComportamentalComponent } from './components/deriva-comportamental/deriva-comportamental.component';
+import { GestaoAcessoComponent } from './components/gestao-acesso/gestao-acesso.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -29,5 +30,6 @@ export const routes: Routes = [
   { path: 'keystroke-profile', component: KeystrokeProfileComponent, canActivate: [authGuard] },
   { path: 'explicabilidade-ia', component: ExplicabilidadeIAComponent, canActivate: [authGuard] },
   { path: 'deriva-comportamental', component: DerivaComportamentalComponent, canActivate: [authGuard] },
+  { path: 'gestao-acesso', component: GestaoAcessoComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' }
 ];

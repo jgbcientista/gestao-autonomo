@@ -6,12 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: auditoria-api
     env_file: .env.production
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "8080:8080"
-    networks:
-      - auditoria-network
+    network_mode: host
     restart: always
 
   # Frontend (Angular + Nginx)
@@ -22,6 +17,8 @@ services:
       args:
         CONFIGURATION: production
     container_name: auditoria-frontend
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "4200:4200"
     depends_on:

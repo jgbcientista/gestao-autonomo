@@ -770,14 +770,52 @@
                     <h6 class="control-title">Treinamento de Modelos</h6>
                     <p class="control-desc">Execute o retreinamento dos modelos com novos dados</p>
                   </div>
-                  <button class="btn btn-warning" 
-                          [disabled]="treinandoModelos" 
+                  <button class="btn btn-warning"
+                          [disabled]="treinandoModelos"
                           (click)="treinarModelos()">
                     <i class="bi bi-arrow-repeat" [class.spin]="treinandoModelos"></i>
                     {{ treinandoModelos ? 'Treinando...' : 'Treinar' }}
                   </button>
                 </div>
-                
+
+                <!-- Informações sobre o treinamento -->
+                <div class="training-info-panel">
+                  <div class="training-info-header">
+                    <i class="bi bi-info-circle-fill me-2"></i>
+                    <strong>Como funciona o treinamento</strong>
+                  </div>
+                  <div class="training-info-body">
+                    <p class="training-info-text">O treinamento recalibra os <strong>3 modelos de IA</strong> do sistema para melhorar a detecção de acessos suspeitos:</p>
+                    <div class="training-models">
+                      <div class="training-model-item">
+                        <span class="model-badge isolation">40%</span>
+                        <div>
+                          <strong>Isolation Forest</strong>
+                          <small>Detecção de anomalias em padrões de acesso</small>
+                        </div>
+                      </div>
+                      <div class="training-model-item">
+                        <span class="model-badge random">30%</span>
+                        <div>
+                          <strong>Random Forest</strong>
+                          <small>Classificação de acessos legítimos vs suspeitos</small>
+                        </div>
+                      </div>
+                      <div class="training-model-item">
+                        <span class="model-badge deep">30%</span>
+                        <div>
+                          <strong>Deep Learning</strong>
+                          <small>Análise comportamental avançada do usuário</small>
+                        </div>
+                      </div>
+                    </div>
+                    <p class="training-info-text mt-2 mb-0">
+                      <i class="bi bi-database me-1"></i>
+                      Os resultados são armazenados na tabela <code>perfis_comportamentais_ia</code> com scores individuais, score ensemble e classificação (Esperado, Suspeito, Anômalo, Altamente Suspeito).
+                    </p>
+                  </div>
+                </div>
+
                 <div class="control-item" *ngIf="ultimoTreinamento">
                   <div class="control-info">
                     <h6 class="control-title">Último Treinamento</h6>

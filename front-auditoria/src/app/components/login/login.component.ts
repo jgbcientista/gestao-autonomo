@@ -6,6 +6,7 @@ import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { KeystrokeService } from '../../services/keystroke.service';
 import { AuthenticationRequest } from '../../models/auth.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-login',
@@ -27,6 +28,7 @@ export class LoginComponent implements OnInit {
   mfaEmail = '';
   mfaMessage = '';
   isValidatingMfa = false;
+  appVersion: string = (environment as any).appVersion || '0.0.0';
 
   constructor(
     private formBuilder: FormBuilder,

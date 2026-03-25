@@ -6,6 +6,8 @@ services:
       dockerfile: Dockerfile
     container_name: auditoria-api
     env_file: .env.production
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     ports:
       - "8080:8080"
     networks:

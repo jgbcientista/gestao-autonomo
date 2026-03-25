@@ -17,16 +17,7 @@ services:
       args:
         CONFIGURATION: production
     container_name: auditoria-frontend
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    ports:
-      - "4200:4200"
+    network_mode: host
     depends_on:
       - api
-    networks:
-      - auditoria-network
     restart: always
-
-networks:
-  auditoria-network:
-    driver: bridge

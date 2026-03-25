@@ -2,9 +2,9 @@ name: CI/CD - Build & Deploy
 
 on:
   push:
-    branches: [main, master]
+    branches: [main]
   pull_request:
-    branches: [main, master]
+    branches: [main]
 
 env:
   REGISTRY: ghcr.io
@@ -126,7 +126,7 @@ jobs:
     name: Deploy na VPS
     runs-on: ubuntu-latest
     needs: [docker-build]
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main')
 
     steps:
       - name: Checkout código
@@ -140,7 +140,7 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT }}
           source: "docker-compose.prod.yml,.env.production"
-          target: "/home/login-inteligente"
+          target: "/home/sistema-autonomo"
 
       - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
@@ -150,7 +150,7 @@ jobs:
           password: ${{ secrets.VPS_PASSWORD }}
           port: ${{ secrets.VPS_PORT }}
           script: |
-            cd /home/login-inteligente
+            cd /home/sistema-autonomo
 
             # Login no GitHub Container Registry
             echo ${{ secrets.GHCR_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin

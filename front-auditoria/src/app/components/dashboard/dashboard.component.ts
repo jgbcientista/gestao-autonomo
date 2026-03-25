@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
 import { User } from '../../models/auth.model';
+import { environment } from '../../../environments/environment';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +31,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   totalUsuarios: number = 0;
   totalTransacoes: number = 0;
   totalAnalises: number = 0;
+  appVersion: string = (environment as any).appVersion || '0.0.0';
 
   constructor(
     private authService: AuthService,

@@ -1,5 +1,6 @@
 export const environment = {
   production: true,
+  appVersion: '0.0.100',
   apiUrl: '',
   aiApiUrl: '/ai-api',
   useKeycloak: false,

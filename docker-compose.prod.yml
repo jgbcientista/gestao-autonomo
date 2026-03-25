@@ -1,7 +1,7 @@
 services:
   # Backend (Spring Boot API)
   api:
-    image: ghcr.io/jgbcientista/sistema-autonomo-autenticacao-blockchain-ia/api:latest
+    image: ghcr.io/jgbcientista/sistema-autonomo/api:latest
     container_name: auditoria-api
     env_file: .env.production
     ports:
@@ -12,7 +12,7 @@ services:
 
   # Frontend (Angular + Nginx)
   frontend:
-    image: ghcr.io/jgbcientista/sistema-autonomo-autenticacao-blockchain-ia/frontend:latest
+    image: ghcr.io/jgbcientista/sistema-autonomo/frontend:latest
     container_name: auditoria-frontend
     ports:
       - "4200:4200"

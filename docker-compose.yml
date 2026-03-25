@@ -5,16 +5,12 @@ services:
       context: ./api-auditoria
       dockerfile: Dockerfile
     container_name: auditoria-api
+    env_file: .env.production
     ports:
       - "8080:8080"
-    environment:
-      - SPRING_PROFILES_ACTIVE=dev
-      - DB_URL=jdbc:postgresql://postgres:5432/auditoria_db
-      - SERVER_PORT=8080
-      - DB_USERNAME=postgres
-      - DB_PASSWORD=postgres
     networks:
       - auditoria-network
+    restart: always
 
   # Frontend (Angular + Nginx)
   frontend:
@@ -30,6 +26,7 @@ services:
       - api
     networks:
       - auditoria-network
+    restart: always
 
 networks:
   auditoria-network:

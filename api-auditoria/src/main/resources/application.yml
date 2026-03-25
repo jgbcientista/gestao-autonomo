@@ -14,7 +14,7 @@ spring:
   application:
     name: auditoria-service
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
   main:
     allow-bean-definition-overriding: true
   # Spring Security habilitado para funcionamento completo
@@ -258,9 +258,9 @@ spring:
     init:
       mode: always
   datasource:
-    url: ${DB_URL:jdbc:postgresql://localhost:5432/auditoria_db}
-    username: ${DB_USERNAME:postgres}
-    password: ${DB_PASSWORD:postgres}
+    url: ${DB_URL:jdbc:postgresql://172.17.0.1:5432/pcp_remoto_db?currentSchema=login_inteligente}
+    username: ${DB_USERNAME:pcp_remoto_db}
+    password: ${DB_PASSWORD:***REMOVIDO***}
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 5

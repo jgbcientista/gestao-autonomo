@@ -1,7 +1,9 @@
 services:
   # Backend (Spring Boot API)
   api:
-    image: ghcr.io/jgbcientista/sistema-autonomo/api:latest
+    build:
+      context: ./api-auditoria
+      dockerfile: Dockerfile
     container_name: auditoria-api
     env_file: .env.production
     ports:

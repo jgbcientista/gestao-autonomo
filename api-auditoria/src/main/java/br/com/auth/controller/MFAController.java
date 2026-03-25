@@ -23,6 +23,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Controlador para gerenciamento da autenticação multifator (MFA) baseada em TOTP.
@@ -200,7 +201,7 @@ public class MFAController {
                         .token(jwtToken)
                         .name(usuario.getNome())
                         .email(usuario.getEmail())
-                        .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
+                        .role(determinarPerfilPrincipal(usuario))
                         .requiresMfa(false)
                         .mfaMessage("MFA validado com sucesso")
                         .trustScore(trustScore)
@@ -259,5 +260,14 @@ public class MFAController {
             log.error("Erro ao verificar status MFA: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body(Map.of("error", "Erro ao verificar status MFA"));
         }
+    }
+
+    private String determinarPerfilPrincipal(Usuario usuario) {
+        Set<String> perfis = usuario.getPerfis();
+        if (perfis == null || perfis.isEmpty()) return "USER";
+        if (perfis.contains("ADMIN")) return "ADMIN";
+        if (perfis.contains("GESTOR")) return "GESTOR";
+        if (perfis.contains("AUDITOR")) return "AUDITOR";
+        return perfis.iterator().next();
     }
 }

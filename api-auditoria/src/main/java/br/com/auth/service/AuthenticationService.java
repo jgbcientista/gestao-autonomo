@@ -200,7 +200,7 @@ public class AuthenticationService implements IServicoAutenticacao {
                 return AuthenticationResponse.builder()
                     .email(usuario.getEmail())
                     .name(usuario.getNome())
-                    .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
+                    .role(determinarPerfilPrincipal(usuario))
                     .requiresMfa(true)
                     .mfaMessage(mfaMessage)
                     .trustScore(trustScore)
@@ -518,7 +518,7 @@ public class AuthenticationService implements IServicoAutenticacao {
                 return AuthenticationResponse.builder()
                     .email(usuario.getEmail())
                     .name(usuario.getNome())
-                    .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
+                    .role(determinarPerfilPrincipal(usuario))
                     .requiresMfa(true)
                     .mfaMessage(mfaMessage)
                     .trustScore(trustScore)
@@ -710,7 +710,7 @@ public class AuthenticationService implements IServicoAutenticacao {
             .token(token)
             .name(usuario.getNome())
             .email(usuario.getEmail())
-            .role(usuario.getPerfis().isEmpty() ? "USER" : usuario.getPerfis().iterator().next())
+            .role(determinarPerfilPrincipal(usuario))
             .trustScore(trustScore)
             .trustLevel(trustLevel)
             .aiRiskScore(aiRiskScore)
@@ -728,6 +728,15 @@ public class AuthenticationService implements IServicoAutenticacao {
         usuario.setUltimoLoginLocalizacao(localizacao != null ? localizacao : "Local");
         
         repositorioUsuario.save(usuario);
+    }
+
+    private String determinarPerfilPrincipal(Usuario usuario) {
+        Set<String> perfis = usuario.getPerfis();
+        if (perfis == null || perfis.isEmpty()) return "USER";
+        if (perfis.contains("ADMIN")) return "ADMIN";
+        if (perfis.contains("GESTOR")) return "GESTOR";
+        if (perfis.contains("AUDITOR")) return "AUDITOR";
+        return perfis.iterator().next();
     }
 
     private void validarDadosRegistro(RegisterRequest request) {

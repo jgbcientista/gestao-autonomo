@@ -32,14 +32,17 @@ public class ServicoMFA {
     private final RepositorioUsuario repositorioUsuario;
 
     private static final String EMISSOR = "AuthSystem";
-    private static final int TAMANHO_SEGREDO = 32;
+    // 20 bytes = 160 bits = padrão RFC 6238, gera 32 caracteres base32
+    private static final int TAMANHO_SEGREDO = 20;
 
     /**
      * Gera um novo segredo TOTP
      */
     public String gerarSegredo() {
         SecretGenerator gerador = new DefaultSecretGenerator(TAMANHO_SEGREDO);
-        return gerador.generate();
+        String segredo = gerador.generate();
+        log.info("Segredo TOTP gerado com {} caracteres", segredo.length());
+        return segredo;
     }
 
     /**
@@ -85,14 +88,18 @@ public class ServicoMFA {
      * Valida um código TOTP contra o segredo fornecido
      */
     public boolean validarCodigo(String segredo, String codigo) {
+        log.info("Validando TOTP - segredo length={}, codigo={}",
+            segredo != null ? segredo.length() : "null", codigo);
+
         TimeProvider provedor = new SystemTimeProvider();
         CodeGenerator gerador = new DefaultCodeGenerator();
         DefaultCodeVerifier verificador = new DefaultCodeVerifier(gerador, provedor);
-        // Permitir ±1 período (30s antes/depois) para compensar dessincronização de relógio
         verificador.setTimePeriod(30);
         verificador.setAllowedTimePeriodDiscrepancy(2);
 
-        return verificador.isValidCode(segredo, codigo);
+        boolean resultado = verificador.isValidCode(segredo, codigo);
+        log.info("Resultado validação TOTP: {}", resultado);
+        return resultado;
     }
 
     /**
@@ -109,7 +116,14 @@ public class ServicoMFA {
         usuario.setSegredoDoisFatores(segredo);
         repositorioUsuario.save(usuario);
 
-        log.info("Configuração MFA iniciada para usuário: {}", usuario.getEmail());
+        // Verificar se o segredo foi salvo corretamente
+        Usuario verificacao = repositorioUsuario.findByEmail(usuario.getEmail()).orElse(null);
+        if (verificacao != null) {
+            log.info("MFA configurado - email={}, segredo gerado length={}, segredo no DB length={}, match={}",
+                usuario.getEmail(), segredo.length(),
+                verificacao.getSegredoDoisFatores() != null ? verificacao.getSegredoDoisFatores().length() : "null",
+                segredo.equals(verificacao.getSegredoDoisFatores()));
+        }
 
         return new ResultadoConfiguracaoMFA(segredo, qrCodeBase64);
     }
@@ -125,6 +139,9 @@ public class ServicoMFA {
             return false;
         }
 
+        log.info("Verificando MFA para {} - segredo no DB length={}",
+            usuario.getEmail(), usuario.getSegredoDoisFatores().length());
+
         boolean codigoValido = validarCodigo(usuario.getSegredoDoisFatores(), codigo);
 
         if (codigoValido) {
@@ -132,7 +149,8 @@ public class ServicoMFA {
             repositorioUsuario.save(usuario);
             log.info("MFA habilitado com sucesso para usuário: {}", usuario.getEmail());
         } else {
-            log.warn("Codigo MFA invalido para usuario: {}", usuario.getEmail());
+            log.warn("Codigo MFA invalido para usuario: {} - segredo length={}",
+                usuario.getEmail(), usuario.getSegredoDoisFatores().length());
         }
 
         return codigoValido;

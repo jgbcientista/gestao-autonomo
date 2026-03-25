@@ -6,14 +6,37 @@
     </button>
     <div class="collapse navbar-collapse" id="navbarNav">
       <ul class="navbar-nav me-auto">
-        <li class="nav-item"><a class="nav-link" routerLink="/dashboard"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a></li>
-        <li class="nav-item"><a class="nav-link" routerLink="/trust-score"><i class="bi bi-bullseye me-1"></i>Score de Confiança</a></li>
-        <li class="nav-item"><a class="nav-link" routerLink="/ai-analysis"><i class="bi bi-cpu-fill me-1"></i>Análise IA</a></li>
-        <li class="nav-item"><a class="nav-link" routerLink="/blockchain"><i class="bi bi-link-45deg me-1"></i>Blockchain</a></li>
-        <li class="nav-item"><a class="nav-link" routerLink="/attack-simulation"><i class="bi bi-bug-fill me-1"></i>Simulação Ataques</a></li>
-        <li class="nav-item"><a class="nav-link active" routerLink="/geo-heatmap"><i class="bi bi-globe-americas me-1"></i>Mapa Geográfico</a></li>
-        <li class="nav-item"><a class="nav-link" routerLink="/ai-comparison"><i class="bi bi-bar-chart-line-fill me-1"></i>Comparação IA</a></li>
-        <li class="nav-item"><a class="nav-link" routerLink="/data-generator"><i class="bi bi-database-fill-gear me-1"></i>Gerar Dados</a></li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard" style="font-weight: bold"><i class="bi bi-house-door-fill me-1"></i>Dashboard</a>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-graph-up me-1"></i>Monitoramento</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" routerLink="/trust-score"><i class="bi bi-bullseye me-2"></i>Score de Confiança</a></li>
+            <li><a class="dropdown-item" routerLink="/geo-heatmap"><i class="bi bi-globe-americas me-2"></i>Mapa Geográfico</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-cpu me-1"></i>Inteligência Artificial</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" routerLink="/ai-analysis"><i class="bi bi-cpu-fill me-2"></i>Análise IA</a></li>
+            <li><a class="dropdown-item" routerLink="/ai-comparison"><i class="bi bi-bar-chart-line-fill me-2"></i>Comparação IA</a></li>
+            <li><a class="dropdown-item" routerLink="/explicabilidade-ia"><i class="bi bi-lightbulb-fill me-2"></i>XAI</a></li>
+            <li><a class="dropdown-item" routerLink="/deriva-comportamental"><i class="bi bi-activity me-2"></i>Deriva</a></li>
+          </ul>
+        </li>
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"><i class="bi bi-shield-lock me-1"></i>Segurança</a>
+          <ul class="dropdown-menu">
+            <li><a class="dropdown-item" routerLink="/blockchain"><i class="bi bi-link-45deg me-2"></i>Blockchain</a></li>
+            <li><a class="dropdown-item" routerLink="/attack-simulation"><i class="bi bi-bug-fill me-2"></i>Simulação Ataques</a></li>
+            <li><a class="dropdown-item" routerLink="/keystroke-profile"><i class="bi bi-keyboard-fill me-2"></i>Keystroke</a></li>
+            <li><a class="dropdown-item" routerLink="/gestao-acesso"><i class="bi bi-person-check-fill me-2"></i>Gestão Acesso</a></li>
+          </ul>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/data-generator"><i class="bi bi-database-fill-gear me-1"></i>Gerar Dados</a>
+        </li>
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item dropdown" *ngIf="usuarioAtual">

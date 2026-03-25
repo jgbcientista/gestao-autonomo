@@ -19,6 +19,8 @@ jobs:
     name: Incrementar Versao
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
+    permissions:
+      contents: write
     outputs:
       version: ${{ steps.bump.outputs.version }}
 

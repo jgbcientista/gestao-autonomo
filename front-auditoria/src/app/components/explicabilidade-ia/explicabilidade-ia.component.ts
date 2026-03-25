@@ -95,7 +95,7 @@ export class ExplicabilidadeIAComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erro ao carregar explicabilidade:', err);
-        this.error = 'Erro ao carregar dados de explicabilidade. Verifique sua conexao com o servidor.';
+        this.error = 'Erro ao carregar dados de explicabilidade. Verifique sua conexão com o servidor.';
         this.explicabilidade = null;
         this.loading = false;
       }

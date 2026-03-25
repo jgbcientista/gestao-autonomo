@@ -80,7 +80,7 @@
   </div>
 </div>
 
-<!-- Conteudo Principal -->
+<!-- Conteúdo Principal -->
 <main class="dashboard-main">
   <div class="page-container">
     <!-- Hero Section -->
@@ -93,10 +93,10 @@
               Biometria Comportamental
             </div>
             <h1 class="hero-title">
-              <span class="highlight">Perfil de Digitacao</span>
+              <span class="highlight">Perfil de Digitação</span>
             </h1>
             <p class="hero-subtitle">
-              Analise biometrica baseada no padrao de digitacao do usuario para autenticacao continua.
+              Análise biométrica baseada no padrão de digitação do usuário para autenticação contínua.
             </p>
           </div>
         </div>
@@ -112,15 +112,15 @@
       </div>
     </section>
 
-    <!-- Selecao de Usuario -->
+    <!-- Seleção de Usuário -->
     <section class="select-section">
       <div class="select-card">
         <div class="select-card-header">
           <i class="bi bi-person-fill me-2"></i>
-          <h4>Selecionar Usuario</h4>
+          <h4>Selecionar Usuário</h4>
         </div>
         <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
-          <option [ngValue]="null">-- Selecione um usuario para analise --</option>
+          <option [ngValue]="null">-- Selecione um usuário para análise --</option>
           <option *ngFor="let u of usuarios" [ngValue]="u.id">
             {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
           </option>
@@ -156,14 +156,14 @@
                 <span class="visually-hidden">Carregando...</span>
               </div>
             </div>
-            <h4>Carregando perfil de digitacao...</h4>
-            <p>Aguarde enquanto processamos os dados biometricos</p>
+            <h4>Carregando perfil de digitação...</h4>
+            <p>Aguarde enquanto processamos os dados biométricos</p>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Conteudo do perfil -->
+    <!-- Conteúdo do perfil -->
     <section class="analysis-section" *ngIf="perfil && !loading">
       <div class="row g-4">
 
@@ -174,13 +174,13 @@
               <div class="card-header-content">
                 <h4 class="card-title">
                   <i class="bi bi-stopwatch me-2"></i>
-                  Tempo Medio Hold
+                  Tempo Médio Hold
                 </h4>
               </div>
             </div>
             <div class="card-body text-center">
               <div class="stat-number-large">{{ formatarMs(perfil.mediaHoldTime || 0) }}</div>
-              <div class="stat-label-sub">Tempo medio que cada tecla fica pressionada</div>
+              <div class="stat-label-sub">Tempo médio que cada tecla fica pressionada</div>
             </div>
           </div>
         </div>
@@ -191,13 +191,13 @@
               <div class="card-header-content">
                 <h4 class="card-title">
                   <i class="bi bi-arrow-left-right me-2"></i>
-                  Tempo Medio Flight
+                  Tempo Médio Flight
                 </h4>
               </div>
             </div>
             <div class="card-body text-center">
               <div class="stat-number-large">{{ formatarMs(perfil.mediaFlightTime || 0) }}</div>
-              <div class="stat-label-sub">Tempo medio entre soltar uma tecla e pressionar a proxima</div>
+              <div class="stat-label-sub">Tempo médio entre soltar uma tecla e pressionar a próxima</div>
             </div>
           </div>
         </div>
@@ -278,9 +278,9 @@
                 </div>
               </div>
 
-              <!-- Desvio Padrao -->
+              <!-- Desvio Padrão -->
               <div class="metric-item" *ngIf="perfil.desvioPadrao !== undefined">
-                <label class="metric-label">Desvio Padrao dos Tempos</label>
+                <label class="metric-label">Desvio Padrão dos Tempos</label>
                 <div class="metric-progress">
                   <div class="progress-bar-container">
                     <div class="progress-bar info"

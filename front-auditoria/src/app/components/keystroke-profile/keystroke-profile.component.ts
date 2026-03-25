@@ -82,7 +82,7 @@ export class KeystrokeProfileComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erro ao carregar perfil keystroke:', err);
-        this.error = 'Erro ao carregar perfil de digitacao. Verifique sua conexao com o servidor.';
+        this.error = 'Erro ao carregar perfil de digitação. Verifique sua conexão com o servidor.';
         this.perfil = null;
         this.loading = false;
       }

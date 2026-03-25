@@ -97,7 +97,7 @@ export class DerivaComportamentalComponent implements OnInit {
       },
       error: (err) => {
         console.error('Erro ao carregar deriva comportamental:', err);
-        this.error = 'Erro ao carregar dados de deriva comportamental. Verifique sua conexao com o servidor.';
+        this.error = 'Erro ao carregar dados de deriva comportamental. Verifique sua conexão com o servidor.';
         this.deriva = null;
         this.loading = false;
       }

@@ -1,0 +1,368 @@
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="page-navbar-container">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/trust-score">
+            <i class="bi bi-bullseye me-1"></i>Score de Confianca
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/ai-analysis">
+            <i class="bi bi-cpu-fill me-1"></i>Analise IA
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" routerLink="/keystroke-profile">
+            <i class="bi bi-keyboard-fill me-1"></i>Keystroke
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/explicabilidade-ia">
+            <i class="bi bi-lightbulb-fill me-1"></i>Explicabilidade
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/deriva-comportamental">
+            <i class="bi bi-activity me-1"></i>Deriva
+          </a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header">
+              <div class="user-info">
+                <strong>{{ usuarioAtual.name }}</strong>
+                <small>{{ usuarioAtual.email }}</small>
+              </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="#" (click)="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Background -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
+  </div>
+</div>
+
+<!-- Conteudo Principal -->
+<main class="dashboard-main">
+  <div class="page-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="hero-content">
+            <div class="welcome-badge">
+              <i class="bi bi-keyboard-fill me-2"></i>
+              Biometria Comportamental
+            </div>
+            <h1 class="hero-title">
+              <span class="highlight">Perfil de Digitacao</span>
+            </h1>
+            <p class="hero-subtitle">
+              Analise biometrica baseada no padrao de digitacao do usuario para autenticacao continua.
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="hero-visual">
+            <div class="ai-indicator">
+              <div class="indicator-circle">
+                <i class="bi bi-keyboard-fill"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Selecao de Usuario -->
+    <section class="select-section">
+      <div class="select-card">
+        <div class="select-card-header">
+          <i class="bi bi-person-fill me-2"></i>
+          <h4>Selecionar Usuario</h4>
+        </div>
+        <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
+          <option [ngValue]="null">-- Selecione um usuario para analise --</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.id">
+            {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
+          </option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Erro -->
+    <div class="row" *ngIf="error">
+      <div class="col-12">
+        <div class="alert alert-danger alert-modern">
+          <div class="alert-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <div class="alert-content">
+            <h5 class="alert-title">Erro ao carregar dados</h5>
+            <p class="alert-message">{{ error }}</p>
+            <button class="btn btn-outline-danger btn-sm" (click)="carregarPerfil()">
+              <i class="bi bi-arrow-clockwise me-1"></i>Tentar Novamente
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="row" *ngIf="loading && !perfil">
+      <div class="col-12">
+        <div class="loading-card">
+          <div class="loading-content">
+            <div class="loading-spinner">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+              </div>
+            </div>
+            <h4>Carregando perfil de digitacao...</h4>
+            <p>Aguarde enquanto processamos os dados biometricos</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteudo do perfil -->
+    <section class="analysis-section" *ngIf="perfil && !loading">
+      <div class="row g-4">
+
+        <!-- Stats Cards -->
+        <div class="col-lg-3 col-md-6">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-stopwatch me-2"></i>
+                  Tempo Medio Hold
+                </h4>
+              </div>
+            </div>
+            <div class="card-body text-center">
+              <div class="stat-number-large">{{ formatarMs(perfil.mediaHoldTime || 0) }}</div>
+              <div class="stat-label-sub">Tempo medio que cada tecla fica pressionada</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-arrow-left-right me-2"></i>
+                  Tempo Medio Flight
+                </h4>
+              </div>
+            </div>
+            <div class="card-body text-center">
+              <div class="stat-number-large">{{ formatarMs(perfil.mediaFlightTime || 0) }}</div>
+              <div class="stat-label-sub">Tempo medio entre soltar uma tecla e pressionar a proxima</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-collection me-2"></i>
+                  Amostras
+                </h4>
+              </div>
+            </div>
+            <div class="card-body text-center">
+              <div class="stat-number-large">{{ perfil.totalAmostras || 0 }}</div>
+              <div class="stat-label-sub">Total de capturas registradas para baseline</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-bullseye me-2"></i>
+                  Score Similaridade
+                </h4>
+              </div>
+            </div>
+            <div class="card-body text-center">
+              <div class="stat-number-large" [ngClass]="'text-' + getScoreSimilaridadeCor(perfil.scoreSimilaridade || 0)">
+                {{ formatarScore(perfil.scoreSimilaridade || 0) }}
+              </div>
+              <div class="stat-label-sub">{{ getScoreSimilaridadeLabel(perfil.scoreSimilaridade || 0) }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Barra de Similaridade -->
+        <div class="col-12">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-speedometer2 me-2"></i>
+                  Gauge de Similaridade
+                </h4>
+                <button class="btn btn-outline-primary btn-sm"
+                        [disabled]="atualizandoBaseline"
+                        (click)="atualizarBaseline()">
+                  <i class="bi bi-arrow-repeat" [class.spin]="atualizandoBaseline"></i>
+                  {{ atualizandoBaseline ? 'Atualizando...' : 'Atualizar Baseline' }}
+                </button>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="similarity-gauge">
+                <div class="gauge-labels">
+                  <span>0.0</span>
+                  <span>0.5</span>
+                  <span>1.0</span>
+                </div>
+                <div class="gauge-bar">
+                  <div class="gauge-fill"
+                       [style.width.%]="(perfil.scoreSimilaridade || 0) * 100"
+                       [ngClass]="getScoreSimilaridadeCor(perfil.scoreSimilaridade || 0)">
+                  </div>
+                  <div class="gauge-marker"
+                       [style.left.%]="(perfil.scoreSimilaridade || 0) * 100">
+                  </div>
+                </div>
+                <div class="gauge-zones">
+                  <div class="gauge-zone zone-danger">Baixa</div>
+                  <div class="gauge-zone zone-warning">Moderada</div>
+                  <div class="gauge-zone zone-success">Alta</div>
+                </div>
+              </div>
+
+              <!-- Desvio Padrao -->
+              <div class="metric-item" *ngIf="perfil.desvioPadrao !== undefined">
+                <label class="metric-label">Desvio Padrao dos Tempos</label>
+                <div class="metric-progress">
+                  <div class="progress-bar-container">
+                    <div class="progress-bar info"
+                         [style.width.%]="Math.min((perfil.desvioPadrao || 0) / 2 * 100, 100)">
+                    </div>
+                  </div>
+                  <span class="metric-value">{{ formatarMs(perfil.desvioPadrao || 0) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hold Times Chart (CSS bars) -->
+        <div class="col-lg-6" *ngIf="perfil.holdTimes && perfil.holdTimes.length > 0">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-bar-chart me-2"></i>
+                  Hold Times por Tecla
+                </h4>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="bar-chart">
+                <div class="bar-row" *ngFor="let item of perfil.holdTimes">
+                  <span class="bar-label">{{ item.tecla }}</span>
+                  <div class="bar-track">
+                    <div class="bar-fill"
+                         [style.width.%]="(item.tempo / (perfil.maxHoldTime || 200)) * 100"
+                         [ngClass]="item.tempo > 150 ? 'high-risk' : item.tempo > 100 ? 'medium-risk' : 'low-risk'">
+                    </div>
+                  </div>
+                  <span class="bar-value">{{ item.tempo | number:'1.0-0' }}ms</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Capturas Recentes -->
+        <div class="col-lg-6" *ngIf="perfil.capturasRecentes && perfil.capturasRecentes.length > 0">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-clock-history me-2"></i>
+                  Capturas Recentes
+                </h4>
+              </div>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>#</th>
+                      <th>Data/Hora</th>
+                      <th>Eventos</th>
+                      <th>Similaridade</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let cap of perfil.capturasRecentes; let i = index">
+                      <td class="td-index">{{ i + 1 }}</td>
+                      <td class="td-date">{{ cap.dataHora | date:'dd/MM/yyyy HH:mm' }}</td>
+                      <td>{{ cap.totalEventos || 0 }}</td>
+                      <td>
+                        <span class="similarity-badge"
+                              [ngClass]="'badge-' + getScoreSimilaridadeCor(cap.scoreSimilaridade || 0)">
+                          {{ formatarScore(cap.scoreSimilaridade || 0) }}
+                        </span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+</main>

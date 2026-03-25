@@ -69,7 +69,10 @@ public class SecurityConfig {
                     "/webjars/**",
                     "/swagger-resources/**",
                     "/configuration/ui",
-                    "/configuration/security"
+                    "/configuration/security",
+                    "/api/v1/keystroke/**",
+                    "/api/v1/ia/explicabilidade/**",
+                    "/api/v1/ia/deriva/**"
                 ).permitAll()
                 .requestMatchers("/api/v1/health/**").authenticated()
                 .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")

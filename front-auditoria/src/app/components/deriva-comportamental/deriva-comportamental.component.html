@@ -1,0 +1,354 @@
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg fixed-top modern-navbar">
+  <div class="page-navbar-container">
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarNav">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard">
+            <i class="bi bi-house-door-fill me-1"></i>Dashboard
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/ai-analysis">
+            <i class="bi bi-cpu-fill me-1"></i>Analise IA
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/keystroke-profile">
+            <i class="bi bi-keyboard-fill me-1"></i>Keystroke
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/explicabilidade-ia">
+            <i class="bi bi-lightbulb-fill me-1"></i>Explicabilidade
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link active" routerLink="/deriva-comportamental">
+            <i class="bi bi-activity me-1"></i>Deriva
+          </a>
+        </li>
+      </ul>
+
+      <ul class="navbar-nav">
+        <li class="nav-item dropdown" *ngIf="usuarioAtual">
+          <a class="nav-link dropdown-toggle user-menu" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+            <div class="user-avatar">
+              <i class="bi bi-person-circle"></i>
+            </div>
+            <span class="user-name">{{ usuarioAtual.name }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li class="dropdown-header">
+              <div class="user-info">
+                <strong>{{ usuarioAtual.name }}</strong>
+                <small>{{ usuarioAtual.email }}</small>
+              </div>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item" href="#" (click)="logout()">
+                <i class="bi bi-box-arrow-right me-2"></i>Sair
+              </a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+
+<!-- Background -->
+<div class="dashboard-background">
+  <div class="floating-elements">
+    <div class="element element-1"></div>
+    <div class="element element-2"></div>
+    <div class="element element-3"></div>
+    <div class="element element-4"></div>
+    <div class="element element-5"></div>
+    <div class="element element-6"></div>
+  </div>
+</div>
+
+<!-- Conteudo Principal -->
+<main class="dashboard-main">
+  <div class="page-container">
+    <!-- Hero Section -->
+    <section class="hero-section">
+      <div class="row align-items-center">
+        <div class="col-lg-8">
+          <div class="hero-content">
+            <div class="welcome-badge">
+              <i class="bi bi-activity me-2"></i>
+              Monitoramento Continuo
+            </div>
+            <h1 class="hero-title">
+              <span class="highlight">Deteccao de Deriva Comportamental</span>
+            </h1>
+            <p class="hero-subtitle">
+              Monitore mudancas graduais ou abruptas no comportamento do usuario ao longo do tempo.
+            </p>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="hero-visual">
+            <div class="ai-indicator">
+              <div class="indicator-circle">
+                <i class="bi bi-activity"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Selecao de Usuario -->
+    <section class="select-section">
+      <div class="select-card">
+        <div class="select-card-header">
+          <i class="bi bi-person-fill me-2"></i>
+          <h4>Selecionar Usuario</h4>
+        </div>
+        <select class="form-select select-usuario" [(ngModel)]="selectedUserId" (change)="onUsuarioSelecionado()">
+          <option [ngValue]="null">-- Selecione um usuario para analise --</option>
+          <option *ngFor="let u of usuarios" [ngValue]="u.id">
+            {{ u.nome }} ({{ u.email }}) - Score: {{ u.scoreAtual | number:'1.2-2' }}
+          </option>
+        </select>
+      </div>
+    </section>
+
+    <!-- Erro -->
+    <div class="row" *ngIf="error">
+      <div class="col-12">
+        <div class="alert alert-danger alert-modern">
+          <div class="alert-icon">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+          </div>
+          <div class="alert-content">
+            <h5 class="alert-title">Erro ao carregar dados</h5>
+            <p class="alert-message">{{ error }}</p>
+            <button class="btn btn-outline-danger btn-sm" (click)="carregarDados()">
+              <i class="bi bi-arrow-clockwise me-1"></i>Tentar Novamente
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading -->
+    <div class="row" *ngIf="loading && !deriva">
+      <div class="col-12">
+        <div class="loading-card">
+          <div class="loading-content">
+            <div class="loading-spinner">
+              <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Carregando...</span>
+              </div>
+            </div>
+            <h4>Analisando deriva comportamental...</h4>
+            <p>Comparando padroes historicos com comportamento recente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Conteudo -->
+    <section class="analysis-section" *ngIf="deriva && !loading">
+      <div class="row g-4">
+
+        <!-- Status Card -->
+        <div class="col-12">
+          <div class="status-card"
+               [style.background]="getClassificacaoBackground(deriva.classificacao)"
+               [style.border-left]="'4px solid ' + getClassificacaoTextColor(deriva.classificacao)">
+            <div class="status-icon">
+              <span class="classification-badge"
+                    [style.background]="getClassificacaoTextColor(deriva.classificacao)"
+                    style="color: white;">
+                {{ getClassificacaoLabel(deriva.classificacao) }}
+              </span>
+            </div>
+            <div class="status-content">
+              <h3 class="status-title">{{ getClassificacaoLabel(deriva.classificacao) }}</h3>
+              <p class="status-description" *ngIf="deriva.descricao">{{ deriva.descricao }}</p>
+            </div>
+            <div class="status-actions">
+              <button class="btn btn-primary btn-sm"
+                      [disabled]="ajustandoBaseline"
+                      (click)="ajustarBaseline()">
+                <i class="bi bi-arrow-repeat" [class.spin]="ajustandoBaseline"></i>
+                {{ ajustandoBaseline ? 'Ajustando...' : 'Ajustar Baseline' }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Score Gauge -->
+        <div class="col-lg-6">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-speedometer2 me-2"></i>
+                  Score de Deriva (0-1)
+                </h4>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="drift-gauge">
+                <div class="gauge-value" [style.color]="getClassificacaoTextColor(deriva.classificacao)">
+                  {{ formatarScore(deriva.scoreDrift || 0) }}
+                </div>
+                <div class="gauge-bar">
+                  <div class="gauge-fill"
+                       [style.width.%]="(deriva.scoreDrift || 0) * 100"
+                       [ngClass]="getClassificacaoCor(deriva.classificacao)">
+                  </div>
+                </div>
+                <div class="gauge-labels">
+                  <span>0.0 Estavel</span>
+                  <span>0.5</span>
+                  <span>1.0 Ruptura</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Janelas de Analise -->
+        <div class="col-lg-6">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-calendar-range me-2"></i>
+                  Janelas de Analise
+                </h4>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="windows-grid">
+                <div class="window-card">
+                  <div class="window-header">
+                    <i class="bi bi-calendar-week me-1"></i> 7 dias
+                  </div>
+                  <div class="window-score" [ngClass]="getClassificacaoCor(deriva.janela7dias?.classificacao || '')">
+                    {{ formatarScore(deriva.janela7dias?.score || 0) }}
+                  </div>
+                  <div class="window-bar">
+                    <div class="window-bar-fill"
+                         [style.width.%]="(deriva.janela7dias?.score || 0) * 100"
+                         [ngClass]="getClassificacaoCor(deriva.janela7dias?.classificacao || '')">
+                    </div>
+                  </div>
+                  <div class="window-label">{{ getClassificacaoLabel(deriva.janela7dias?.classificacao || '') }}</div>
+                </div>
+                <div class="window-card">
+                  <div class="window-header">
+                    <i class="bi bi-calendar-month me-1"></i> 30 dias
+                  </div>
+                  <div class="window-score" [ngClass]="getClassificacaoCor(deriva.janela30dias?.classificacao || '')">
+                    {{ formatarScore(deriva.janela30dias?.score || 0) }}
+                  </div>
+                  <div class="window-bar">
+                    <div class="window-bar-fill"
+                         [style.width.%]="(deriva.janela30dias?.score || 0) * 100"
+                         [ngClass]="getClassificacaoCor(deriva.janela30dias?.classificacao || '')">
+                    </div>
+                  </div>
+                  <div class="window-label">{{ getClassificacaoLabel(deriva.janela30dias?.classificacao || '') }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fatores Alterados -->
+        <div class="col-12" *ngIf="deriva.fatoresAlterados && deriva.fatoresAlterados.length > 0">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-exclamation-diamond me-2"></i>
+                  Fatores Alterados
+                </h4>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="factors-grid">
+                <div class="factor-item" *ngFor="let fator of deriva.fatoresAlterados">
+                  <div class="factor-info">
+                    <span class="factor-name">{{ fator.nome }}</span>
+                    <span class="factor-delta"
+                          [style.color]="fator.delta > 0 ? '#E52207' : '#168821'">
+                      <i class="bi" [ngClass]="fator.delta > 0 ? 'bi-arrow-up' : 'bi-arrow-down'"></i>
+                      {{ formatarPercentual(Math.abs(fator.delta)) }}
+                    </span>
+                  </div>
+                  <div class="factor-bar">
+                    <div class="factor-bar-fill"
+                         [style.width.%]="Math.min(Math.abs(fator.delta) * 100, 100)"
+                         [style.background]="fator.delta > 0 ? '#E52207' : '#168821'">
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Timeline de Deriva -->
+        <div class="col-12" *ngIf="historico.length > 0">
+          <div class="analysis-card">
+            <div class="card-header">
+              <div class="card-header-content">
+                <h4 class="card-title">
+                  <i class="bi bi-clock-history me-2"></i>
+                  Timeline de Deriva
+                </h4>
+              </div>
+            </div>
+            <div class="card-body">
+              <div class="drift-timeline">
+                <div class="timeline-entry" *ngFor="let entry of historico; let i = index; let last = last">
+                  <div class="timeline-connector">
+                    <div class="timeline-dot"
+                         [style.background]="getTimelineLineColor(entry.classificacao)">
+                    </div>
+                    <div class="timeline-line"
+                         *ngIf="!last"
+                         [style.background]="getTimelineLineColor(entry.classificacao)">
+                    </div>
+                  </div>
+                  <div class="timeline-content">
+                    <div class="timeline-header">
+                      <span class="timeline-date">{{ entry.dataAnalise | date:'dd/MM/yyyy HH:mm' }}</span>
+                      <span class="timeline-badge"
+                            [style.background]="getClassificacaoBackground(entry.classificacao)"
+                            [style.color]="getClassificacaoTextColor(entry.classificacao)"
+                            [style.border]="'1px solid ' + getClassificacaoTextColor(entry.classificacao)">
+                        {{ getClassificacaoLabel(entry.classificacao) }}
+                      </span>
+                    </div>
+                    <div class="timeline-body">
+                      <span class="timeline-score">Score: {{ formatarScore(entry.scoreDrift || 0) }}</span>
+                      <span class="timeline-factors" *ngIf="entry.fatoresAlterados && entry.fatoresAlterados.length > 0">
+                        Fatores: {{ entry.fatoresAlterados.join(', ') }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </div>
+</main>

@@ -9,6 +9,9 @@ import { AttackSimulationComponent } from './components/attack-simulation/attack
 import { GeoHeatmapComponent } from './components/geo-heatmap/geo-heatmap.component';
 import { AiComparisonComponent } from './components/ai-comparison/ai-comparison.component';
 import { DataGeneratorComponent } from './components/data-generator/data-generator.component';
+import { KeystrokeProfileComponent } from './components/keystroke-profile/keystroke-profile.component';
+import { ExplicabilidadeIAComponent } from './components/explicabilidade-ia/explicabilidade-ia.component';
+import { DerivaComportamentalComponent } from './components/deriva-comportamental/deriva-comportamental.component';
 import { authGuard } from './guards/auth.guard';
 
 export const routes: Routes = [
@@ -23,5 +26,8 @@ export const routes: Routes = [
   { path: 'geo-heatmap', component: GeoHeatmapComponent, canActivate: [authGuard] },
   { path: 'ai-comparison', component: AiComparisonComponent, canActivate: [authGuard] },
   { path: 'data-generator', component: DataGeneratorComponent, canActivate: [authGuard] },
+  { path: 'keystroke-profile', component: KeystrokeProfileComponent, canActivate: [authGuard] },
+  { path: 'explicabilidade-ia', component: ExplicabilidadeIAComponent, canActivate: [authGuard] },
+  { path: 'deriva-comportamental', component: DerivaComportamentalComponent, canActivate: [authGuard] },
   { path: '**', redirectTo: '/login' }
 ];

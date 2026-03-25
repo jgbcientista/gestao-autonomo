@@ -4,6 +4,7 @@ import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
 import { ApiService } from '../../services/api.service';
+import { KeystrokeService } from '../../services/keystroke.service';
 import { RegisterRequest } from '../../models/auth.model';
 
 @Component({
@@ -33,8 +34,21 @@ export class RegisterComponent implements OnInit {
     private formBuilder: FormBuilder,
     private authService: AuthService,
     private apiService: ApiService,
+    private keystrokeService: KeystrokeService,
     private router: Router
   ) {}
+
+  onPasswordFocus(): void {
+    this.keystrokeService.iniciarCaptura();
+  }
+
+  onPasswordKeyDown(event: KeyboardEvent): void {
+    this.keystrokeService.registrarKeyDown(event);
+  }
+
+  onPasswordKeyUp(event: KeyboardEvent): void {
+    this.keystrokeService.registrarKeyUp(event);
+  }
 
   ngOnInit(): void {
     this.initializeForm();
@@ -139,6 +153,15 @@ export class RegisterComponent implements OnInit {
       this.authService.register(registerData).subscribe({
         next: (response) => {
           this.isLoading = false;
+
+          // Enviar keystroke data apos registro bem-sucedido para estabelecer baseline
+          const keystrokeData = this.keystrokeService.finalizarCaptura();
+          const userEmail = response.email || registerData.email;
+          if (keystrokeData.length > 0 && userEmail) {
+            this.apiService.capturarKeystroke(userEmail, keystrokeData).subscribe({
+              error: (err: any) => console.error('Erro ao enviar keystroke:', err)
+            });
+          }
 
           // Se o backend retornou QR code MFA, mostrar tela de configuração
           if (response.mfaQrCode) {

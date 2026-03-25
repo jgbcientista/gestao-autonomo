@@ -646,4 +646,66 @@ export class ApiService {
       { headers: this.getHeaders() }
     );
   }
+
+  // === KEYSTROKE DYNAMICS ===
+  capturarKeystroke(email: string, eventos: any[]): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/keystroke/capturar`,
+      { email, eventos },
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getKeystrokeProfile(usuarioId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/keystroke/perfil/${usuarioId}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  atualizarBaselineKeystroke(usuarioId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/keystroke/atualizar-baseline/${usuarioId}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // === EXPLICABILIDADE IA ===
+  getExplicabilidade(usuarioId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/ia/explicabilidade/${usuarioId}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getExplicabilidadeComparacao(usuarioId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/ia/explicabilidade/${usuarioId}/comparacao-habitual`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  // === DERIVA COMPORTAMENTAL ===
+  getDerivaComportamental(usuarioId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/ia/deriva/analisar/${usuarioId}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  getDerivaHistorico(usuarioId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}/api/v1/ia/deriva/historico/${usuarioId}`,
+      { headers: this.getHeaders() }
+    );
+  }
+
+  ajustarBaselineDrift(usuarioId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}/api/v1/ia/deriva/ajustar-baseline/${usuarioId}`,
+      {},
+      { headers: this.getHeaders() }
+    );
+  }
 }

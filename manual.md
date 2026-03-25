@@ -52,4 +52,17 @@ _______________________________________________________
   
   echo "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" | docker login ghcr.io -u jgbcientista --password-stdin
   
+  docker build -t ghcr.io/jgbcientista/sistema-autonomo-autenticacao-blockchain-ia/api:latest -f
+  api-auditoria/Dockerfile api-auditoria/
+  
+  docker build -t ghcr.io/jgbcientista/sistema-autonomo/frontend:latest -f front-auditoria/Dockerfile.frontend front-auditoria/
+  
+  docker build -t ghcr.io/jgbcientista/sistema-autonomo/api:latest -f api-auditoria/Dockerfile api-auditoria/
+  
+  
+  **quando fizer build direto na VPS, use o nome completo:**
+
+  docker build -t ghcr.io/jgbcientista/sistema-autonomo/api:latest -f api-auditoria/Dockerfile api-auditoria/
+  docker build -t ghcr.io/jgbcientista/sistema-autonomo/frontend:latest -f front-auditoria/Dockerfile.frontend front-auditoria/
+  
   

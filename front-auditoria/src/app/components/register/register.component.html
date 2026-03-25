@@ -78,7 +78,10 @@
                   id="password"
                   formControlName="password"
                   [class.is-invalid]="registerForm.get('password')?.invalid && registerForm.get('password')?.touched"
-                  placeholder="Senha (mínimo 6 caracteres)">
+                  placeholder="Senha (mínimo 6 caracteres)"
+                  (focus)="onPasswordFocus()"
+                  (keydown)="onPasswordKeyDown($event)"
+                  (keyup)="onPasswordKeyUp($event)">
                 <label for="password">
                   <i class="bi bi-lock me-2"></i>Senha
                 </label>

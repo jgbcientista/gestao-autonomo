@@ -111,6 +111,9 @@ public class PerfilComportamentalIA {
     @Column(name = "ensemble_score")
     private Double ensembleScore;
 
+    @Column(name = "keystroke_similarity_score")
+    private Double keystrokeSimilarityScore;
+
     // Metadados
     @Column(name = "versao_modelo")
     private String versaoModelo;

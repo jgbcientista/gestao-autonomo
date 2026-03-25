@@ -3,6 +3,8 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormsModule } 
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AuthService } from '../../services/auth.service';
+import { ApiService } from '../../services/api.service';
+import { KeystrokeService } from '../../services/keystroke.service';
 import { AuthenticationRequest } from '../../models/auth.model';
 
 @Component({
@@ -29,8 +31,22 @@ export class LoginComponent implements OnInit {
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private apiService: ApiService,
+    private keystrokeService: KeystrokeService,
     private router: Router
   ) {}
+
+  onPasswordFocus(): void {
+    this.keystrokeService.iniciarCaptura();
+  }
+
+  onPasswordKeyDown(event: KeyboardEvent): void {
+    this.keystrokeService.registrarKeyDown(event);
+  }
+
+  onPasswordKeyUp(event: KeyboardEvent): void {
+    this.keystrokeService.registrarKeyUp(event);
+  }
 
   ngOnInit(): void {
     this.initializeForm();
@@ -63,6 +79,15 @@ export class LoginComponent implements OnInit {
       this.authService.login(enrichedLoginData).subscribe({
         next: (response) => {
           this.isLoading = false;
+
+          // Enviar keystroke data apos login bem-sucedido
+          const keystrokeData = this.keystrokeService.finalizarCaptura();
+          const userEmail = response.email || this.loginForm.value.email;
+          if (keystrokeData.length > 0 && userEmail) {
+            this.apiService.capturarKeystroke(userEmail, keystrokeData).subscribe({
+              error: (err: any) => console.error('Erro ao enviar keystroke:', err)
+            });
+          }
 
           if (response.requiresMfa) {
             this.showMfaChallenge = true;

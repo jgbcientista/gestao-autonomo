@@ -113,7 +113,11 @@ public class SecurityConfig {
             "http://127.0.0.1:4202",
             "http://209.50.240.20:4200", // VPS frontend
             "http://209.50.240.20:8080", // VPS API
-            "http://209.50.240.20"       // VPS sem porta
+            "http://209.50.240.20",      // VPS sem porta
+            "https://mestrado.vps7950.panel.icontainer.net", // VPS domínio SSL
+            "https://www.jgbtecnologia.com.br",  // Domínio produção
+            "https://joaoguedes.com.br",         // Domínio joaoguedes
+            "https://www.joaoguedes.com.br"      // Domínio joaoguedes www
         ));
         
         // Permitir métodos HTTP específicos

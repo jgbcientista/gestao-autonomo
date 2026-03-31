@@ -29,7 +29,11 @@ public class CorsFilter implements Filter {
                 origin.equals("http://localhost:4202") ||
                 origin.equals("http://127.0.0.1:4200") ||
                 origin.equals("http://127.0.0.1:3000") ||
-                origin.equals("http://127.0.0.1:4202")
+                origin.equals("http://127.0.0.1:4202") ||
+                origin.equals("https://mestrado.vps7950.panel.icontainer.net") ||
+                origin.equals("https://www.jgbtecnologia.com.br") ||
+                origin.equals("https://joaoguedes.com.br") ||
+                origin.equals("https://www.joaoguedes.com.br")
         )) {
             response.setHeader("Access-Control-Allow-Origin", origin);
         } else if (origin == null) {

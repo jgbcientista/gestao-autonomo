@@ -15,7 +15,8 @@ RUN npm ci
 COPY . .
 
 # Build da aplicação com a configuração especificada
-RUN npm run build -- --configuration=${CONFIGURATION}
+ARG BASE_HREF=/
+RUN npm run build -- --configuration=${CONFIGURATION} --base-href=${BASE_HREF}
 
 # Production stage
 FROM nginx:alpine

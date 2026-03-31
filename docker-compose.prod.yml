@@ -6,10 +6,7 @@ services:
       dockerfile: Dockerfile
     container_name: auditoria-api
     env_file: .env.production
-    ports:
-      - "8080:8080"
-    networks:
-      - auditoria-network
+    network_mode: host
     restart: always
 
   # Frontend (Angular + Nginx)
@@ -18,14 +15,5 @@ services:
       context: ./front-auditoria
       dockerfile: Dockerfile.frontend
     container_name: auditoria-frontend
-    ports:
-      - "4200:4200"
-    depends_on:
-      - api
-    networks:
-      - auditoria-network
+    network_mode: host
     restart: always
-
-networks:
-  auditoria-network:
-    driver: bridge

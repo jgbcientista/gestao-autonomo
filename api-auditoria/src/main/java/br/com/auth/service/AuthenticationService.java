@@ -187,7 +187,8 @@ public class AuthenticationService implements IServicoAutenticacao {
 
             // Verificar se MFA é necessário (baseado no trust score e configuração)
             boolean mfaHabilitado = Boolean.TRUE.equals(usuario.getAutenticacaoDoisFatoresHabilitada());
-            boolean scoreRequerMfa = trustScore < 0.5;
+            boolean mfaConfigurado = usuario.getSegredoDoisFatores() != null && !usuario.getSegredoDoisFatores().isEmpty();
+            boolean scoreRequerMfa = trustScore < 0.5 && mfaConfigurado;
 
             if (mfaHabilitado || scoreRequerMfa) {
                 log.info("MFA necessário para usuário: {} (habilitado={}, trustScore={}, requerMfa={})",
@@ -505,7 +506,8 @@ public class AuthenticationService implements IServicoAutenticacao {
 
             // Verificar se MFA é necessário (baseado no trust score e configuração)
             boolean mfaHabilitado = Boolean.TRUE.equals(usuario.getAutenticacaoDoisFatoresHabilitada());
-            boolean scoreRequerMfa = trustScore < 0.5;
+            boolean mfaConfigurado = usuario.getSegredoDoisFatores() != null && !usuario.getSegredoDoisFatores().isEmpty();
+            boolean scoreRequerMfa = trustScore < 0.5 && mfaConfigurado;
 
             if (mfaHabilitado || scoreRequerMfa) {
                 log.info("MFA necessário para usuário: {} (habilitado={}, trustScore={}, requerMfa={})",

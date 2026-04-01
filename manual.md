@@ -11,6 +11,9 @@
 
 **Reiniciar tudo:**
   docker-compose restart
+  
+ claude --dangerously-skip-permissions  
+  
 
 _______________________________________________________
 COMANDOS
@@ -19,7 +22,7 @@ _______________________________________________________
   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
   https://github.com/settings/tokens
     
-  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
+  ***REMOVIDO***
     
   docker compose -f docker-compose.prod.yml up -d
   

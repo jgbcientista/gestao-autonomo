@@ -1,0 +1,7 @@
+Apresentção dos trabalhos que existem na literatura academica e na industria.
+Pesquisa no Inpi
+Topicos de comparação (nome do projeto, proposta, ano, objetivo, experimento, metricas).
+
+
+Cada trabalho, um ou dois paragrafos, ao final de cada texto, preciso relacionar com o meu.
+fazer uma comparação com minha proposta ao final de cada texto

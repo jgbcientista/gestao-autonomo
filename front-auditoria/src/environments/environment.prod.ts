@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  appVersion: '0.0.127',
+  appVersion: '0.0.128',
   apiUrl: 'https://mestrado.vps7950.panel.icontainer.net',
   aiApiUrl: '/ai-api',
   useKeycloak: false,

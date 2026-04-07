@@ -182,7 +182,9 @@
             <div class="decision-content">
               <h3 class="decision-title">Classificação: {{ explicabilidade.classificacao }}</h3>
               <div class="decision-details">
-                <span class="decision-score">Score: {{ formatarScore(explicabilidade.score || 0) }}</span>
+                <span class="decision-score">Score Confiança: {{ formatarScore(explicabilidade.scoreConfianca || 0) }}</span>
+                <span class="decision-separator">|</span>
+                <span class="decision-score">Score Anomalia: {{ formatarScore(explicabilidade.scoreEnsemble || 0) }}</span>
                 <span class="decision-separator">|</span>
                 <span class="decision-recommendation">{{ explicabilidade.decisaoRecomendada || 'N/A' }}</span>
               </div>

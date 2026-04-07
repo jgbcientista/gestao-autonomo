@@ -1,8 +1,10 @@
 package br.com.auth.service;
 
 import br.com.auth.dominio.entidades.PerfilComportamentalIA;
+import br.com.auth.dominio.entidades.ScoreConfianca;
 import br.com.auth.dominio.entidades.Usuario;
 import br.com.auth.infraestrutura.repositorios.RepositorioPerfilComportamentalIA;
+import br.com.auth.infraestrutura.repositorios.RepositorioScoreConfianca;
 import br.com.auth.infraestrutura.repositorios.RepositorioUsuario;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ public class ServicoExplicabilidadeIA {
 
     private final RepositorioPerfilComportamentalIA repositorioPerfil;
     private final RepositorioUsuario repositorioUsuario;
+    private final RepositorioScoreConfianca repositorioScoreConfianca;
 
     // Pesos dos fatores comportamentais
     private static final double PESO_PADRAO_HORARIO = 0.25;
@@ -40,15 +43,23 @@ public class ServicoExplicabilidadeIA {
         PerfilComportamentalIA perfilAtual = repositorioPerfil.findTopByUsuarioOrderByCriadoEmDesc(usuario)
                 .orElseThrow(() -> new RuntimeException("Nenhum perfil comportamental encontrado para usuario: " + usuarioId));
 
+        // Buscar score de confianca do usuario
+        Double scoreConfianca = repositorioScoreConfianca.findFirstByUsuarioOrderByIdDesc(usuario)
+                .map(ScoreConfianca::getScoreAtual)
+                .orElse(0.5);
+
         List<FatorContribuicao> fatores = calcularFatoresContribuicao(perfilAtual);
 
-        String classificacao = perfilAtual.getClassificacaoAcesso() != null
+        String classificacaoIA = perfilAtual.getClassificacaoAcesso() != null
                 ? perfilAtual.getClassificacaoAcesso().name()
                 : "DESCONHECIDO";
 
         Double scoreEnsemble = perfilAtual.getEnsembleScore() != null ? perfilAtual.getEnsembleScore() : 0.0;
 
-        String decisaoRecomendada = gerarDecisaoRecomendada(classificacao, scoreEnsemble);
+        // Ajustar classificacao com base no score de confianca
+        String classificacao = ajustarClassificacaoComScoreConfianca(classificacaoIA, scoreConfianca);
+
+        String decisaoRecomendada = gerarDecisaoRecomendada(classificacao, scoreEnsemble, scoreConfianca);
         String motivoDecisao = gerarMotivoDecisao(fatores, classificacao);
 
         Map<String, double[]> comparacaoHabitual = compararComPerfilHabitual(usuarioId);
@@ -57,12 +68,27 @@ public class ServicoExplicabilidadeIA {
                 usuarioId,
                 classificacao,
                 scoreEnsemble,
+                scoreConfianca,
                 decisaoRecomendada,
                 motivoDecisao,
                 fatores,
                 comparacaoHabitual,
                 LocalDateTime.now()
         );
+    }
+
+    private String ajustarClassificacaoComScoreConfianca(String classificacaoIA, double scoreConfianca) {
+        // Se o score de confianca e muito baixo, ajustar a classificacao independente da IA
+        if (scoreConfianca < 0.2) {
+            return "ALTAMENTE_SUSPEITO";
+        } else if (scoreConfianca < 0.5) {
+            // Se a IA diz ESPERADO mas o score e baixo, promover para SUSPEITO
+            if ("ESPERADO".equals(classificacaoIA)) {
+                return "SUSPEITO";
+            }
+            return classificacaoIA;
+        }
+        return classificacaoIA;
     }
 
     public Map<String, double[]> compararComPerfilHabitual(Long usuarioId) {
@@ -178,7 +204,15 @@ public class ServicoExplicabilidadeIA {
         }
     }
 
-    private String gerarDecisaoRecomendada(String classificacao, double scoreEnsemble) {
+    private String gerarDecisaoRecomendada(String classificacao, double scoreEnsemble, double scoreConfianca) {
+        // Score de confianca tem prioridade: thresholds alinhados com ServicoScoreConfianca
+        if (scoreConfianca < 0.2) {
+            return "BLOQUEAR - Score de confianca muito baixo (" + String.format("%.3f", scoreConfianca) + ")";
+        }
+        if (scoreConfianca < 0.5) {
+            return "VERIFICAR - Score de confianca abaixo do limiar (" + String.format("%.3f", scoreConfianca) + ")";
+        }
+
         return switch (classificacao) {
             case "ESPERADO" -> "PERMITIR - Acesso dentro dos padroes normais";
             case "SUSPEITO" -> "VERIFICAR - Solicitar autenticacao adicional";
@@ -232,6 +266,7 @@ public class ServicoExplicabilidadeIA {
             Long usuarioId,
             String classificacao,
             Double scoreEnsemble,
+            Double scoreConfianca,
             String decisaoRecomendada,
             String motivoDecisao,
             List<FatorContribuicao> fatores,

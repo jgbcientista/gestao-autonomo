@@ -1,0 +1,36 @@
+o que é Explicabilidade via SHAP
+
+SHAP (SHapley Additive exPlanations) é uma técnica de Inteligência Artificial Explicável (XAI) baseada na teoria dos jogos, especificamente nos valores de Shapley.
+
+  O que faz no seu projeto
+
+  O seu sistema usa 3 algoritmos de ML (Isolation Forest, Random Forest, Deep Learning) que geram um score de confiança para decidir se libera ou bloqueia um login. O problema é: por que o sistema tomou aquela
+   decisão? Sem explicabilidade, o modelo é uma "caixa-preta".
+
+  O SHAP resolve isso calculando a contribuição de cada feature para a decisão final. No seu caso, as 14 features de entrada.
+
+  Exemplo prático no seu sistema
+
+  Um login é bloqueado (score 0.15). O SHAP decompõe a decisão:
+
+  ┌───────────────────────────────────┬────────────────────────────────┐
+  │              Feature              │          Contribuição          │
+  ├───────────────────────────────────┼────────────────────────────────┤
+  │ Geolocalização (IP de outro país) │ -0.35 (maior peso no bloqueio) │
+  ├───────────────────────────────────┼────────────────────────────────┤
+  │ Horário incomum (3h da manhã)     │ -0.20                          │
+  ├───────────────────────────────────┼────────────────────────────────┤
+  │ Padrão de digitação diferente     │ -0.15                          │
+  ├───────────────────────────────────┼────────────────────────────────┤
+  │ Dispositivo conhecido             │ +0.10 (atenuou o risco)        │
+  ├───────────────────────────────────┼────────────────────────────────┤
+  │ Histórico de sessão normal        │ +0.05                          │
+  └───────────────────────────────────┴────────────────────────────────┘
+
+  Assim, o administrador ou auditor consegue ver que o bloqueio aconteceu principalmente porque o IP era de outro país e o horário era incomum — não é uma decisão arbitrária.
+
+  Por que é um diferencial
+
+  Na literatura revisada, SHAP é usado em sistemas de detecção de intrusão (IDS), mas nenhum trabalho aplica explicabilidade especificamente para decisões de autenticação com registro em blockchain — que é o
+  que o seu sistema faz. Cada explicação é registrada na trilha de auditoria imutável, criando evidência verificável do "porquê" de cada decisão.
+  

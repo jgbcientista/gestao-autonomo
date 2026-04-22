@@ -16,6 +16,7 @@ services:
       dockerfile: Dockerfile.frontend
       args:
         CONFIGURATION: production
+        BASE_HREF: /autonomo/
     container_name: auditoria-frontend
     network_mode: host
     depends_on:

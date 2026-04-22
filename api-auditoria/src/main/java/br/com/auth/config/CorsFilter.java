@@ -33,7 +33,8 @@ public class CorsFilter implements Filter {
                 origin.equals("https://mestrado.vps7950.panel.icontainer.net") ||
                 origin.equals("https://www.jgbtecnologia.com.br") ||
                 origin.equals("https://joaoguedes.com.br") ||
-                origin.equals("https://www.joaoguedes.com.br")
+                origin.equals("https://www.joaoguedes.com.br") ||
+                origin.equals("https://www.pmesmart.com.br")
         )) {
             response.setHeader("Access-Control-Allow-Origin", origin);
         } else if (origin == null) {

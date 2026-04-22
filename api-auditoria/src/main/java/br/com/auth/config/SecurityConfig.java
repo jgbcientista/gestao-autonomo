@@ -117,7 +117,8 @@ public class SecurityConfig {
             "https://mestrado.vps7950.panel.icontainer.net", // VPS domínio SSL
             "https://www.jgbtecnologia.com.br",  // Domínio produção
             "https://joaoguedes.com.br",         // Domínio joaoguedes
-            "https://www.joaoguedes.com.br"      // Domínio joaoguedes www
+            "https://www.joaoguedes.com.br",      // Domínio joaoguedes www
+            "https://www.pmesmart.com.br"         // Domínio PME Smart
         ));
         
         // Permitir métodos HTTP específicos

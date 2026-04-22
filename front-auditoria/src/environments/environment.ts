@@ -1,6 +1,6 @@
 export const environment = {
   production: false,
-  appVersion: '0.0.131',
+  appVersion: '0.0.132',
   apiUrl: 'http://localhost:8080',
   aiApiUrl: 'http://localhost:5000',
   useKeycloak: false,

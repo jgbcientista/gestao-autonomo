@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  appVersion: '0.0.138',
+  appVersion: '0.0.139',
   apiUrl: '/autonomo',
   aiApiUrl: '/ai-api',
   useKeycloak: false,

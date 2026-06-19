@@ -1,5 +1,6 @@
 Olá, João.
 
+Esses ajustes se refere ao documento: doc-qualificacao-ifba.docx, dentro da pasta: C:\code\fonte\jgb\gestao-autonomo\docs
 Fiz alguns comentários diretamente no texto da sua qualificação e, por isso, peço que os verifique com atenção. Além dessas observações, seguem algumas considerações gerais que considero importantes para o aprimoramento do trabalho.
 
 Identifiquei uma inconsistência conceitual entre o que o título propõe e o que é efetivamente desenvolvido ao longo do texto. Em diversos momentos, o trabalho aborda a autenticação contextual de usuários; em outros, passa a descrever um pipeline DevSecOps voltado à liberação de deploys de software, utilizando mecanismos como SAST, DAST e evidências de build. Embora ambos os temas estejam relacionados à segurança da informação, tratam de problemas de pesquisa distintos. Dessa forma, é fundamental definir claramente o foco principal do trabalho e garantir a coerência entre os objetivos, a fundamentação teórica, a proposta e os resultados apresentados.

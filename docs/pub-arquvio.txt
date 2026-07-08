@@ -1,0 +1,29 @@
+XVI Symposium on Computing Systems Engineering
+
+24-27 de novembro de 2026 — Salvador - BA, Brasil
+
+(Imagem de topo: praia com o farol de Itapuã, Salvador)
+
+---
+CHAMADA PARA SUBMISSÃO DE ARTIGOS
+
+- Submissão: 10 de julho de 2026 (BRT)
+- Notificação: 02 de setembro de 2026
+
+CHAMADA PARA A ESCOLA DE SISTEMAS EMBARCADOS
+
+- Submissão: 21 de agosto de 2026
+- Notificação: 30 de setembro de 2026
+
+CHAMADA PARA COMPETIÇÃO DE SISTEMAS EMBARCADOS
+
+- Submissão: até 15 de julho de 2026 (novo deadline!)
+
+---
+Organização: Instituto Federal da Bahia (IFBA) + UFBA
+Realização: SBC (Sociedade Brasileira de Computação)
+Agências de Fomento: CAPES, CNPq
+Patrocinadores: IEEE Industrial Electronics Society (75 anos), RNP
+
+---
+Um destaque importante: a submissão de artigos encerra em 10 de julho de 2026 — ou seja, faltam poucos dias (hoje é 06/07/2026). A competição de sistemas embarcados teve o prazo estendido para 15 de julho de 2026.

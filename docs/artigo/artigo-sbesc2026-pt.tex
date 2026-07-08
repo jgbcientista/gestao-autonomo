@@ -1,0 +1,459 @@
+%%=====================================================================
+%% SBESC 2026 -- XVI Symposium on Computing Systems Engineering
+%% VERSAO EM PORTUGUES (papers em PT sao publicados na SBC OpenLib).
+%% Template: IEEE two-column conference (maximo 6 paginas).
+%% Submissao: JEMS3 -> https://jems3.sbc.org.br/events/628 (prazo: 2026-07-10)
+%%
+%% COMO GERAR O PDF:
+%%   Recomendado: subir este .tex no Overleaf, compilador pdfLaTeX,
+%%   clicar Recompile e baixar o PDF. Nao requer imagens externas
+%%   (a figura da arquitetura e desenhada com TikZ).
+%%
+%% ANTES DE SUBMETER (conferir):
+%%   - e-mails dos autores (o segundo e um placeholder)
+%%   - respeitar o limite de 6 paginas no PDF final
+%%=====================================================================
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+
+\begin{document}
+
+\title{Autenticação Contextual Autônoma para Aplicações\\ Web Combinando um Ensemble de IA e\\ Auditoria em Blockchain Permissionada}
+
+\author{\IEEEauthorblockN{João Guedes de Brito}
+\IEEEauthorblockA{\textit{Programa de Pós-Graduação em Engenharia de Sistemas e Produtos (PPGESP)}\\
+\textit{Instituto Federal da Bahia (IFBA)}\\
+Salvador, Bahia, Brasil \\
+joaoguedesdebrito@gmail.com}
+\and
+\IEEEauthorblockN{Cleber Jorge Lira de Santana}
+\IEEEauthorblockA{\textit{Programa de Pós-Graduação em Engenharia de Sistemas e Produtos (PPGESP)}\\
+\textit{Instituto Federal da Bahia (IFBA)}\\
+Salvador, Bahia, Brasil \\
+cleber.santana@ifba.edu.br}
+}
+
+\maketitle
+
+\begin{abstract}
+Mecanismos tradicionais de autenticação baseados em senhas estáticas ou
+em autenticação multifator (MFA) fixa permanecem amplamente adotados,
+mas ignoram o contexto comportamental e ambiental de cada tentativa de
+acesso e são cada vez mais explorados por ataques de \emph{credential
+stuffing}, phishing e tomada de conta. Este artigo apresenta um sistema
+autônomo de autenticação contextual para aplicações web que combina um
+ensemble de aprendizado de máquina com auditoria em blockchain
+permissionada. Cada login é descrito por quatorze critérios contextuais
+e comportamentais, avaliados por um ensemble de Isolation Forest, Random
+Forest e uma rede neural multicamada; o escore de risco resultante
+conduz uma decisão adaptativa em três faixas (permitir, reforçar com MFA
+ou bloquear). Cada decisão é registrada de forma imutável em uma rede
+Hyperledger Fabric, gerando uma trilha de auditoria verificável e de não
+repúdio, cuja necessidade frente a logs assinados e bancos append-only é
+explicitamente justificada. Em avaliação controlada sobre um conjunto de
+dados sintéticos com cerca de 50.000 registros de login (95\% legítimos,
+5\% suspeitos), o ensemble alcançou 98,1\% de acurácia, 80,6\% de
+F1-score e AUC-ROC de 0,99 no conjunto de teste, com taxa de falsos
+positivos de 1,0\% e latência de inferência de aproximadamente 18,6\,ms
+por requisição. Esses resultados são preliminares e baseiam-se em dados
+sintéticos; caracterizam a viabilidade técnica da abordagem, e não um
+estudo de campo, devendo ser confirmados com dados reais.
+\end{abstract}
+
+\begin{IEEEkeywords}
+autenticação contextual, autenticação baseada em risco, aprendizado de
+máquina, ensemble, detecção de anomalias, blockchain, trilha de
+auditoria, segurança da informação.
+\end{IEEEkeywords}
+
+\section{Introdução}
+A autenticação é a primeira linha de defesa de aplicações web.
+Historicamente, apoiou-se em um fator de conhecimento --- a senha ---,
+cujas fragilidades são amplamente documentadas: senhas são reutilizadas
+entre serviços, vazadas em larga escala e exploradas por força bruta,
+\emph{credential stuffing} e phishing~\cite{nist80063b,verizon2024}. A
+autenticação multifator (MFA) mitiga parte dessa exposição ao combinar
+fatores de conhecimento, posse e inerência, mas a MFA estática ainda
+sucumbe a engenharia social, troca de chip (SIM swapping) e interceptação
+de códigos em tempo real, além de introduzir atrito na experiência do
+usuário~\cite{nist80063b}.
+
+Para enfrentar essas limitações, as diretrizes de identidade digital do
+NIST e o modelo de Zero Trust recomendam mecanismos \emph{adaptativos},
+nos quais o nível de verificação exigido é proporcional ao risco
+estimado de cada tentativa~\cite{nist80063b,rose2020}. Isso desloca a
+autenticação de uma decisão binária e estática para uma avaliação
+contínua e sensível ao contexto --- abordagem conhecida na literatura
+como autenticação baseada em risco (\emph{Risk-Based Authentication},
+RBA). Estudos empíricos de serviços em produção mostram, contudo, que o
+RBA implantado é dominado por um único sinal (tipicamente o endereço IP)
+e por heurísticas ajustadas manualmente~\cite{wiefling2019,wiefling2023}.
+Em paralelo, quando as decisões de acesso são delegadas a modelos
+autônomos, elas precisam ser \emph{auditáveis} por terceiros (por
+exemplo, em fiscalizações de conformidade), requisito que registros de
+decisão sob a guarda de um único operador não atendem plenamente.
+
+Este artigo propõe um sistema autônomo de autenticação contextual que
+unifica, em um único fluxo, uma decisão adaptativa por aprendizado de
+máquina (ML) e sua auditoria imutável. As principais contribuições são:
+\begin{itemize}
+  \item uma arquitetura ponta a ponta que funde quatorze critérios
+        contextuais e comportamentais em um único escore de risco
+        calculado por um ensemble de Isolation Forest, Random Forest e
+        rede neural, conduzindo uma decisão adaptativa em três faixas;
+  \item uma camada de auditoria em blockchain permissionada acoplada à
+        decisão, com justificativa explícita do \emph{porquê} da
+        necessidade de blockchain frente a logs assinados ou bancos
+        append-only; e
+  \item uma metodologia de avaliação reprodutível, com baselines e um
+        estudo preliminar de viabilidade sobre dados sintéticos.
+\end{itemize}
+
+O restante do artigo organiza-se assim. A Seção~\ref{sec:related} revisa
+os trabalhos correlatos. A Seção~\ref{sec:arch} descreve a arquitetura
+proposta; a Seção~\ref{sec:ai}, o motor de IA; e a Seção~\ref{sec:bc}, a
+camada de auditoria em blockchain. A Seção~\ref{sec:method} apresenta a
+metodologia de avaliação e a Seção~\ref{sec:results}, os resultados. A
+Seção~\ref{sec:conclusion} conclui.
+
+\section{Trabalhos Correlatos}
+\label{sec:related}
+\textbf{Biometria comportamental.} A autenticação contínua a partir de
+padrões de interação está bem estabelecida. O TypeNet~\cite{acien2022} e
+o TypeFormer~\cite{stragapede2024} identificam usuários pela dinâmica de
+digitação com baixas taxas de erro, e o Touchalytics~\cite{frank2013}
+mostra que padrões de toque discriminam usuários em dispositivos móveis.
+Esses trabalhos confirmam o poder discriminativo do comportamento do
+usuário, mas concentram-se em uma única modalidade biométrica e não
+tratam da auditoria imutável das decisões.
+
+\textbf{Autenticação baseada em risco.} Wiefling \emph{et
+al.}~\cite{wiefling2019} conduziram o primeiro estudo empírico de larga
+escala sobre RBA em serviços reais, e trabalhos posteriores
+\cite{wiefling2023} mostraram que os fatores de risco devem ser
+cuidadosamente ajustados por serviço. Nossa proposta segue essa linha,
+mas substitui heurísticas fixas por um ensemble de ML e adiciona uma
+camada de não repúdio.
+
+\textbf{Detecção de anomalias.} O Isolation Forest~\cite{liu2008} é
+referência para detecção não supervisionada de outliers em alta
+dimensionalidade, e modelos supervisionados e profundos
+\cite{goodfellow2016} o complementam quando há rótulos; Killourhy e
+Maxion~\cite{killourhy2009} estabeleceram um marco metodológico para a
+detecção de anomalias em dinâmica de digitação. Combinamos ambas as
+naturezas --- não supervisionada e supervisionada --- em um ensemble.
+
+\textbf{Blockchain para auditoria.} Embora a auditoria de logs baseada em
+blockchain venha sendo investigada, a maioria das abordagens trata o
+registro de eventos de forma \emph{desacoplada} do mecanismo de decisão.
+O diferencial deste trabalho é integrar, em um único fluxo, a decisão
+adaptativa por IA e o seu registro imutável em rede permissionada. A
+Tabela~\ref{tab:related} sintetiza trabalhos representativos: nenhuma
+linha de pesquisa reúne simultaneamente (i)~a fusão de múltiplos sinais
+contextuais e comportamentais, (ii)~a decisão adaptativa por ensemble e
+(iii)~a auditoria imutável acoplada à decisão.
+
+\begin{table}[t]
+\caption{Posicionamento Frente a Trabalhos Correlatos Representativos}
+\label{tab:related}
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{1.6cm}p{2.0cm}p{2.95cm}@{}}
+\toprule
+\textbf{Trabalho} & \textbf{Técnica} & \textbf{Limitação principal} \\
+\midrule
+TypeNet~\cite{acien2022} & Rede neural recorrente & Modalidade única; sem auditoria da decisão \\
+Touchalytics~\cite{frank2013} & SVM / $k$-NN & Restrito a telas de toque \\
+RBA~\cite{wiefling2019} & Heurísticas/estatística & Regras fixas; sem IA adaptativa \\
+Isolation Forest~\cite{liu2008} & Não supervisionado & Sinal isolado; não decide o acesso \\
+\textbf{Este trabalho} & Ensemble (IF+RF+DL) + blockchain & Integra os três eixos em um fluxo \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Arquitetura Proposta}
+\label{sec:arch}
+A arquitetura articula microsserviços, gestão federada de identidade,
+análise de risco por IA e registro imutável em blockchain, seguindo os
+princípios de segurança por desenho e verificação contínua do Zero
+Trust~\cite{rose2020,nist80053r5}. Em vez de uma decisão binária no
+momento do login, o modelo adota uma perspectiva contínua e orientada a
+risco. Organiza-se em cinco camadas integradas (Fig.~\ref{fig:arch}):
+
+\begin{enumerate}
+  \item \textbf{Aplicação Modular.} Serviços independentes (Spring Boot)
+        e front end Angular expondo APIs REST autenticadas.
+  \item \textbf{Identidade e Acesso.} Autenticação federada via Keycloak
+        (OAuth2 / OpenID Connect), emissão de JWT e suporte a MFA.
+  \item \textbf{Inteligência Contextual.} Extração dos quatorze critérios
+        comportamentais e cálculo do escore de risco pelo ensemble.
+  \item \textbf{Decisão Adaptativa.} Aplicação dos limiares de risco,
+        resultando em \emph{permitir}, \emph{reforçar com MFA} ou
+        \emph{bloquear}.
+  \item \textbf{Registro Imutável e Auditoria.} Persistência de cada
+        decisão em blockchain permissionada, garantindo rastreabilidade
+        e não repúdio.
+\end{enumerate}
+
+O fluxo operacional é uma cadeia decisória encadeada: a tentativa de
+login dispara a extração dos critérios contextuais; o motor de IA calcula
+o escore de risco; os limiares de decisão são aplicados; o resultado é
+registrado na blockchain; e o sistema permite o acesso, exige MFA ou o
+bloqueia. A separação em camadas permite evoluir cada responsabilidade de
+forma independente e aplicar políticas de segurança específicas em cada
+nível.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  layer/.style={draw, rounded corners, minimum width=7.4cm,
+    minimum height=0.72cm, align=center, font=\footnotesize, fill=gray!8},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[layer] (l1) {C1 -- Aplicação Modular \\ \scriptsize Serviços Spring Boot $\cdot$ front end Angular $\cdot$ APIs REST};
+\node[layer, below=0.28cm of l1] (l2) {C2 -- Identidade e Acesso \\ \scriptsize Keycloak $\cdot$ OAuth2 / OIDC $\cdot$ JWT $\cdot$ MFA};
+\node[layer, below=0.28cm of l2] (l3) {C3 -- Inteligência Contextual \\ \scriptsize 14 critérios $\cdot$ ensemble IF + RF + DL $\rightarrow$ escore};
+\node[layer, below=0.28cm of l3] (l4) {C4 -- Decisão Adaptativa \\ \scriptsize limiares $\rightarrow$ permitir / MFA / bloquear};
+\node[layer, below=0.28cm of l4] (l5) {C5 -- Registro Imutável e Auditoria \\ \scriptsize Hyperledger Fabric $\cdot$ trilha de auditoria verificável};
+\draw[arr] (l1) -- (l2);
+\draw[arr] (l2) -- (l3);
+\draw[arr] (l3) -- (l4);
+\draw[arr] (l4) -- (l5);
+\end{tikzpicture}
+\caption{Arquitetura em cinco camadas do sistema proposto.}
+\label{fig:arch}
+\end{figure}
+
+\section{Motor de Decisão por IA}
+\label{sec:ai}
+\textbf{Ensemble.} O motor de risco combina três aprendizes
+complementares. O \emph{Isolation Forest}~\cite{liu2008} atua como
+primeiro nível de análise, isolando outliers no espaço multidimensional
+de critérios com poucas partições aleatórias; contribui com 40\% do peso
+final. O \emph{Random Forest} contribui com 30\%, capturando relações não
+lineares entre os critérios e mantendo-se interpretável. Uma \emph{rede
+neural multicamada}~\cite{goodfellow2016} contribui com os 30\%
+restantes, com camada de entrada de 14 neurônios, duas camadas ocultas
+(64 e 32 unidades, ativações ReLU, regularização por dropout) e saída
+sigmoid. O escore final é a média ponderada
+\begin{equation}
+S = 0{,}4\,S_{\mathrm{IF}} + 0{,}3\,S_{\mathrm{RF}} + 0{,}3\,S_{\mathrm{DL}},
+\label{eq:ensemble}
+\end{equation}
+em que cada componente retorna um valor em $[0,1]$ (0: normal, 1:
+altamente anômalo). A combinação de aprendizes não supervisionados e
+supervisionados aumenta a robustez tanto a ataques inéditos (zero-day)
+quanto a fraudes conhecidas.
+
+\textbf{Critérios.} Cada tentativa é representada por quatorze critérios
+em quatro famílias: \emph{temporais} (hora do acesso em escala circular,
+dia da semana, intervalo desde o último login, frequência em 24\,h);
+\emph{geográficos/rede} (distância geodésica do local habitual, tipo de
+rede, ASN, velocidade de deslocamento impossível);
+\emph{dispositivo/navegador} (fingerprint do navegador, sistema
+operacional, tipo de dispositivo, detecção de automação/headless); e
+\emph{comportamento de sessão} (padrão de digitação e histórico de falhas
+recentes). Esses sinais visam credential stuffing, viagem impossível,
+sequestro de sessão, bots e desvios zero-day.
+
+\textbf{Limiares adaptativos.} O escore é mapeado em três faixas de
+risco, calibradas empiricamente para equilibrar segurança e usabilidade:
+baixo risco ($S<0{,}3$) permite o acesso sem etapas adicionais; risco
+moderado ($0{,}3\le S<0{,}7$) aciona MFA; e alto risco ($S\ge0{,}7$)
+bloqueia a tentativa, registra o evento na blockchain e notifica o
+administrador de segurança. Em produção, o motor é exposto como um
+microsserviço independente (FastAPI) consumido pelo backend via REST,
+mantendo os três modelos em memória para inferência paralela. Um
+mecanismo de fallback heurístico preserva a disponibilidade caso o
+serviço de IA fique inacessível. Os modelos são reentreinados
+periodicamente para acompanhar a mudança de comportamento (concept
+drift)~\cite{gama2014}, e todo modelo treinado é versionado para permitir
+rollback.
+
+\section{Auditoria Baseada em Blockchain}
+\label{sec:bc}
+Cada decisão é registrada de forma imutável em uma rede permissionada
+baseada em Hyperledger Fabric~\cite{fabric2024}, cujo controle de
+identidade e governança estruturada são adequados a ambientes
+corporativos e governamentais~\cite{nistir8202}. Para cada evento, o
+registro armazena o hash dos critérios de entrada, o escore de risco, a
+decisão (permitir, MFA ou bloquear) e o timestamp da transação, encadeado
+ao registro anterior de modo a formar uma cadeia cronológica de
+evidências.
+
+A escolha do blockchain frente a mecanismos mais simples é justificada, e
+não presumida. Logs assinados digitalmente e bancos append-only já
+oferecem integridade e não repúdio por meio de assinaturas
+criptográficas, sendo suficientes quando existe uma autoridade central
+confiável que opera o registro. A diferença essencial de um blockchain
+permissionado \emph{não} está na assinatura em si, mas em não depender da
+confiança em um único custodiante: o registro é replicado e validado por
+consenso entre múltiplos participantes, tornando-se resistente à
+adulteração mesmo por administradores privilegiados do próprio sistema e
+permitindo verificação independente por auditores externos. Isso é
+determinante aqui, pois as decisões de acesso são tomadas de forma
+autônoma por modelos de IA e precisam ser auditáveis por terceiros (por
+exemplo, em fiscalizações de conformidade da LGPD~\cite{lgpd2018}),
+cenário em que o operador, sozinho, não deve poder alterar a trilha de
+decisões. Reconhece-se o custo --- maior complexidade operacional e menor
+throughput do que um banco append-only ---, que se justifica justamente
+em cenários multipartes e regulados, delimitando o escopo em que o
+blockchain é efetivamente necessário.
+
+\section{Metodologia de Avaliação}
+\label{sec:method}
+\textbf{Dados e rotulagem.} Diante da ausência de bases públicas
+rotuladas para autenticação contextual, construiu-se um conjunto de dados
+sintéticos com cerca de 50.000 registros de login, reproduzindo a
+distribuição observada em produção (cerca de 95\% de acessos legítimos e
+5\% suspeitos). Cada registro contém os quatorze critérios da
+Seção~\ref{sec:ai}. Os rótulos foram derivados de regras heurísticas que
+codificam padrões conhecidos de fraude (viagem impossível, dispositivo
+desconhecido, rajadas de falhas de login) e revisados por especialistas
+em segurança. Por se tratar de dados sintéticos, não há coleta de
+informações pessoais identificáveis nesta fase; a evolução para dados
+reais seguirá os princípios de minimização e anonimização exigidos pela
+LGPD~\cite{lgpd2018}.
+
+\textbf{Protocolo.} O conjunto foi particionado de forma estratificada em
+70\% para treinamento e 30\% para teste. Validação cruzada estratificada
+com 5 folds foi aplicada sobre a partição de treinamento para seleção de
+hiperparâmetros, reservando a partição de teste exclusivamente para a
+avaliação final, evitando vazamento de dados (data leakage). O desempenho
+foi medido por acurácia, precisão, recall, F1-score, taxa de falsos
+positivos (FPR), AUC-ROC e latência de decisão. As sementes aleatórias
+foram fixadas, os modelos e hiperparâmetros versionados, e todo o
+ambiente foi containerizado (Docker/Kubernetes) para reprodução
+determinística.
+
+\textbf{Baselines.} A Tabela~\ref{tab:baseline} confronta a proposta com
+baselines representativos da literatura e da prática. Os valores dos
+baselines provêm da literatura citada e não foram reexecutados aqui; a
+comparação é, portanto, qualitativa quanto às capacidades de cada
+abordagem.
+
+\begin{table}[t]
+\caption{Comparação com Abordagens de Referência}
+\label{tab:baseline}
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{2.05cm}p{1.45cm}p{3.05cm}@{}}
+\toprule
+\textbf{Abordagem} & \textbf{Contextual?} & \textbf{Limitação principal} \\
+\midrule
+Senha + 2FA estático & Não & Ignora contexto; phishing/SIM swap \\
+RBA por IP~\cite{wiefling2019} & Parcial & Feature única; ajuste manual \\
+Keystroke isolado~\cite{killourhy2009} & Sim & Offline, fator único (EER $\approx$9,6\%) \\
+\textbf{Proposta (ensemble)} & Sim & Adaptativa, explicável e auditável \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Resultados e Discussão}
+\label{sec:results}
+Sobre o conjunto de teste (30\% dos dados, não vistos durante o
+treinamento), o ensemble alcançou acurácia de 98,1\%, precisão de 80,7\%
+e recall de 80,4\% na detecção de acessos suspeitos, com F1-score de
+80,6\% e AUC-ROC de 0,99, indicando forte capacidade de ordenação entre
+acessos legítimos e suspeitos. A taxa de falsos positivos manteve-se
+baixa, em 1,0\%, fator relevante para a usabilidade. A validação cruzada
+estratificada com 5 folds confirmou a estabilidade dos resultados
+(acurácia $98,1\%\pm0,1\%$; F1 $80,5\%\pm0,7\%$). A
+Tabela~\ref{tab:results} resume esses números.
+
+\begin{table}[t]
+\caption{Desempenho do Ensemble no Conjunto de Teste}
+\label{tab:results}
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lc@{\hspace{5mm}}lc@{}}
+\toprule
+\textbf{Métrica} & \textbf{Valor} & \textbf{Métrica} & \textbf{Valor} \\
+\midrule
+Acurácia   & 98,1\% & F1-score        & 80,6\% \\
+Precisão   & 80,7\% & AUC-ROC         & 0,99   \\
+Recall     & 80,4\% & Taxa falsos pos.\ & 1,0\% \\
+\midrule
+\multicolumn{2}{@{}l}{Acurácia (5-fold)} & \multicolumn{2}{l}{$98,1\%\pm0,1\%$} \\
+\multicolumn{2}{@{}l}{F1-score (5-fold)} & \multicolumn{2}{l}{$80,5\%\pm0,7\%$} \\
+\multicolumn{2}{@{}l}{Latência do ensemble} & \multicolumn{2}{l}{$\approx$18,6\,ms/req.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Quanto à cadeia de autenticação, a integração entre o Keycloak e o
+serviço de ML foi validada com sucesso. A inferência do ensemble foi
+medida em cerca de 18,6\,ms por requisição, muito abaixo do orçamento de
+200\,ms definido para o componente de IA; o fluxo completo de
+autenticação contextual --- incluindo a validação de identidade e o
+registro em blockchain --- permaneceu na ordem de algumas centenas de
+milissegundos. O pipeline de registro em blockchain mostrou-se consistente
+nos testes de imutabilidade, com validação criptográfica bem-sucedida em
+todas as transações registradas, e o ELK Stack e o Grafana permitiram a
+visualização em tempo real dos eventos de autenticação.
+
+\textbf{Discussão.} Os resultados parciais são promissores e sugerem a
+viabilidade técnica da abordagem; contudo, por decorrerem de dados
+sintéticos e de uma fase preliminar, não permitem ainda confirmar a
+hipótese central de forma conclusiva. Uma comparação rigorosa com os
+baselines e a validação com dados reais permanecem necessárias antes de
+qualquer afirmação quantitativa de superioridade. O F1-score de 80,6\%,
+embora adequado ao estágio atual, evidencia espaço para melhorar o recall
+quando os dados reais substituírem o conjunto sintético. Ainda assim, em
+ambiente controlado, a abordagem adaptativa e orientada a contexto
+detectou padrões de acesso suspeitos --- como os cenários simulados de
+credential stuffing e sequestro de sessão --- que escapam a sistemas
+baseados apenas em senha e 2FA estático, enquanto a camada de blockchain
+tornou inviável a adulteração retroativa dos registros sem detecção.
+
+\section{Considerações Finais e Trabalhos Futuros}
+\label{sec:conclusion}
+Este artigo apresentou um sistema autônomo de autenticação contextual que
+unifica, em um único fluxo, uma decisão adaptativa por IA e sua auditoria
+imutável em blockchain permissionada. As principais contribuições são a
+arquitetura ponta a ponta que funde quatorze sinais contextuais e
+comportamentais por meio de um ensemble, a camada de auditoria acoplada à
+decisão com justificativa explícita para o uso de blockchain e uma
+metodologia de avaliação reprodutível. Experimentos preliminares sobre
+dados sintéticos indicaram viabilidade técnica (98,1\% de acurácia, 80,6\%
+de F1-score, AUC de 0,99, latência de inferência de $\approx$18,6\,ms),
+constituindo uma validação metodológica e não um substituto para a
+avaliação com dados reais. Como trabalhos futuros, pretende-se substituir
+o conjunto sintético por dados reais ou semirreais coletados em ambiente
+controlado, refinar a calibração de modelos e limiares, avaliar
+desempenho e escalabilidade sob carga realista e aprofundar a análise de
+segurança frente ao modelo de ameaças.
+
+\begin{thebibliography}{00}
+\bibitem{nist80063b} National Institute of Standards and Technology, ``Digital Identity Guidelines: Authentication and Lifecycle Management,'' NIST SP 800-63B, 2017.
+\bibitem{verizon2024} Verizon, ``2024 Data Breach Investigations Report (DBIR),'' Verizon Business, 2024.
+\bibitem{rose2020} S. Rose, O. Borchert, S. Mitchell, and S. Connelly, ``Zero Trust Architecture,'' NIST SP 800-207, 2020.
+\bibitem{wiefling2019} S. Wiefling, L. Lo Iacono, and M. D\"urmuth, ``Is This Really You? An Empirical Study on Risk-Based Authentication Applied in the Wild,'' in \emph{IFIP SEC}, 2019, pp. 134--148.
+\bibitem{wiefling2023} S. Wiefling, P. R. J\o rgensen, S. Thunem, and L. Lo Iacono, ``Pump Up Password Security! Evaluating and Enhancing Risk-Based Authentication on a Real-World Large-Scale Online Service,'' \emph{ACM Trans. Priv. Secur.}, vol. 26, no. 1, 2023.
+\bibitem{acien2022} A. Acien, A. Morales, R. Vera-Rodriguez, J. Fierrez, and J. V. Monaco, ``TypeNet: Deep Learning Keystroke Biometrics,'' \emph{IEEE Trans. Biom. Behav. Identity Sci.}, vol. 4, no. 1, pp. 57--70, 2022.
+\bibitem{stragapede2024} G. Stragapede \emph{et al.}, ``TypeFormer: Transformers for Mobile Keystroke Biometrics,'' \emph{Pattern Recognition Letters}, 2024.
+\bibitem{frank2013} M. Frank, R. Biedert, E. Ma, I. Martinovic, and D. Song, ``Touchalytics: On the Applicability of Touchscreen Input as a Behavioral Biometric for Continuous Authentication,'' \emph{IEEE Trans. Inf. Forensics Security}, vol. 8, no. 1, pp. 136--148, 2013.
+\bibitem{liu2008} F. T. Liu, K. M. Ting, and Z.-H. Zhou, ``Isolation Forest,'' in \emph{IEEE Int. Conf. Data Mining (ICDM)}, 2008, pp. 413--422.
+\bibitem{killourhy2009} K. S. Killourhy and R. A. Maxion, ``Comparing Anomaly-Detection Algorithms for Keystroke Dynamics,'' in \emph{IEEE/IFIP DSN}, 2009, pp. 125--134.
+\bibitem{goodfellow2016} I. Goodfellow, Y. Bengio, and A. Courville, \emph{Deep Learning}. Cambridge, MA: MIT Press, 2016.
+\bibitem{gama2014} J. Gama, I. \v{Z}liobait\.e, A. Bifet, M. Pechenizkiy, and A. Bouchachia, ``A Survey on Concept Drift Adaptation,'' \emph{ACM Comput. Surv.}, vol. 46, no. 4, pp. 1--37, 2014.
+\bibitem{fabric2024} Hyperledger Foundation, ``Hyperledger Fabric Documentation, v2.5,'' Linux Foundation, 2024.
+\bibitem{nistir8202} National Institute of Standards and Technology, ``Blockchain Technology Overview,'' NISTIR 8202, 2018.
+\bibitem{nist80053r5} National Institute of Standards and Technology, ``Security and Privacy Controls for Information Systems and Organizations,'' NIST SP 800-53 Rev.\ 5, 2020.
+\bibitem{lgpd2018} Brasil, ``Lei n.\ 13.709/2018 -- Lei Geral de Proteção de Dados Pessoais (LGPD),'' 2018.
+\end{thebibliography}
+
+\end{document}

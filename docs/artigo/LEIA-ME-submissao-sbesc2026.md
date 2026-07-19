@@ -1,10 +1,15 @@
 # SBESC 2026 — Como gerar o PDF e submeter o artigo
 
-**Arquivos do artigo (template IEEE two-column):**
-- `artigo-sbesc2026-pt.tex` — **versão em português** (papers em PT → publicados na SBC OpenLib)
-- `artigo-sbesc2026-en.tex` — **versão em inglês** (papers em EN → publicados no IEEE Xplore)
+**Arquivos do artigo (mesmo conteúdo, 3 formatos por idioma):**
 
-Os dois têm exatamente o mesmo conteúdo/estrutura — envie ambos ao professor para ele escolher o idioma da submissão. **Submeta apenas UM** no JEMS3 (o SBESC aceita um idioma por artigo).
+| Idioma | PDF (ler/enviar) | Word (editar/comentar) | LaTeX (submissão oficial) |
+|--------|------------------|------------------------|---------------------------|
+| 🇧🇷 Português | `artigo-sbesc2026-pt.pdf` | `artigo-sbesc2026-pt.docx` | `artigo-sbesc2026-pt.tex` |
+| 🇬🇧 Inglês | `artigo-sbesc2026-en.pdf` | `artigo-sbesc2026-en.docx` | `artigo-sbesc2026-en.tex` |
+
+- **Para mandar ao professor:** os `.pdf` (para ler) e/ou os `.docx` (para ele comentar no Word).
+- **PT → SBC OpenLib · EN → IEEE Xplore.** Envie ambos os idiomas ao professor; **na submissão ao JEMS3 escolha apenas UM** (o SBESC aceita um idioma por artigo).
+- **Importante sobre os PDF/Word gerados:** são um **rascunho em coluna única** para leitura/revisão (6 págs). A **versão OFICIAL de submissão** (IEEE two-column, exigida pelo SBESC) sai do arquivo **`.tex` via Overleaf** — veja a Seção 1.
 
 **Prazo de submissão:** 10 de julho de 2026 (BRT).
 **Sistema de submissão (JEMS3):** https://jems3.sbc.org.br/events/628

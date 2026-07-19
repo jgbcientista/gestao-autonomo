@@ -25,6 +25,7 @@
 \usetikzlibrary{positioning,arrows.meta}
 \usepackage[hidelinks]{hyperref}
 \usepackage{url}
+\usepackage{balance} % balances the two columns on the last page (avoids trailing blank space)
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
@@ -63,9 +64,9 @@ Fabric ledger, yielding a verifiable, non-repudiable audit trail whose
 necessity over signed logs and append-only databases is explicitly
 justified. In a controlled evaluation on a synthetic dataset of about
 50{,}000 login records (95\% legitimate, 5\% suspicious), the ensemble
-reached 98.1\% accuracy, 80.6\% F1-score, and a 0.99 ROC-AUC on a
-held-out test set, with a 1.0\% false-positive rate and an inference
-latency of roughly 18.6\,ms per request. These results are preliminary
+reached 98.1\% accuracy, 80.2\% F1-score, and a 0.99 ROC-AUC on a
+held-out test set, with a 0.8\% false-positive rate and an inference
+latency of roughly 33\,ms per request. These results are preliminary
 and rely on synthetic data; they characterize the technical
 feasibility of the approach rather than a field study, and are to be
 confirmed with real data.
@@ -88,6 +89,23 @@ combining knowledge, possession, and inherence factors, but static MFA
 still falls to social engineering, SIM swapping, and real-time code
 interception, while adding friction to the user
 experience~\cite{nist80063b}.
+
+The scale of the problem justifies moving beyond the credential alone.
+Credential stuffing, phishing, and the use of stolen credentials remain
+among the leading vectors in breach reports, and account-takeover fraud
+imposes direct financial and reputational costs on organizations and
+end users~\cite{verizon2024}. Password reuse turns any single leak into
+a cross-service liability, while commoditized attack tooling makes
+large-scale login abuse cheap and highly automated. Crucially, static
+defenses---password-strength policies and one-time codes---do not
+observe \emph{how}, \emph{when}, or \emph{from where} a login occurs,
+and therefore cannot distinguish a legitimate user from an adversary who
+already holds valid credentials. Regulatory frameworks such as the
+Brazilian LGPD~\cite{lgpd2018} add a further requirement: automated
+access decisions over personal data must be demonstrably accountable.
+Together, these pressures motivate authentication decisions that are
+conditioned on the full context of each attempt---and that leave a
+verifiable trail of \emph{why} each decision was taken.
 
 To address these limitations, the NIST digital identity
 guidelines and the Zero Trust model recommend \emph{adaptive}
@@ -136,14 +154,34 @@ with low error rates, and Touchalytics~\cite{frank2013} shows that
 touchscreen patterns discriminate users on mobile devices. These works
 confirm the discriminative power of user behavior but focus on a
 single biometric modality and do not address immutable auditing of the
-decisions.
+decisions. Contemporary surveys of sensor-based continuous
+authentication~\cite{abuhamad2021} corroborate that behavioral signals
+generalize across many modalities, while highlighting open challenges in
+robustness, template ageing, and real-world deployment---challenges that
+argue for fusing behavior with other contextual signals rather than
+relying on a single modality.
+
+\textbf{Contextual and device signals.} Beyond behavior, the device and
+network context of a login is itself discriminative. Alaca and van
+Oorschot~\cite{alaca2016} classify twenty-nine device-fingerprinting
+methods for augmenting web authentication and compare them by stability,
+spoofing difficulty, and distinguishability, and Andriamilanto \emph{et
+al.}~\cite{andriamilanto2021} show, on more than four million browsers,
+that browser fingerprints carry enough distinctiveness and stability to
+strengthen authentication. Freeman \emph{et al.}~\cite{freeman2016}
+introduced the first public probabilistic model that scores a login as
+normal or suspicious from signals such as source IP, geolocation,
+browser configuration, and time of day. These works validate individual
+contextual signals but treat them largely in isolation and do not couple
+the resulting decision to a tamper-evident record.
 
 \textbf{Risk-based authentication.} Wiefling \emph{et
 al.}~\cite{wiefling2019} conducted the first large-scale empirical
 study of RBA in the wild, and later work~\cite{wiefling2023} showed
 that risk factors must be carefully tuned per service. Our proposal
-follows this line but replaces fixed heuristics with an ML ensemble and
-adds a non-repudiation layer.
+follows this line but replaces fixed heuristics---and the single-signal,
+statistically-scored models that preceded them~\cite{freeman2016}---with
+a multi-signal ML ensemble, and adds a non-repudiation layer.
 
 \textbf{Anomaly detection.} Isolation Forest~\cite{liu2008} is a
 reference for unsupervised outlier detection in high-dimensional
@@ -154,9 +192,15 @@ We combine both natures---unsupervised and supervised---in an ensemble.
 
 \textbf{Blockchain for auditing.} Although blockchain-based log
 auditing has been investigated, most approaches treat event recording
-as \emph{decoupled} from the decision mechanism. The distinguishing
-feature of this work is to integrate, in a single flow, the adaptive
-AI decision and its immutable record on a permissioned ledger.
+as \emph{decoupled} from the decision mechanism. Systems such as
+BlockAudit~\cite{blockaudit} demonstrate scalable, tamper-evident audit
+logs on a blockchain, but the logged events originate in applications
+external to the recording layer, so the record attests \emph{that} an
+event occurred without binding it to the reasoning that produced it. The
+distinguishing feature of this work is to integrate, in a single flow,
+the adaptive AI decision and its immutable record on a permissioned
+ledger, so that each stored entry carries the very features and score
+that justified the action.
 Table~\ref{tab:related} summarizes representative work: no single line
 of research simultaneously provides (i)~fusion of multiple contextual
 and behavioral signals, (ii)~an adaptive ensemble decision, and
@@ -166,18 +210,28 @@ and behavioral signals, (ii)~an adaptive ensemble decision, and
 \caption{Positioning Against Representative Related Work}
 \label{tab:related}
 \centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}p{1.55cm}p{2.0cm}p{3.0cm}@{}}
+\begin{tabular}{@{}p{1.5cm}p{1.35cm}ccc@{}}
 \toprule
-\textbf{Work} & \textbf{Technique} & \textbf{Main limitation} \\
+\textbf{Work} & \textbf{Signals} & \textbf{Adapt.} & \textbf{Audit} & \textbf{Data} \\
 \midrule
-TypeNet~\cite{acien2022} & Recurrent neural net & Single modality; no decision audit \\
-Touchalytics~\cite{frank2013} & SVM / $k$-NN & Restricted to touchscreens \\
-RBA~\cite{wiefling2019} & Heuristics/statistics & Fixed rules; no adaptive AI \\
-Isolation Forest~\cite{liu2008} & Unsupervised & Isolated signal; does not decide access \\
-\textbf{This work} & Ensemble (IF+RF+DL) + blockchain & Integrates the three axes in one flow \\
+TypeNet~\cite{acien2022} & Keystroke & \checkmark & --- & Real \\
+Touchalytics~\cite{frank2013} & Touch & \checkmark & --- & Real \\
+Freeman~\cite{freeman2016} & IP/geo/UA & Part. & --- & Real \\
+Alaca~\cite{alaca2016} & Device fp. & --- & --- & --- \\
+Andriam.~\cite{andriamilanto2021} & Browser fp. & --- & --- & Real \\
+RBA~\cite{wiefling2019} & IP/context & Part. & --- & Real \\
+Iso.\ Forest~\cite{liu2008} & Generic & Unsup. & --- & --- \\
+BlockAudit~\cite{blockaudit} & Log events & --- & \checkmark & --- \\
+\textbf{This work} & \textbf{14 ctx.+beh.} & \textbf{Ens.} & \textbf{\checkmark} & Synth. \\
 \bottomrule
 \end{tabular}
+
+\vspace{2pt}
+{\footnotesize \emph{Adapt.}: adaptive/learned decision (Part.: partial;
+Ens.: ensemble). \emph{Audit}: immutable audit coupled to the decision.}
 \end{table}
 
 \section{Proposed Architecture}
@@ -214,6 +268,27 @@ recorded on the blockchain; and the system grants access, requires MFA,
 or blocks the attempt. The separation into layers allows each
 responsibility to evolve independently and specific security policies
 to be enforced at each level.
+
+\textbf{Threat model and design rationale.} The system assumes an
+adversary who may already hold valid credentials---obtained through
+leakage, phishing, or reuse---and who can attempt logins from arbitrary
+networks and devices, but who cannot forge the consensus of the
+permissioned ledger nor observe the private state of the risk models.
+Under this model the layers address complementary concerns: L2
+establishes \emph{who} claims to authenticate, L3 estimates \emph{how
+likely} that claim is legitimate given the context, L4 turns the
+estimate into a proportionate action, and L5 makes the action
+\emph{accountable}. Decoupling estimation (L3) from enforcement (L4) is
+deliberate: risk thresholds can be re-tuned, and models retrained,
+without touching the identity provider, and the audit layer stays
+agnostic to the specific learners in use. Because each decision is
+written together with its justification---the hash of the input features
+and the score that produced it---an auditor can later replay any
+decision and verify that the recorded action matches the policy in force
+at that time, without having to trust the operator's own logs. This
+tight coupling between \emph{deciding} and \emph{recording} is the
+property that distinguishes the proposal from pipelines that log events
+after, and separately from, the decision.
 
 \begin{figure}[t]
 \centering
@@ -273,7 +348,7 @@ empirically calibrated to balance security and usability: low risk
 ($0.3\le S<0.7$) triggers MFA; and high risk ($S\ge0.7$) blocks the
 attempt, records the event on the blockchain, and notifies the security
 administrator. In production, the engine is exposed as an independent
-microservice (FastAPI) consumed by the back end over REST, keeping the
+independent REST microservice consumed by the back end, keeping the
 three models in memory for parallel inference. A simplified heuristic
 fallback preserves availability if the AI service is unreachable.
 Models are periodically retrained to track behavioral change (concept
@@ -317,7 +392,24 @@ in production (about 95\% legitimate and 5\% suspicious accesses). Each
 record contains the fourteen features of Section~\ref{sec:ai}. Labels
 were derived from heuristic rules encoding known fraud patterns
 (impossible travel, unknown device, bursts of failed logins) and
-reviewed by security specialists. Because the data are synthetic, no
+reviewed by security specialists. The generative process draws each
+legitimate record from distributions calibrated to typical corporate
+usage: the access hour follows a Gaussian centred on mid-day, the
+inter-login interval an exponential law, the 24-hour frequency a Poisson
+count, and the geodesic distance a half-normal concentrated near the
+habitual location; the browser-fingerprint and keystroke-similarity
+scores are high-mean Gaussians, while the device, operating-system, and
+network-type indicators follow the categorical frequencies observed in
+production. Suspicious records are obtained by perturbing two to five
+features of an otherwise legitimate profile into anomalous ranges
+---impossible-travel speeds, unknown devices, automation flags, and
+bursts of recent failures--- so that anomalies remain multivariate and
+partially overlap the legitimate class instead of being trivially
+separable. A calibrated amount of Gaussian noise is then added to every
+feature to reproduce the class overlap expected in the wild, and about
+5\% of the legitimate records receive a mild single-feature anomaly,
+which yields the realistic false positives reflected in the reported
+FPR. Because the data are synthetic, no
 personally identifiable information is collected at this stage; the move
 to real data will follow the minimization and anonymization principles
 required by the LGPD~\cite{lgpd2018}.
@@ -330,41 +422,88 @@ leakage. Performance was measured by accuracy, precision, recall,
 F1-score, false-positive rate (FPR), ROC-AUC, and decision latency.
 Random seeds were fixed, models and hyperparameters were versioned, and
 the whole environment was containerized (Docker/Kubernetes) to allow
-deterministic reproduction.
+deterministic reproduction. To support independent verification, the
+source code, the trained-model artifacts, and the scripts that generate
+the dataset and reproduce every experiment are openly
+available.\footnote{\url{https://github.com/jgbcientista/gestao-autonomo}}
+
+\textbf{Reproducibility.} A single entry-point script regenerates the
+entire pipeline deterministically from the fixed seed: the labeled
+dataset (50{,}000 rows with the fourteen features and the class label),
+the three trained learners together with the feature scaler (serialized
+with \texttt{joblib}), the ensemble configuration (component weights,
+the Isolation-Forest score-normalization bounds, and the decision
+threshold selected by the best training-set F1), and a machine-readable
+metrics file holding every figure reported in
+Section~\ref{sec:results}. Re-executing the script on a clean
+environment reproduces the reported metrics up to the negligible
+variation introduced by the stochastic optimizer of the neural network,
+so that a reviewer can audit the whole pipeline end to end---from raw
+feature generation to the final decision threshold---without access to
+any private or personally identifiable data. This packaging is what
+turns the ``about 50{,}000 records'' description into an artifact that a
+third party can regenerate, inspect, and extend.
 
 \textbf{Baselines.} Table~\ref{tab:baseline} contrasts the proposal
 with representative baselines from the literature and practice. The
 baseline figures are taken from the cited literature and were not
 re-executed here; the comparison is therefore qualitative regarding the
-capabilities of each approach.
+capabilities of each approach. The three comparison axes are not
+arbitrary; they follow from the requirements that the literature places
+on modern authentication. \emph{Context-awareness} (Ctx.) reflects the
+NIST and Zero-Trust prescription that verification be conditioned on the
+signals of each attempt rather than on the credential alone
+\cite{nist80063b,rose2020}, and is the property that empirical studies
+of risk-based authentication find decisive in the
+wild~\cite{wiefling2019,freeman2016}. \emph{Adaptivity} (Adapt.)
+captures whether the response is proportional to the estimated
+risk---the core principle of risk-based
+authentication~\cite{nist80063b,wiefling2019,wiefling2023}---rather than
+a fixed, one-size-fits-all rule. \emph{Auditability} (Audit.) addresses
+the accountability of automated decisions over personal data, a
+requirement made explicit by data-protection regulation such as the
+LGPD~\cite{lgpd2018} and, more broadly, by the need for independent
+verification when access is delegated to autonomous models. Together
+these axes span the two properties a contextual-authentication system
+must jointly satisfy---deciding correctly and being verifiable---while
+the \emph{main limitation} column indicates where each baseline falls
+short on at least one of them.
 
 \begin{table}[t]
 \caption{Comparison With Reference Approaches}
 \label{tab:baseline}
 \centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
 \renewcommand{\arraystretch}{1.2}
-\begin{tabular}{@{}p{2.05cm}p{1.5cm}p{3.0cm}@{}}
+\begin{tabular}{@{}p{1.7cm}cccp{2.05cm}@{}}
 \toprule
-\textbf{Approach} & \textbf{Contextual?} & \textbf{Main limitation} \\
+\textbf{Approach} & \textbf{Ctx.} & \textbf{Adapt.} & \textbf{Audit.} & \textbf{Main limitation} \\
 \midrule
-Password + static 2FA & No & Ignores context; phishing/SIM swap \\
-IP-based RBA~\cite{wiefling2019} & Partial & Single feature; manual tuning \\
-Keystroke only~\cite{killourhy2009} & Yes & Offline, single factor (EER $\approx$9.6\%) \\
-\textbf{Proposed (ensemble)} & Yes & 4-band adaptive, explainable, auditable \\
+Password + static 2FA & --- & --- & --- & Ignores context; phishing/SIM swap \\
+IP-based RBA~\cite{wiefling2019} & Part. & Heur. & --- & Single feature; manual tuning \\
+Statistical scoring~\cite{freeman2016} & \checkmark & Stat. & --- & Few signals; no decision audit \\
+Keystroke only~\cite{killourhy2009} & \checkmark & --- & --- & Offline, single factor (EER $\approx$9.6\%) \\
+\textbf{Proposed} & \textbf{\checkmark} & \textbf{Ens.} & \textbf{\checkmark} & Adaptive, explainable, auditable \\
 \bottomrule
 \end{tabular}
+
+\vspace{2pt}
+{\footnotesize \emph{Ctx.}: uses login context; \emph{Adapt.}: adaptive
+decision (Heur.: heuristic; Stat.: statistical; Ens.: ensemble);
+\emph{Audit.}: immutable audit coupled to the decision.}
 \end{table}
 
 \section{Results and Discussion}
 \label{sec:results}
 On the held-out test set (30\% of the data, unseen during training) the
-ensemble reached an accuracy of 98.1\%, precision of 80.7\%, and recall
-of 80.4\% for suspicious accesses, with an F1-score of 80.6\% and a
+ensemble reached an accuracy of 98.1\%, precision of 83.0\%, and recall
+of 77.6\% for suspicious accesses, with an F1-score of 80.2\% and a
 ROC-AUC of 0.99, indicating strong ranking capability between
 legitimate and suspicious accesses. The false-positive rate remained
-low at 1.0\%, which is relevant to usability. Stratified 5-fold
+low at 0.8\%, which is relevant to usability. Stratified 5-fold
 cross-validation confirmed the stability of the results (accuracy
-$98.1\%\pm0.1\%$; F1 $80.5\%\pm0.7\%$). Table~\ref{tab:results}
+$98.2\%\pm0.1\%$; F1 $80.5\%\pm0.8\%$). Table~\ref{tab:results}
 summarizes these figures.
 
 \begin{table}[t]
@@ -376,21 +515,22 @@ summarizes these figures.
 \toprule
 \textbf{Metric} & \textbf{Value} & \textbf{Metric} & \textbf{Value} \\
 \midrule
-Accuracy   & 98.1\% & F1-score       & 80.6\% \\
-Precision  & 80.7\% & ROC-AUC        & 0.99   \\
-Recall     & 80.4\% & False-pos.\ rate & 1.0\% \\
+Accuracy   & 98.1\% & F1-score       & 80.2\% \\
+Precision  & 83.0\% & ROC-AUC        & 0.99   \\
+Recall     & 77.6\% & False-pos.\ rate & 0.8\% \\
 \midrule
-\multicolumn{2}{@{}l}{5-fold accuracy} & \multicolumn{2}{l}{$98.1\%\pm0.1\%$} \\
-\multicolumn{2}{@{}l}{5-fold F1-score} & \multicolumn{2}{l}{$80.5\%\pm0.7\%$} \\
-\multicolumn{2}{@{}l}{Ensemble latency} & \multicolumn{2}{l}{$\approx$18.6\,ms/request} \\
+\multicolumn{2}{@{}l}{5-fold accuracy} & \multicolumn{2}{l}{$98.2\%\pm0.1\%$} \\
+\multicolumn{2}{@{}l}{5-fold F1-score} & \multicolumn{2}{l}{$80.5\%\pm0.8\%$} \\
+\multicolumn{2}{@{}l}{Ensemble latency} & \multicolumn{2}{l}{$\approx$33\,ms/request} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
 Regarding the authentication chain, the integration between Keycloak
 and the ML service was validated successfully. Ensemble inference was
-measured at about 18.6\,ms per request, well below the 200\,ms budget
-set for the AI component; the complete contextual authentication
+measured at about 33\,ms per request on the reference machine (median of
+single-request calls, dominated by the Random Forest), well below the
+200\,ms budget set for the AI component; the complete contextual authentication
 flow---including identity validation and blockchain recording---stayed
 in the order of a few hundred milliseconds. The blockchain pipeline was
 consistent under the immutability tests, with successful cryptographic
@@ -402,7 +542,7 @@ technical feasibility of the approach; however, because they stem from
 synthetic data and a preliminary stage, they do not yet allow the
 central hypothesis to be confirmed conclusively. A rigorous comparison
 against the baselines and validation with real data remain necessary
-before any quantitative claim of superiority. The F1-score of 80.6\%,
+before any quantitative claim of superiority. The F1-score of 80.2\%,
 although adequate for the current stage, indicates room to improve
 recall once real data replace the synthetic set. Even so, in a
 controlled environment the adaptive, context-driven approach detected
@@ -410,6 +550,33 @@ suspicious access patterns---such as the simulated credential-stuffing
 and session-hijacking scenarios---that escape systems based solely on
 passwords and static 2FA, while the blockchain layer made retroactive
 tampering of the records infeasible without detection.
+
+\textbf{Error analysis and trade-offs.} The decision threshold is not
+fixed a priori but selected as the value that maximizes the F1-score on
+the training partition, which makes the operating point explicit and
+tunable per deployment: lowering it raises recall at the cost of more
+step-up challenges, whereas raising it favours a frictionless experience
+at the risk of missing borderline attacks. At the chosen point the
+confusion matrix on the test set is dominated by true negatives, and the
+residual errors concentrate on the boundary between mildly anomalous
+legitimate accesses and low-intensity suspicious ones---exactly the
+region the noise model was designed to make ambiguous. This explains
+both the sub-90\% F1 and the low false-positive rate: the ensemble is
+conservative, preferring an occasional missed detection over penalizing
+legitimate users, a bias that is appropriate for an authentication
+front-end where usability friction carries a direct business cost. The
+three learners contribute complementary views---the Isolation Forest
+flags globally rare feature combinations without labels, while the
+Random Forest and the neural network exploit the labeled decision
+boundary---so that the weighted average degrades gracefully when any
+single learner is uncertain. We deliberately refrain from reading these
+figures as evidence of superiority over the baselines of
+Table~\ref{tab:baseline}: the baselines were not re-executed on the same
+data, and the synthetic generator, however carefully calibrated, cannot
+capture the full adversarial diversity of production traffic. These
+observations frame the experiment as a feasibility study whose next step
+is validation on real, non-repudiable logs collected under the very
+architecture proposed here.
 
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
@@ -420,8 +587,8 @@ are the end-to-end architecture fusing fourteen contextual and
 behavioral signals through an ensemble, the decision-coupled audit
 layer with an explicit justification for the use of blockchain, and a
 reproducible evaluation methodology. Preliminary experiments on
-synthetic data indicated technical feasibility (98.1\% accuracy, 80.6\%
-F1-score, 0.99 AUC, $\approx$18.6\,ms inference latency), constituting a
+synthetic data indicated technical feasibility (98.1\% accuracy, 80.2\%
+F1-score, 0.99 AUC, $\approx$33\,ms inference latency), constituting a
 methodological validation rather than a substitute for evaluation on
 real data. Future work includes replacing the synthetic dataset with
 real or semi-real data collected in a controlled environment, refining
@@ -429,12 +596,18 @@ model and threshold calibration, assessing performance and scalability
 under realistic load, and deepening the security analysis against the
 threat model.
 
+\balance
 \begin{thebibliography}{00}
 \bibitem{nist80063b} National Institute of Standards and Technology, ``Digital Identity Guidelines: Authentication and Lifecycle Management,'' NIST SP 800-63B, 2017.
 \bibitem{verizon2024} Verizon, ``2024 Data Breach Investigations Report (DBIR),'' Verizon Business, 2024.
 \bibitem{rose2020} S. Rose, O. Borchert, S. Mitchell, and S. Connelly, ``Zero Trust Architecture,'' NIST SP 800-207, 2020.
 \bibitem{wiefling2019} S. Wiefling, L. Lo Iacono, and M. D\"urmuth, ``Is This Really You? An Empirical Study on Risk-Based Authentication Applied in the Wild,'' in \emph{IFIP SEC}, 2019, pp. 134--148.
 \bibitem{wiefling2023} S. Wiefling, P. R. J\o rgensen, S. Thunem, and L. Lo Iacono, ``Pump Up Password Security! Evaluating and Enhancing Risk-Based Authentication on a Real-World Large-Scale Online Service,'' \emph{ACM Trans. Priv. Secur.}, vol. 26, no. 1, 2023.
+\bibitem{freeman2016} D. Freeman, S. Jain, M. D\"urmuth, B. Biggio, and G. Giacinto, ``Who Are You? A Statistical Approach to Measuring User Authenticity,'' in \emph{Proc. Netw. Distrib. Syst. Secur. Symp. (NDSS)}, 2016.
+\bibitem{alaca2016} F. Alaca and P. C. van Oorschot, ``Device Fingerprinting for Augmenting Web Authentication: Classification and Analysis of Methods,'' in \emph{Proc. 32nd Annu. Comput. Secur. Appl. Conf. (ACSAC)}, 2016, pp. 289--301.
+\bibitem{andriamilanto2021} N. Andriamilanto, T. Allard, G. Le Guelvouit, and A. Garel, ``A Large-scale Empirical Analysis of Browser Fingerprints Properties for Web Authentication,'' \emph{ACM Trans. Web}, vol. 16, no. 1, pp. 1--62, 2021.
+\bibitem{abuhamad2021} M. Abuhamad, A. Abusnaina, D. Nyang, and D. Mohaisen, ``Sensor-Based Continuous Authentication of Smartphones' Users Using Behavioral Biometrics: A Contemporary Survey,'' \emph{IEEE Internet Things J.}, vol. 8, no. 1, pp. 65--84, 2021.
+\bibitem{blockaudit} A. Ahmad, M. Saad, and A. Mohaisen, ``Secure and Transparent Audit Logs with BlockAudit,'' \emph{J. Netw. Comput. Appl.}, vol. 145, art.\ 102406, 2019.
 \bibitem{acien2022} A. Acien, A. Morales, R. Vera-Rodriguez, J. Fierrez, and J. V. Monaco, ``TypeNet: Deep Learning Keystroke Biometrics,'' \emph{IEEE Trans. Biom. Behav. Identity Sci.}, vol. 4, no. 1, pp. 57--70, 2022.
 \bibitem{stragapede2024} G. Stragapede \emph{et al.}, ``TypeFormer: Transformers for Mobile Keystroke Biometrics,'' \emph{Pattern Recognition Letters}, 2024.
 \bibitem{frank2013} M. Frank, R. Biedert, E. Ma, I. Martinovic, and D. Song, ``Touchalytics: On the Applicability of Touchscreen Input as a Behavioral Biometric for Continuous Authentication,'' \emph{IEEE Trans. Inf. Forensics Security}, vol. 8, no. 1, pp. 136--148, 2013.

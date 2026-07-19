@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
-import numpy as np, time, json
+# Reproducao dos resultados parciais do artigo SBESC 2026 (dados sinteticos).
+# Uso:  pip install -r requirements.txt  &&  python simulacao-resultados-parciais.py
+# Gera, em ./artefatos-modelos/: os modelos treinados (.joblib), o scaler,
+# o dataset sintetico (.csv), os parametros do ensemble e o metrics.json.
+import numpy as np, time, json, os
+import joblib
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import IsolationForest, RandomForestClassifier
 from sklearn.neural_network import MLPClassifier
@@ -110,7 +115,27 @@ M["lat_rf"]=lat1(lambda x: rf.predict_proba(x),Xte_s)
 M["lat_dl"]=lat1(lambda x: mlp.predict_proba(x),Xte_s)
 M["lat_ens"]=lat1(lambda x: ens_score(x),Xte_s)
 
-json.dump(M,open(r"C:/Users/G4F/AppData/Local/Temp/metrics.json","w"),indent=2)
+# ---- Persistencia dos artefatos (modelos treinados, scaler, dataset, metricas) ----
+ART=os.path.join(os.path.dirname(os.path.abspath(__file__)),"artefatos-modelos")
+os.makedirs(ART,exist_ok=True)
+joblib.dump(iso, os.path.join(ART,"isolation_forest.joblib"))
+joblib.dump(rf,  os.path.join(ART,"random_forest.joblib"))
+joblib.dump(mlp, os.path.join(ART,"mlp_neural_net.joblib"))
+joblib.dump(sc,  os.path.join(ART,"scaler.joblib"))
+# parametros do ensemble (normalizacao do IF, pesos e limiar de decisao)
+json.dump(dict(iso_lo=float(lo),iso_hi=float(hi),
+               weights=dict(iso=0.4,rf=0.3,mlp=0.3),threshold=float(best),
+               seed=42,n=int(N),fraud_rate=float(FR)),
+          open(os.path.join(ART,"ensemble_params.json"),"w"),indent=2)
+# dataset sintetico rotulado (14 criterios + rotulo)
+COLS=["hora","dia_semana","interv_ult_login","freq_24h","dist_geodesica",
+      "tipo_rede","asn","vel_deslocamento","fp_navegador","so","tipo_disp",
+      "automacao","padrao_digitacao","falhas_recentes"]
+np.savetxt(os.path.join(ART,"dataset_sintetico.csv"),
+           np.column_stack([X,y]),delimiter=",",
+           header=",".join(COLS+["rotulo"]),comments="")
+json.dump(M,open(os.path.join(ART,"metrics.json"),"w"),indent=2)
+print("Artefatos salvos em:",ART)
 print("=== RESULTADOS (conjunto de teste, 30%) ===")
 for k in ["acc","prec","rec","f1","auc","fpr"]:
     print("  %-5s = %.4f (%.1f%%)"%(k,M[k],M[k]*100))

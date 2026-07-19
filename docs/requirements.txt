@@ -1,0 +1,6 @@
+# Dependencias para reproduzir os resultados parciais do artigo SBESC 2026.
+# Instale com:  pip install -r requirements.txt
+# (Recomendado Python 3.10+; sementes aleatorias fixadas em 42.)
+numpy>=1.24
+scikit-learn>=1.3
+joblib>=1.3

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.7.19)  19 JUL 2026 09:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.7.19)  19 JUL 2026 20:35
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -941,6 +941,10 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
+
+Overfull \vbox (1.02197pt too high) has occurred while \output is active []
+
+
 [6] (artigo-sbesc2026-en.aux)
  ***********
 LaTeX2e <2025-11-01>
@@ -950,9 +954,9 @@ Package rerunfilecheck Info: File `artigo-sbesc2026-en.out' has not changed.
 (rerunfilecheck)             Checksum: 7EE34F35217D8807B1200DF9F89668F6;1261.
  ) 
 Here is how much of TeX's memory you used:
- 21725 strings out of 467871
- 410235 string characters out of 5415956
- 808570 words of memory out of 5000000
+ 21726 strings out of 467871
+ 410246 string characters out of 5415956
+ 809570 words of memory out of 5000000
  50205 multiletter control sequences out of 15000+600000
  670139 words of font info for 118 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
@@ -973,9 +977,9 @@ ta/Local/Programs/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Users/joao.brito/
 AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmbi8a.pfb><C:/Users/joao.
 brito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/
 joao.brito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on artigo-sbesc2026-en.pdf (6 pages, 213295 bytes).
+Output written on artigo-sbesc2026-en.pdf (6 pages, 214251 bytes).
 PDF statistics:
- 251 PDF objects out of 1000 (max. 8388607)
- 48 named destinations out of 1000 (max. 500000)
+ 256 PDF objects out of 1000 (max. 8388607)
+ 49 named destinations out of 1000 (max. 500000)
  85 words of extra memory for PDF output out of 10000 (max. 10000000)
 

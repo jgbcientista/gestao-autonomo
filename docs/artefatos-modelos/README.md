@@ -29,9 +29,10 @@ python ../simulacao-resultados-parciais.py
 ## Reprodutibilidade
 
 O script fixa a semente em 42 e particiona 70/30 de forma estratificada,
-reproduzindo os números do artigo (acurácia 98,1%, F1 80,6%, AUC 0,99,
-latência ≈18,6 ms/req.). Pequenas variações podem ocorrer conforme a versão
-do scikit-learn.
+reproduzindo os números do artigo (acurácia 98,1%, precisão 83,0%, recall
+77,6%, F1 80,2%, AUC 0,99, FPR 0,8%; validação cruzada 5-fold: acurácia
+98,2%±0,1% e F1 80,5%±0,8%; latência do ensemble ≈33 ms/req., dependente da
+máquina). Pequenas variações podem ocorrer conforme a versão do scikit-learn.
 
 > Observação de integridade científica: os dados são **sintéticos** e os
 > resultados são **preliminares** — caracterizam viabilidade técnica, não um

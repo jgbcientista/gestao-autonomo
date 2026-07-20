@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.7.19)  19 JUL 2026 09:00
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.7.19)  19 JUL 2026 20:29
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -997,8 +997,8 @@ Package rerunfilecheck Info: File `artigo-sbesc2026-pt.out' has not changed.
 (rerunfilecheck)             Checksum: 7B5588C7779A8184D85196EB2EEE503C;1471.
  ) 
 Here is how much of TeX's memory you used:
- 23117 strings out of 467871
- 434249 string characters out of 5415956
+ 23118 strings out of 467871
+ 434260 string characters out of 5415956
  844507 words of memory out of 5000000
  51564 multiletter control sequences out of 15000+600000
  745606 words of font info for 158 fonts, out of 8000000 for 9000
@@ -1020,9 +1020,9 @@ ta/Local/Programs/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Users/joao.brito/
 AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmbi8a.pfb><C:/Users/joao.
 brito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/
 joao.brito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on artigo-sbesc2026-pt.pdf (6 pages, 221218 bytes).
+Output written on artigo-sbesc2026-pt.pdf (6 pages, 222225 bytes).
 PDF statistics:
- 251 PDF objects out of 1000 (max. 8388607)
- 48 named destinations out of 1000 (max. 500000)
+ 256 PDF objects out of 1000 (max. 8388607)
+ 49 named destinations out of 1000 (max. 500000)
  85 words of extra memory for PDF output out of 10000 (max. 10000000)
 

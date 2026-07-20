@@ -348,7 +348,7 @@ empirically calibrated to balance security and usability: low risk
 ($0.3\le S<0.7$) triggers MFA; and high risk ($S\ge0.7$) blocks the
 attempt, records the event on the blockchain, and notifies the security
 administrator. In production, the engine is exposed as an independent
-independent REST microservice consumed by the back end, keeping the
+REST microservice consumed by the back end, keeping the
 three models in memory for parallel inference. A simplified heuristic
 fallback preserves availability if the AI service is unreachable.
 Models are periodically retrained to track behavioral change (concept
@@ -387,7 +387,7 @@ blockchain is actually necessary.
 \label{sec:method}
 \textbf{Dataset and labeling.} In the absence of public labeled
 datasets for contextual authentication, a synthetic dataset of about
-50{,}000 login records was built, reproducing the distribution observed
+50{,}000 login records was built,\footnote{Dataset (labeled CSV, trained models, and metrics): \url{https://github.com/jgbcientista/gestao-autonomo/tree/main/docs/artefatos-modelos}} reproducing the distribution observed
 in production (about 95\% legitimate and 5\% suspicious accesses). Each
 record contains the fourteen features of Section~\ref{sec:ai}. Labels
 were derived from heuristic rules encoding known fraud patterns

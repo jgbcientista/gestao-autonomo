@@ -578,6 +578,29 @@ observations frame the experiment as a feasibility study whose next step
 is validation on real, non-repudiable logs collected under the very
 architecture proposed here.
 
+\textbf{Limitations and threats to validity.} Three limitations bound
+the reach of our conclusions. First, external validity is constrained by
+the use of synthetic data: although the generative process reproduces
+plausible corporate-usage distributions, it captures neither the long
+tail of atypical yet legitimate behavior nor the adversarial creativity
+observed in real traffic, so the reported metrics should be read as an
+optimistic upper bound rather than as expected production performance.
+Second, construct validity depends on heuristic labeling: because the
+labels derive from the same rules that describe the fraud patterns, they
+may introduce a circularity in which the ensemble re-learns the
+boundaries encoded in the generator itself---a risk that only labeling
+over real, analyst-reviewed incidents fully removes. Third, the
+comparison against the baselines is deliberately qualitative, as they
+were not re-executed on the same dataset; quantitative claims of
+superiority therefore remain outside the scope of this preliminary
+phase. We partially mitigate these threats by fixing random seeds,
+versioning models and hyperparameters, and openly publishing the
+artifacts for independent inspection; full mitigation, however, requires
+collecting real, non-repudiable logs under the proposed
+architecture---precisely the immutable record the blockchain audit layer
+provides---closing the loop between methodological evaluation and actual
+system operation.
+
 \section{Conclusion and Future Work}
 \label{sec:conclusion}
 This paper presented an autonomous contextual authentication system
@@ -594,7 +617,29 @@ real data. Future work includes replacing the synthetic dataset with
 real or semi-real data collected in a controlled environment, refining
 model and threshold calibration, assessing performance and scalability
 under realistic load, and deepening the security analysis against the
-threat model.
+threat model. We further plan to investigate the explainability of the
+ensemble decisions---exposing, for each block or MFA challenge, the
+criteria that contribute most to the risk score---to evaluate system
+behavior under prolonged concept drift and adversarial evasion attacks,
+and to conduct a usability study that quantifies the friction perceived
+by legitimate users when facing adaptive challenges. On the audit side,
+we intend to measure the consensus cost of the permissioned network
+under realistic login rates and to evaluate periodic anchoring
+strategies that preserve independent verifiability without compromising
+throughput. We also plan to extend the ensemble with online learning so
+that model updates track behavioral drift continuously rather than only
+at periodic retraining boundaries, and to study calibration techniques
+that keep the risk score aligned with the empirical probability of
+compromise as the operating environment evolves. Finally, integrating
+the proposed decision-and-audit pipeline with a federated identity
+deployment at institutional scale would let us assess the end-to-end
+latency budget, the operational overhead of key and certificate
+management, and the governance model required for multiple organizations
+to jointly operate and audit the permissioned ledger. Taken together,
+these directions aim to progressively close the gap between the
+controlled feasibility study reported here and a production-grade
+deployment whose adaptive decisions remain, at every step, both
+effective and independently verifiable.
 
 \balance
 \begin{thebibliography}{00}

@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.7.19)  19 JUL 2026 20:29
+This is pdfTeX, Version 3.141592653-2.6-1.40.28 (MiKTeX 25.12) (preloaded format=pdflatex 2026.7.19)  21 JUL 2026 08:55
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -988,6 +988,10 @@ Before submitting the final camera ready copy, remember to:
  uses only Type 1 fonts and that every step in the generation
  process uses the appropriate paper size.
 
+
+Package balance Warning: You have called \balance in second column
+(balance)                Columns might not be balanced.
+
 [6] (artigo-sbesc2026-pt.aux)
  ***********
 LaTeX2e <2025-11-01>
@@ -1020,7 +1024,7 @@ ta/Local/Programs/MiKTeX/fonts/type1/urw/times/utmb8a.pfb><C:/Users/joao.brito/
 AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmbi8a.pfb><C:/Users/joao.
 brito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmr8a.pfb><C:/Users/
 joao.brito/AppData/Local/Programs/MiKTeX/fonts/type1/urw/times/utmri8a.pfb>
-Output written on artigo-sbesc2026-pt.pdf (6 pages, 222225 bytes).
+Output written on artigo-sbesc2026-pt.pdf (6 pages, 223780 bytes).
 PDF statistics:
  256 PDF objects out of 1000 (max. 8388607)
  49 named destinations out of 1000 (max. 500000)

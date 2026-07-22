@@ -596,6 +596,30 @@ observações enquadram o experimento como um estudo de viabilidade cujo
 próximo passo é a validação sobre logs reais e não repudiáveis coletados
 sob a própria arquitetura aqui proposta.
 
+\textbf{Limitações e ameaças à validade.} Três limitações delimitam o
+alcance das conclusões. Primeiro, a validade externa é restringida pelo
+uso de dados sintéticos: embora o processo gerador reproduza
+distribuições plausíveis de uso corporativo, ele não captura a cauda
+longa de comportamentos legítimos atípicos nem a criatividade
+adversarial observada em tráfego real, de modo que as métricas relatadas
+devem ser lidas como um limite superior otimista e não como desempenho
+esperado em produção. Segundo, a validade de construção depende da
+rotulagem heurística: por derivarem das mesmas regras que descrevem os
+padrões de fraude, os rótulos podem introduzir uma circularidade em que
+o ensemble reaprende as fronteiras codificadas no próprio gerador ---
+risco que apenas a rotulagem sobre incidentes reais, revisada por
+analistas, elimina por completo. Terceiro, a comparação com os baselines
+é deliberadamente qualitativa, pois estes não foram reexecutados sobre o
+mesmo conjunto de dados; afirmações quantitativas de superioridade
+permanecem, portanto, fora do escopo desta fase preliminar. Mitigamos
+parcialmente essas ameaças fixando as sementes aleatórias, versionando os
+modelos e os hiperparâmetros e publicando abertamente os artefatos para
+inspeção independente; a superação plena, contudo, exige a coleta de logs
+reais e não repudiáveis sob a arquitetura proposta --- precisamente o
+registro imutável que a camada de auditoria em blockchain fornece ---,
+fechando o ciclo entre a avaliação metodológica e a operação efetiva do
+sistema.
+
 \section{Considerações Finais e Trabalhos Futuros}
 \label{sec:conclusion}
 Este artigo apresentou um sistema autônomo de autenticação contextual que
@@ -612,7 +636,13 @@ avaliação com dados reais. Como trabalhos futuros, pretende-se substituir
 o conjunto sintético por dados reais ou semirreais coletados em ambiente
 controlado, refinar a calibração de modelos e limiares, avaliar
 desempenho e escalabilidade sob carga realista e aprofundar a análise de
-segurança frente ao modelo de ameaças.
+segurança frente ao modelo de ameaças. Planeja-se ainda investigar a
+explicabilidade das decisões do ensemble --- expondo, para cada bloqueio
+ou desafio de MFA, os critérios de maior contribuição ao escore de
+risco ---, avaliar o comportamento do sistema sob deriva de conceito
+prolongada e ataques adversariais de evasão, e conduzir um estudo de
+usabilidade que quantifique o atrito percebido pelos usuários legítimos
+frente aos desafios adaptativos.
 
 \balance
 \begin{thebibliography}{00}

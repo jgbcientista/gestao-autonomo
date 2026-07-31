@@ -49,7 +49,7 @@ Se o campo aceitar apenas 5, use: `contextual authentication; risk-based authent
 
 **Autor 2 — orientador**
 - Nome: `Cleber Jorge Lira de Santana`
-- E-mail: `cleber.santana@ifba.edu.br`
+- E-mail: `cleberlira@ifba.edu.br`
 - Instituição: `Instituto Federal da Bahia (IFBA)`
 - Programa: `Programa de Pós-Graduação em Engenharia de Sistemas e Produtos (PPGESP)`
 - Cidade/Estado/País: `Salvador, Bahia, Brasil`
@@ -61,7 +61,7 @@ Se o campo aceitar apenas 5, use: `contextual authentication; risk-based authent
 1. Acesse https://jems3.sbc.org.br/events/628 e faça login com a conta SBC (crie uma se ainda não tiver — leva 2 min e o e-mail de confirmação pode demorar; **não deixe para o dia 2**).
 2. `Submit paper` → selecione a trilha **SBESC 2026 — Main Track (Full Paper)**.
 3. Cole **Title**, **Abstract** e **Keywords** das seções 2–4 acima.
-4. Cadastre os **dois autores** (seção 5), na ordem indicada. O JEMS3 busca o coautor pelo e-mail: se `cleber.santana@ifba.edu.br` já tiver conta SBC, ele aparece na busca; se não, cadastre manualmente.
+4. Cadastre os **dois autores** (seção 5), na ordem indicada. O JEMS3 busca o coautor pelo e-mail: se `cleberlira@ifba.edu.br` já tiver conta SBC, ele aparece na busca; se não, cadastre manualmente.
 5. Marque os **tópicos** da seção 1.
 6. **Upload do PDF:** `docs/artigo/artigo-sbesc2026-en.pdf`.
 7. **Finalize/submeta** — no JEMS3 não basta salvar o rascunho; confirme que o status ficou **"submitted"** e que chegou o e-mail de confirmação.

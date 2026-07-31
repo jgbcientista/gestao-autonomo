@@ -64,7 +64,7 @@ Rode **2x** para resolver referências e citações. Confira no fim do `.log`:
       77,6% recall · **80,2% F1** · AUC 0,99 · **FPR 0,8%** · CV 98,2%±0,1% · latência ~33 ms.
       *(Números antigos como "80,6% F1 / 18,6 ms" ficaram obsoletos — não use.)*
 - [x] **E-mails dos autores confirmados:** `joaoguedesdebrito@gmail.com` e
-      `cleber.santana@ifba.edu.br`; orientador entra como **coautor**.
+      `cleberlira@ifba.edu.br`; orientador entra como **coautor**.
 - [x] **Honestidade dos resultados:** o texto declara explicitamente que os dados são sintéticos
       e os resultados preliminares — mantido de propósito, por integridade científica.
 - [x] **Sem numeração de página** (padrão IEEE de conferência).

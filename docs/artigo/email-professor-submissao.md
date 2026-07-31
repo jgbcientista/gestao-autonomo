@@ -1,6 +1,6 @@
 # E-mail ao orientador — submissão SBESC 2026
 
-**Para:** cleber.santana@ifba.edu.br
+**Para:** cleberlira@ifba.edu.br
 **Assunto:** SBESC 2026 — artigo submetido (#33972)
 
 ---

@@ -528,10 +528,10 @@ export class ApiService {
     );
   }
 
-  validarMfa(email: string, codigo: string): Observable<any> {
+  validarMfa(email: string, codigo: string, mfaToken: string): Observable<any> {
     return this.http.post<any>(
       `${this.baseUrl}/api/v1/mfa/validar`,
-      { email, codigo },
+      { email, codigo, mfaToken },
       { headers: this.getHeaders() }
     );
   }

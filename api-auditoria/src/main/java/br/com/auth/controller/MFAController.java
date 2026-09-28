@@ -4,6 +4,7 @@ import br.com.auth.dominio.entidades.Usuario;
 import br.com.auth.dto.AuthenticationResponse;
 import br.com.auth.infraestrutura.repositorios.RepositorioUsuario;
 import br.com.auth.service.BlockchainService;
+import br.com.auth.service.DesafioMfaService;
 import br.com.auth.service.GerenciadorSessaoService;
 import br.com.auth.service.JwtService;
 import br.com.auth.service.ServicoMFA;
@@ -19,6 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +44,7 @@ public class MFAController {
     private final ServicoScoreConfianca servicoScoreConfianca;
     private final GerenciadorSessaoService gerenciadorSessaoService;
     private final ServicoGeolocalizacao servicoGeolocalizacao;
+    private final DesafioMfaService desafioMfaService;
     @Autowired(required = false)
     private BlockchainService blockchainService;
 
@@ -53,11 +56,14 @@ public class MFAController {
         @ApiResponse(responseCode = "404", description = "Usuário não encontrado"),
         @ApiResponse(responseCode = "400", description = "MFA já está habilitado")
     })
-    public ResponseEntity<?> configurar(@RequestBody Map<String, String> requisicao) {
+    public ResponseEntity<?> configurar(@RequestBody Map<String, String> requisicao, Authentication autenticacao) {
         try {
             String email = requisicao.get("email");
             if (email == null || email.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Email é obrigatório"));
+            }
+            if (!ehProprioUsuario(autenticacao, email)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Só é possível configurar o MFA da própria conta"));
             }
 
             Usuario usuario = repositorioUsuario.findByEmail(email)
@@ -144,9 +150,19 @@ public class MFAController {
         try {
             String email = requisicao.get("email");
             String codigo = requisicao.get("codigo");
+            String desafio = requisicao.get("mfaToken");
 
             if (email == null || email.isBlank() || codigo == null || codigo.isBlank()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "Email e código são obrigatórios"));
+            }
+
+            // O segundo fator só vale dentro de um login cuja senha já foi validada
+            if (desafioMfaService.verificar(desafio, email) != DesafioMfaService.Resultado.VALIDO) {
+                log.warn("Validação MFA sem desafio válido para: {}", email);
+                return ResponseEntity.status(401).body(Map.of(
+                    "error", "Sessão de login expirada",
+                    "message", "Faça login novamente com e-mail e senha."
+                ));
             }
 
             Usuario usuario = repositorioUsuario.findByEmail(email)
@@ -159,6 +175,8 @@ public class MFAController {
             boolean codigoValido = servicoMFA.validarCodigo(usuario.getSegredoDoisFatores(), codigo);
 
             if (codigoValido) {
+                desafioMfaService.consumir(desafio);
+
                 // Gerar token JWT completo
                 String jwtToken = jwtService.generateToken(usuario);
 
@@ -209,6 +227,7 @@ public class MFAController {
                         .build());
             } else {
                 log.warn("Código MFA inválido para usuário: {}", email);
+                desafioMfaService.registrarFalha(desafio);
 
                 // Registrar tentativa falha no blockchain
                 try {
@@ -243,8 +262,11 @@ public class MFAController {
         @ApiResponse(responseCode = "200", description = "Status do MFA retornado"),
         @ApiResponse(responseCode = "404", description = "Usuário não encontrado")
     })
-    public ResponseEntity<?> status(@PathVariable String email) {
+    public ResponseEntity<?> status(@PathVariable String email, Authentication autenticacao) {
         try {
+            if (!ehProprioUsuario(autenticacao, email)) {
+                return ResponseEntity.status(403).body(Map.of("error", "Acesso negado"));
+            }
             Usuario usuario = repositorioUsuario.findByEmail(email)
                     .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + email));
 
@@ -260,6 +282,11 @@ public class MFAController {
             log.error("Erro ao verificar status MFA: {}", e.getMessage(), e);
             return ResponseEntity.internalServerError().body(Map.of("error", "Erro ao verificar status MFA"));
         }
+    }
+
+    private boolean ehProprioUsuario(Authentication autenticacao, String email) {
+        return autenticacao != null && autenticacao.isAuthenticated()
+            && autenticacao.getName() != null && autenticacao.getName().equalsIgnoreCase(email);
     }
 
     private String determinarPerfilPrincipal(Usuario usuario) {

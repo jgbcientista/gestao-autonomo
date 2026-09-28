@@ -119,8 +119,8 @@ export class AuthService {
     );
   }
 
-  completeMfaLogin(email: string, codigo: string): Observable<any> {
-    return this.apiService.validarMfa(email, codigo).pipe(
+  completeMfaLogin(email: string, codigo: string, mfaToken: string): Observable<any> {
+    return this.apiService.validarMfa(email, codigo, mfaToken).pipe(
       tap(response => {
         if (response && response.token && response.token.trim() !== '') {
           this.processLoginResponse(response, email);

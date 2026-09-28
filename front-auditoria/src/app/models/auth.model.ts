@@ -18,6 +18,7 @@ export interface AuthenticationResponse {
   trustLevel?: string;
   requiresMfa?: boolean;
   mfaMessage?: string;
+  mfaToken?: string;
   mfaQrCode?: string;
   mfaSecret?: string;
 }

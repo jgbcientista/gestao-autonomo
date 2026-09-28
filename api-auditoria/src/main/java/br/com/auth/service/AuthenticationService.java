@@ -62,6 +62,7 @@ public class AuthenticationService implements IServicoAutenticacao {
     private final ServicoScoreConfianca servicoScoreConfianca;
     private final GerenciadorSessaoService gerenciadorSessaoService;
     private final ServicoMFA servicoMFA;
+    private final DesafioMfaService desafioMfaService;
 
     @Value("${blockchain.native.enabled:false}")
     private boolean useNativeBlockchain;
@@ -204,6 +205,7 @@ public class AuthenticationService implements IServicoAutenticacao {
                     .role(determinarPerfilPrincipal(usuario))
                     .requiresMfa(true)
                     .mfaMessage(mfaMessage)
+                    .mfaToken(desafioMfaService.emitir(usuario.getEmail()))
                     .trustScore(trustScore)
                     .aiRiskScore(aiRiskScore)
                     .build();
@@ -523,6 +525,7 @@ public class AuthenticationService implements IServicoAutenticacao {
                     .role(determinarPerfilPrincipal(usuario))
                     .requiresMfa(true)
                     .mfaMessage(mfaMessage)
+                    .mfaToken(desafioMfaService.emitir(usuario.getEmail()))
                     .trustScore(trustScore)
                     .aiRiskScore(aiRiskScore)
                     .build();

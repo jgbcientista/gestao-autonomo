@@ -46,7 +46,9 @@ public class SecurityConfig {
                     "/auth/login",
                     "/api/v1/test/**",
                     "/api/v1/autenticacao/**",
-                    "/api/v1/mfa/**",
+                    // MFA: so a validacao do login e a confirmacao do cadastro sao publicas
+                    "/api/v1/mfa/validar",
+                    "/api/v1/mfa/verificar-configuracao",
                     "/api/v1/auth/register",
                     "/api/v1/auth/login",
                     "/api/v1/h2-console/**",

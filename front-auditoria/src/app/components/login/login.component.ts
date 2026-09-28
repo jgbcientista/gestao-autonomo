@@ -26,6 +26,7 @@ export class LoginComponent implements OnInit {
   showMfaChallenge = false;
   mfaCode = '';
   mfaEmail = '';
+  mfaToken = '';
   mfaMessage = '';
   isValidatingMfa = false;
   appVersion: string = (environment as any).appVersion || '0.0.0';
@@ -94,6 +95,7 @@ export class LoginComponent implements OnInit {
           if (response.requiresMfa) {
             this.showMfaChallenge = true;
             this.mfaEmail = this.loginForm.value.email;
+            this.mfaToken = response.mfaToken || '';
             this.mfaMessage = response.mfaMessage || 'Informe o código do Google Authenticator';
             return;
           }
@@ -143,7 +145,7 @@ export class LoginComponent implements OnInit {
     this.isValidatingMfa = true;
     this.errorMessage = '';
 
-    this.authService.completeMfaLogin(this.mfaEmail, this.mfaCode).subscribe({
+    this.authService.completeMfaLogin(this.mfaEmail, this.mfaCode, this.mfaToken).subscribe({
       next: (response) => {
         this.isValidatingMfa = false;
         this.successMessage = `Bem-vindo, ${response.name}!`;
@@ -154,8 +156,14 @@ export class LoginComponent implements OnInit {
       error: (error) => {
         this.isValidatingMfa = false;
         console.error('Erro na validação MFA:', error);
-        this.errorMessage = 'Código MFA inválido. Tente novamente.';
         this.mfaCode = '';
+        if (error.status === 401 && error.error?.error === 'Sessão de login expirada') {
+          // desafio expirou ou excedeu as tentativas: recomeçar pelo e-mail e senha
+          this.voltarLogin();
+          this.errorMessage = 'Sua verificação expirou. Faça login novamente.';
+          return;
+        }
+        this.errorMessage = 'Código MFA inválido. Tente novamente.';
       }
     });
   }
@@ -164,6 +172,7 @@ export class LoginComponent implements OnInit {
     this.showMfaChallenge = false;
     this.mfaCode = '';
     this.mfaEmail = '';
+    this.mfaToken = '';
     this.errorMessage = '';
   }
 

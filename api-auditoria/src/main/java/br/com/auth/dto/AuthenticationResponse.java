@@ -31,6 +31,9 @@ public class AuthenticationResponse {
     @Schema(description = "Mensagem relacionada ao MFA", example = "Autenticação de dois fatores necessária")
     private String mfaMessage;
 
+    @Schema(description = "Desafio de uso único a enviar em /api/v1/mfa/validar (válido por 5 minutos)")
+    private String mfaToken;
+
     @Schema(description = "QR Code em Base64 para configuração do MFA", example = "data:image/png;base64,...")
     private String mfaQrCode;
 

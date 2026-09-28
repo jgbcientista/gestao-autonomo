@@ -27,7 +27,7 @@ Li com atenção as duas avaliações do SBESC e já comecei os ajustes. Resumo:
 
 Preparei um documento que relaciona cada crítica dos revisores à alteração feita e ao que ainda falta. Levo esse documento e a versão revisada para a reunião.
 
-Teria disponibilidade em [DIA/HORÁRIO 1] ou [DIA/HORÁRIO 2]?
+O senhor teria disponibilidade na segunda-feira, 05/10/2026, no horário que for melhor para o senhor?
 
 Atenciosamente,
 João Guedes de Brito

@@ -22,7 +22,7 @@ _______________________________________________________
   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
   https://github.com/settings/tokens
     
-  ***REMOVIDO***
+  <GITHUB_TOKEN>
     
   docker compose -f docker-compose.prod.yml up -d
   
@@ -30,7 +30,7 @@ _______________________________________________________
   
   ssh root@209.50.240.20
 
-  ***REMOVIDO***
+  <SENHA_ROOT>
   
   claude --dangerously-skip-permissions
   _______________________________________________________
@@ -38,7 +38,7 @@ _______________________________________________________
   _______________________________________________________
   
   psql -h localhost -U pcp_remoto_db -d pcp_remoto_db
-  Senha: ***REMOVIDO***
+  Senha: <DB_PASSWORD>
   Depois execute:
 
   DROP SCHEMA login_inteligente CASCADE;

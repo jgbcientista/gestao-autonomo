@@ -21,7 +21,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://172.17.0.1:5432/pcp_remoto_db?currentSchema=login_inteligente}
     username: ${DB_USERNAME:pcp_remoto_db}
-    password: ${DB_PASSWORD:***REMOVIDO***}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 5
@@ -81,7 +81,7 @@ springdoc:
   use-management-port: false
 
 jwt:
-  secret: ${JWT_SECRET:***REMOVIDO***}
+  secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION:86400000}
 
 # Configurações de IA e Análise de Contexto
@@ -248,6 +248,11 @@ session:
 app:
   base-url: ${APP_BASE_URL:http://localhost:4200}
 
+
+# Chave JWT apenas para desenvolvimento local (producao exige JWT_SECRET)
+jwt:
+  secret: ${JWT_SECRET:Y2hhdmUtc29tZW50ZS1wYXJhLWRlc2Vudm9sdmltZW50by1sb2NhbC1uYW8tdXNhci1lbS1wcm9kdWNhbw==}
+
 ---
 # Profile de produção com PostgreSQL
 spring:
@@ -260,7 +265,7 @@ spring:
   datasource:
     url: ${DB_URL:jdbc:postgresql://172.17.0.1:5432/pcp_remoto_db?currentSchema=login_inteligente}
     username: ${DB_USERNAME:pcp_remoto_db}
-    password: ${DB_PASSWORD:***REMOVIDO***}
+    password: ${DB_PASSWORD}
     driver-class-name: org.postgresql.Driver
     hikari:
       minimum-idle: 5

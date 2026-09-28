@@ -618,7 +618,7 @@ sistema-autonomo/
 |-- .github/workflows/deploy.yml      # Pipeline CI/CD
 |-- docker-compose.yml                # Desenvolvimento local
 |-- docker-compose.prod.yml           # Producao
-|-- .env.production                   # Variaveis de ambiente
+|-- .env.production                   # Variaveis de ambiente (NAO versionado; secret ENV_PRODUCTION no GitHub)
 ```
 
 ## Endpoints Principais

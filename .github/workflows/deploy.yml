@@ -186,6 +186,18 @@ jobs:
       - name: Checkout codigo
         uses: actions/checkout@v4
 
+      # O .env.production nao fica mais no repositorio: vem do secret ENV_PRODUCTION
+      # (conteudo completo do arquivo). Sem ele o deploy para aqui, sem tocar na VPS.
+      - name: Gerar .env.production a partir do secret
+        env:
+          ENV_PRODUCTION: ${{ secrets.ENV_PRODUCTION }}
+        run: |
+          if [ -z "$ENV_PRODUCTION" ]; then
+            echo "::error::Secret ENV_PRODUCTION nao configurado"
+            exit 1
+          fi
+          printf '%s\n' "$ENV_PRODUCTION" > .env.production
+
       - name: Copiar arquivos para VPS
         uses: appleboy/scp-action@v0.1.7
         with:

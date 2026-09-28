@@ -11,3 +11,7 @@
 # OS
 .DS_Store
 Thumbs.db
+
+# Segredos: nunca versionar (o deploy gera .env.production a partir do secret ENV_PRODUCTION)
+.env.production
+token.py

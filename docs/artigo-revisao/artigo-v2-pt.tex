@@ -1,0 +1,895 @@
+%%=====================================================================
+%% VERSAO 2 (revisao pos-SBESC 2026, #33972 rejeitado em 24/09/2026).
+%% VERSAO EM PORTUGUES. Template: IEEE two-column conference.
+%% A versao submetida permanece intacta em ../artigo/.
+%% Rastreabilidade revisor -> alteracao: RASTREABILIDADE-REVISOES.md
+%%
+%% Resultados novos (faixas, modelos isolados, pesos, CV aninhada,
+%% proporcao, gerador corrigido, evasao): ../experimentos-revisao.py ->
+%% ../artefatos-modelos/experimentos-revisao.json
+%%=====================================================================
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{tikz}
+\usetikzlibrary{positioning,arrows.meta}
+\usepackage[hidelinks]{hyperref}
+\usepackage{url}
+\usepackage{balance} % equilibra as duas colunas na última página (evita sobra em branco)
+
+\begin{document}
+
+\title{Autenticação Contextual Autônoma para Aplicações\\ Web Combinando um Ensemble de IA e\\ Auditoria em Blockchain Permissionada}
+
+\author{\IEEEauthorblockN{João Guedes de Brito}
+\IEEEauthorblockA{\textit{Programa de Pós-Graduação em Engenharia de Sistemas e Produtos (PPGESP)}\\
+\textit{Instituto Federal da Bahia (IFBA)}\\
+Salvador, Bahia, Brasil \\
+joaoguedesdebrito@gmail.com}
+\and
+\IEEEauthorblockN{Cleber Jorge Lira de Santana}
+\IEEEauthorblockA{\textit{Programa de Pós-Graduação em Engenharia de Sistemas e Produtos (PPGESP)}\\
+\textit{Instituto Federal da Bahia (IFBA)}\\
+Salvador, Bahia, Brasil \\
+cleberlira@ifba.edu.br}
+}
+
+\maketitle
+
+\begin{abstract}
+Mecanismos tradicionais de autenticação baseados em senhas estáticas ou
+em autenticação multifator (MFA) fixa permanecem amplamente adotados,
+mas ignoram o contexto comportamental e ambiental de cada tentativa de
+acesso e são cada vez mais explorados por ataques de \emph{credential
+stuffing}, phishing e tomada de conta. Este artigo apresenta um sistema
+autônomo de autenticação contextual para aplicações web que combina um
+ensemble de aprendizado de máquina com auditoria em blockchain
+permissionada. Cada login é descrito por quatorze critérios contextuais
+e comportamentais, avaliados por um ensemble de Isolation Forest, Random
+Forest e uma rede neural multicamada; o escore de risco resultante
+conduz uma decisão adaptativa em três faixas (permitir, reforçar com MFA
+ou bloquear). Propõe-se ainda uma camada de auditoria em que cada
+decisão, com o escore e os critérios que a justificaram, é registrada em
+uma rede Hyperledger Fabric; discute-se quando essa escolha se justifica
+frente a logs assinados e bancos append-only. Nesta fase, a camada de
+auditoria é um projeto: o protótipo persiste as decisões em um banco
+relacional e a integração com o Fabric ainda não foi realizada, de modo
+que nenhuma propriedade de imutabilidade é reivindicada. Em avaliação
+\emph{offline} sobre um conjunto de
+dados sintéticos com cerca de 50.000 registros de login (95\% legítimos,
+5\% suspeitos), o ensemble alcançou 98,1\% de acurácia, 80,2\% de
+F1-score e AUC-ROC de 0,99 no conjunto de teste, com taxa de falsos
+positivos de 0,8\% no limiar binário escolhido e latência de inferência
+de aproximadamente 33\,ms por requisição; com as três faixas, 7,3\% dos
+ataques passam sem desafio e 2,7\% dos acessos legítimos sofrem atrito.
+O ensemble supera cada modelo isolado em cerca de 3 pontos de F1, mas um
+atacante que imita apenas os critérios de horário e ritmo reduz o recall
+de 77,6\% para 50,7\%, e com um proxy residencial, para 18,0\%. Os rótulos provêm do próprio
+gerador sintético; os resultados caracterizam, portanto, a viabilidade
+do pipeline, e não desempenho esperado em produção.
+\end{abstract}
+
+\begin{IEEEkeywords}
+autenticação contextual, autenticação baseada em risco, aprendizado de
+máquina, ensemble, detecção de anomalias, blockchain, trilha de
+auditoria, segurança da informação.
+\end{IEEEkeywords}
+
+\section{Introdução}
+A autenticação é a primeira linha de defesa de aplicações web.
+Historicamente, apoiou-se em um fator de conhecimento --- a senha ---,
+cujas fragilidades são amplamente documentadas: senhas são reutilizadas
+entre serviços, vazadas em larga escala e exploradas por força bruta,
+\emph{credential stuffing} e phishing~\cite{nist80063b,verizon2024}. A
+autenticação multifator (MFA) mitiga parte dessa exposição ao combinar
+fatores de conhecimento, posse e inerência, mas a MFA estática ainda
+sucumbe a engenharia social, troca de chip (SIM swapping) e interceptação
+de códigos em tempo real, além de introduzir atrito na experiência do
+usuário~\cite{nist80063b}.
+
+A escala do problema justifica ir além da credencial. Credential
+stuffing, phishing e o uso de credenciais roubadas seguem entre os
+principais vetores em relatórios de incidentes, e a fraude por tomada de
+conta impõe custos financeiros e reputacionais diretos a organizações e
+usuários finais~\cite{verizon2024}. A reutilização de senhas transforma
+qualquer vazamento isolado em um passivo entre serviços, enquanto
+ferramentas de ataque comoditizadas tornam o abuso de login em larga
+escala barato e altamente automatizado. Sobretudo, defesas estáticas
+--- políticas de robustez de senha e códigos de uso único --- não
+observam \emph{como}, \emph{quando} ou \emph{de onde} ocorre um login e,
+portanto, não distinguem um usuário legítimo de um adversário que já
+detém credenciais válidas. Marcos regulatórios como a
+LGPD~\cite{lgpd2018} acrescentam um requisito adicional: decisões
+automatizadas de acesso sobre dados pessoais precisam ser comprovadamente
+auditáveis. Em conjunto, essas pressões motivam decisões de autenticação
+condicionadas ao contexto completo de cada tentativa --- e que deixem
+uma trilha verificável do \emph{porquê} de cada decisão.
+
+Para enfrentar essas limitações, as diretrizes de identidade digital do
+NIST e o modelo de Zero Trust recomendam mecanismos \emph{adaptativos},
+nos quais o nível de verificação exigido é proporcional ao risco
+estimado de cada tentativa~\cite{nist80063b,rose2020}. Isso desloca a
+autenticação de uma decisão binária e estática para uma avaliação
+contínua e sensível ao contexto --- abordagem conhecida na literatura
+como autenticação baseada em risco (\emph{Risk-Based Authentication},
+RBA). Estudos empíricos de serviços em produção mostram, contudo, que o
+RBA implantado é dominado por um único sinal (tipicamente o endereço IP)
+e por heurísticas ajustadas manualmente~\cite{wiefling2019,wiefling2023}.
+Em paralelo, quando as decisões de acesso são delegadas a modelos
+autônomos, elas precisam ser \emph{auditáveis} por terceiros (por
+exemplo, em fiscalizações de conformidade), requisito que registros de
+decisão sob a guarda de um único operador não atendem plenamente.
+
+Este artigo propõe um sistema autônomo de autenticação contextual que
+acopla uma decisão adaptativa por aprendizado de máquina (ML) ao seu
+registro para auditoria. As principais contribuições são:
+\begin{itemize}
+  \item uma arquitetura ponta a ponta que funde quatorze critérios
+        contextuais e comportamentais em um único escore de risco
+        calculado por um ensemble de Isolation Forest, Random Forest e
+        rede neural, conduzindo uma decisão adaptativa em três faixas;
+  \item o projeto de uma camada de auditoria em blockchain
+        permissionada acoplada à decisão, com justificativa explícita
+        de \emph{quando} ela é necessária frente a logs assinados ou
+        bancos append-only, e a delimitação do que o protótipo atual
+        ainda não implementa; e
+  \item uma avaliação \emph{offline} reprodutível (código, dados,
+        modelos e hiperparâmetros publicados) do motor de risco sobre
+        dados sintéticos.
+\end{itemize}
+
+O restante do artigo organiza-se assim. A Seção~\ref{sec:related} revisa
+os trabalhos correlatos. A Seção~\ref{sec:arch} descreve a arquitetura
+proposta; a Seção~\ref{sec:ai}, o motor de IA; e a Seção~\ref{sec:bc}, a
+camada de auditoria em blockchain. A Seção~\ref{sec:method} apresenta a
+metodologia de avaliação e a Seção~\ref{sec:results}, os resultados. A
+Seção~\ref{sec:conclusion} conclui.
+
+\section{Trabalhos Correlatos}
+\label{sec:related}
+\textbf{Biometria comportamental.} A autenticação contínua a partir de
+padrões de interação está bem estabelecida. O TypeNet~\cite{acien2022} e
+o TypeFormer~\cite{stragapede2024} identificam usuários pela dinâmica de
+digitação com baixas taxas de erro, e o Touchalytics~\cite{frank2013}
+mostra que padrões de toque discriminam usuários em dispositivos móveis.
+Esses trabalhos confirmam o poder discriminativo do comportamento do
+usuário, mas concentram-se em uma única modalidade biométrica e não
+tratam da auditoria imutável das decisões. Surveys recentes de
+autenticação contínua baseada em sensores~\cite{abuhamad2021} corroboram
+que sinais comportamentais generalizam por diversas modalidades, ao
+mesmo tempo em que apontam desafios em aberto de robustez, envelhecimento
+de template e implantação real --- desafios que reforçam a fusão do
+comportamento com outros sinais contextuais em vez da dependência de uma
+única modalidade.
+
+\textbf{Sinais contextuais e de dispositivo.} Além do comportamento, o
+contexto de dispositivo e rede de um login é, por si só, discriminativo.
+Alaca e van Oorschot~\cite{alaca2016} classificam vinte e nove métodos de
+fingerprinting de dispositivo para reforçar a autenticação web,
+comparando-os por estabilidade, dificuldade de spoofing e
+distinguibilidade, e Andriamilanto \emph{et al.}~\cite{andriamilanto2021}
+mostram, em mais de quatro milhões de navegadores, que fingerprints de
+navegador carregam distinguibilidade e estabilidade suficientes para
+reforçar a autenticação. Freeman \emph{et al.}~\cite{freeman2016}
+introduziram o primeiro modelo probabilístico público que classifica um
+login como normal ou suspeito a partir de sinais como IP de origem,
+geolocalização, configuração do navegador e hora do dia. Esses trabalhos
+validam sinais contextuais individuais, mas os tratam em grande parte de
+forma isolada e não acoplam a decisão resultante a um registro à prova de
+adulteração.
+
+\textbf{Autenticação baseada em risco.} Wiefling \emph{et
+al.}~\cite{wiefling2019} conduziram o primeiro estudo empírico de larga
+escala sobre RBA em serviços reais, e trabalhos posteriores
+\cite{wiefling2023} mostraram que os fatores de risco devem ser
+cuidadosamente ajustados por serviço. Nossa proposta segue essa linha,
+mas substitui heurísticas fixas --- e os modelos de sinal único,
+pontuados estatisticamente, que as precederam~\cite{freeman2016} --- por
+um ensemble de ML multissinal e adiciona uma camada de não repúdio.
+
+\textbf{Detecção de anomalias.} O Isolation Forest~\cite{liu2008} é
+referência para detecção não supervisionada de outliers em alta
+dimensionalidade, e modelos supervisionados e profundos
+\cite{goodfellow2016} o complementam quando há rótulos; Killourhy e
+Maxion~\cite{killourhy2009} estabeleceram um marco metodológico para a
+detecção de anomalias em dinâmica de digitação. Combinamos ambas as
+naturezas --- não supervisionada e supervisionada --- em um ensemble.
+
+\textbf{Blockchain para auditoria.} Embora a auditoria de logs baseada em
+blockchain venha sendo investigada, a maioria das abordagens trata o
+registro de eventos de forma \emph{desacoplada} do mecanismo de decisão.
+Sistemas como o BlockAudit~\cite{blockaudit} demonstram trilhas de
+auditoria escaláveis e à prova de adulteração em blockchain, mas os
+eventos registrados originam-se em aplicações externas à camada de
+registro, de modo que o registro atesta \emph{que} um evento ocorreu sem
+vinculá-lo ao raciocínio que o produziu. O diferencial pretendido por este
+trabalho é integrar, em um único fluxo, a decisão adaptativa por IA e o seu registro
+imutável em rede permissionada, de modo que cada entrada armazenada
+carregue os próprios critérios e o escore que justificaram a ação. A
+Tabela~\ref{tab:related} sintetiza trabalhos representativos: nenhuma
+linha de pesquisa reúne simultaneamente (i)~a fusão de múltiplos sinais
+contextuais e comportamentais, (ii)~a decisão adaptativa por ensemble e
+(iii)~a auditoria imutável acoplada à decisão.
+
+\begin{table}[t]
+\caption{Posicionamento Frente a Trabalhos Correlatos Representativos}
+\label{tab:related}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{1.85cm}p{1.3cm}ccc@{}}
+\toprule
+\textbf{Trabalho} & \textbf{Sinais} & \textbf{Adapt.} & \textbf{Audit.} & \textbf{Dados} \\
+\midrule
+TypeNet~\cite{acien2022} & Digitação & \checkmark & --- & Real \\
+Touchalytics~\cite{frank2013} & Toque & \checkmark & --- & Real \\
+Freeman~\cite{freeman2016} & IP/geo/UA & Parc. & --- & Real \\
+Alaca~\cite{alaca2016} & Fp.\ disp. & --- & --- & --- \\
+Andriam.~\cite{andriamilanto2021} & Fp.\ nav. & --- & --- & Real \\
+RBA~\cite{wiefling2019} & IP/contexto & Parc. & --- & Real \\
+Iso.\ Forest~\cite{liu2008} & Genérico & N.\ sup. & --- & --- \\
+BlockAudit~\cite{blockaudit} & Logs & --- & \checkmark & --- \\
+\textbf{Este trab.} & \textbf{14 ctx.+comp.} & \textbf{Ens.} & \textbf{Proj.} & Sint. \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+{\footnotesize \emph{Adapt.}: decisão adaptativa/aprendida (Parc.:
+parcial; N.\ sup.: não supervisionada; Ens.: ensemble). \emph{Audit.}:
+auditoria imutável acoplada à decisão (Proj.: projetada, ainda não
+implementada).}
+\end{table}
+
+\section{Arquitetura Proposta}
+\label{sec:arch}
+A arquitetura articula microsserviços, gestão federada de identidade,
+análise de risco por IA e registro imutável em blockchain, seguindo os
+princípios de segurança por desenho e verificação contínua do Zero
+Trust~\cite{rose2020,nist80053r5}. Em vez de uma decisão binária no
+momento do login, o modelo adota uma perspectiva contínua e orientada a
+risco. Organiza-se em cinco camadas integradas (Fig.~\ref{fig:arch}):
+
+\begin{enumerate}
+  \item \textbf{Aplicação Modular.} Serviços independentes (Spring Boot)
+        e front end Angular expondo APIs REST autenticadas.
+  \item \textbf{Identidade e Acesso.} Autenticação federada via Keycloak
+        (OAuth2 / OpenID Connect), emissão de JWT e suporte a MFA.
+  \item \textbf{Inteligência Contextual.} Extração dos quatorze critérios
+        comportamentais e cálculo do escore de risco pelo ensemble.
+  \item \textbf{Decisão Adaptativa.} Aplicação dos limiares de risco,
+        resultando em \emph{permitir}, \emph{reforçar com MFA} ou
+        \emph{bloquear}.
+  \item \textbf{Registro Imutável e Auditoria.} Persistência de cada
+        decisão em blockchain permissionada, garantindo rastreabilidade
+        e não repúdio.
+\end{enumerate}
+
+O fluxo operacional é uma cadeia decisória encadeada: a tentativa de
+login dispara a extração dos critérios contextuais; o motor de IA calcula
+o escore de risco; os limiares de decisão são aplicados; o resultado é
+registrado na blockchain; e o sistema permite o acesso, exige MFA ou o
+bloqueia. A separação em camadas permite evoluir cada responsabilidade de
+forma independente e aplicar políticas de segurança específicas em cada
+nível.
+
+\textbf{Modelo de ameaças e racional de projeto.} O sistema pressupõe um
+adversário que pode já deter credenciais válidas --- obtidas por
+vazamento, phishing ou reutilização --- e que pode tentar logins a partir
+de redes e dispositivos arbitrários, mas que não consegue forjar o
+consenso da rede permissionada nem observar o estado privado dos modelos
+de risco. Sob esse modelo, as camadas tratam preocupações complementares:
+a C2 estabelece \emph{quem} alega autenticar-se, a C3 estima \emph{quão
+provável} é que a alegação seja legítima dado o contexto, a C4 converte a
+estimativa em uma ação proporcional e a C5 torna a ação
+\emph{prestável de contas}. A faixa intermediária pressupõe que o
+adversário não detém o segundo fator; um adversário com credenciais e
+acesso ao segundo fator (p.\,ex., por phishing em tempo real) só é
+contido pela faixa de bloqueio, razão pela qual a proporção de ataques
+que cai em cada faixa precisa ser reportada, e não apenas o desempenho
+binário. Desacoplar a estimativa (C3) da aplicação
+(C4) é deliberado: os limiares de risco podem ser recalibrados, e os
+modelos reentreinados, sem tocar no provedor de identidade, e a camada de
+auditoria permanece agnóstica aos aprendizes específicos em uso. Como
+cada decisão é registrada junto com sua justificativa --- o hash dos
+critérios de entrada e o escore que o produziu ---, um auditor pode
+reproduzir posteriormente qualquer decisão e verificar que a ação
+registrada corresponde à política vigente naquele momento, sem precisar
+confiar nos próprios logs do operador. É esse acoplamento estreito entre
+\emph{decidir} e \emph{registrar} que distingue a proposta de pipelines
+que registram eventos depois, e separadamente, da decisão.
+
+\textbf{Estado do protótipo.} A arquitetura acima é o alvo do projeto. O
+protótipo público (Spring Boot + Angular) implementa até agora: login com
+senha e JWT próprios (a integração com o Keycloak existe como perfil de
+configuração opcional, não utilizado na implantação atual); MFA por TOTP;
+uma versão em Java dos três modelos, treinada na inicialização; e a
+persistência de cada decisão em uma tabela relacional (PostgreSQL) com um
+encadeamento de hashes. Três divergências em relação ao texto são
+explicitadas: (i)~os modelos avaliados na Seção~\ref{sec:results} são os
+do pipeline \emph{offline} em Python, e não os do protótipo Java, que usa
+outro conjunto de quatorze atributos; (ii)~no protótipo, o escore do
+ensemble ainda é combinado a um escore de confiança
+($T = 0{,}4\,H + 0{,}3\,(1-A) + 0{,}2\,R + 0{,}1\,X$, com $H$ histórico
+de sucesso, $A$ risco da IA, $R$ comportamento recente e $X$ fatores
+externos), e o MFA é exigido quando $T<0{,}5$, sem faixa de bloqueio;
+(iii)~a camada C5 não está conectada a uma rede Fabric: o serviço
+correspondente é um simulador, e a verificação de integridade da cadeia
+de hashes ainda não é funcional. Alinhar o protótipo à
+Eq.~(\ref{eq:ensemble}) e às três faixas é o próximo passo de
+implementação.
+
+\begin{figure}[t]
+\centering
+\begin{tikzpicture}[
+  layer/.style={draw, rounded corners, minimum width=7.4cm,
+    minimum height=0.72cm, align=center, font=\footnotesize, fill=gray!8},
+  arr/.style={-{Latex[length=2mm]}, thick}
+]
+\node[layer] (l1) {C1 -- Aplicação Modular \\ \scriptsize Serviços Spring Boot $\cdot$ front end Angular $\cdot$ APIs REST};
+\node[layer, below=0.28cm of l1] (l2) {C2 -- Identidade e Acesso \\ \scriptsize Keycloak $\cdot$ OAuth2 / OIDC $\cdot$ JWT $\cdot$ MFA};
+\node[layer, below=0.28cm of l2] (l3) {C3 -- Inteligência Contextual \\ \scriptsize 14 critérios $\cdot$ ensemble IF + RF + DL $\rightarrow$ escore};
+\node[layer, below=0.28cm of l3] (l4) {C4 -- Decisão Adaptativa \\ \scriptsize limiares $\rightarrow$ permitir / MFA / bloquear};
+\node[layer, below=0.28cm of l4] (l5) {C5 -- Registro Imutável e Auditoria \\ \scriptsize Hyperledger Fabric $\cdot$ trilha de auditoria verificável};
+\draw[arr] (l1) -- (l2);
+\draw[arr] (l2) -- (l3);
+\draw[arr] (l3) -- (l4);
+\draw[arr] (l4) -- (l5);
+\end{tikzpicture}
+\caption{Arquitetura em cinco camadas do sistema proposto.}
+\label{fig:arch}
+\end{figure}
+
+\section{Motor de Decisão por IA}
+\label{sec:ai}
+\textbf{Ensemble.} O motor de risco combina três aprendizes
+complementares. O \emph{Isolation Forest}~\cite{liu2008} atua como
+primeiro nível de análise, isolando outliers no espaço multidimensional
+de critérios com poucas partições aleatórias; contribui com 40\% do peso
+final. O \emph{Random Forest} contribui com 30\%, capturando relações não
+lineares entre os critérios e mantendo-se interpretável. Uma \emph{rede
+neural multicamada}~\cite{goodfellow2016} contribui com os 30\%
+restantes, com camada de entrada de 14 neurônios, duas camadas ocultas
+(64 e 32 unidades, ativações ReLU, otimizador Adam, sem dropout) e saída
+logística. O escore final é a média ponderada
+\begin{equation}
+S = 0{,}4\,S_{\mathrm{IF}} + 0{,}3\,S_{\mathrm{RF}} + 0{,}3\,S_{\mathrm{DL}},
+\label{eq:ensemble}
+\end{equation}
+em que cada componente retorna um valor em $[0,1]$ (0: normal, 1:
+altamente anômalo). A combinação de aprendizes não supervisionados e
+supervisionados visa cobrir tanto desvios inéditos (sem rótulo) quanto
+padrões de fraude conhecidos; a contribuição de cada modelo é medida na
+Seção~\ref{sec:results}.
+
+\textbf{Critérios.} Cada tentativa é representada por quatorze critérios
+em quatro famílias: \emph{temporais} (hora do acesso,
+dia da semana, intervalo desde o último login, frequência em 24\,h);
+\emph{geográficos/rede} (distância geodésica do local habitual, tipo de
+rede, ASN, velocidade de deslocamento impossível);
+\emph{dispositivo/navegador} (fingerprint do navegador, sistema
+operacional, tipo de dispositivo, detecção de automação/headless); e
+\emph{comportamento de sessão} (padrão de digitação e histórico de falhas
+recentes). Esses sinais visam credential stuffing, viagem impossível,
+sequestro de sessão, bots e desvios zero-day.
+
+\textbf{Limiares adaptativos.} O escore é mapeado em três faixas de
+risco, cujos cortes (0,3 e 0,7) são parâmetros de projeto, e não valores
+calibrados:
+baixo risco ($S<0{,}3$) permite o acesso sem etapas adicionais; risco
+moderado ($0{,}3\le S<0{,}7$) aciona MFA; e alto risco ($S\ge0{,}7$)
+bloqueia a tentativa, registra o evento na blockchain e notifica o
+administrador de segurança. A avaliação da
+Seção~\ref{sec:results} usa, além das faixas, um limiar binário único
+($\tau=0{,}54$, Seção~\ref{sec:method}), que cai dentro da faixa de MFA;
+por isso precisão, recall e FPR não descrevem, sozinhos, a liberação nem
+o bloqueio, e o desempenho por faixa é reportado à parte
+(Tabela~\ref{tab:bands}).
+Os três modelos são avaliados sequencialmente. Retreinamento periódico
+frente à deriva de conceito~\cite{gama2014} e versionamento de modelos
+são requisitos de projeto ainda não implementados.
+
+\section{Auditoria Baseada em Blockchain}
+\label{sec:bc}
+Esta seção descreve o \emph{projeto} da camada de auditoria; como
+explicado na Seção~\ref{sec:arch}, ela ainda não foi integrada a uma rede
+real, e sua avaliação é trabalho futuro. No projeto, cada decisão é
+registrada em uma rede permissionada
+baseada em Hyperledger Fabric~\cite{fabric2024}, cujo controle de
+identidade e governança estruturada são adequados a ambientes
+corporativos e governamentais~\cite{nistir8202}. Para cada evento, o
+registro armazena o hash dos critérios de entrada, o escore de risco, a
+decisão (permitir, MFA ou bloquear) e o timestamp da transação, encadeado
+ao registro anterior de modo a formar uma cadeia cronológica de
+evidências.
+
+A escolha do blockchain frente a mecanismos mais simples é justificada, e
+não presumida. Logs assinados digitalmente e bancos append-only já
+oferecem integridade e não repúdio por meio de assinaturas
+criptográficas, sendo suficientes quando existe uma autoridade central
+confiável que opera o registro. A diferença essencial de um blockchain
+permissionado \emph{não} está na assinatura em si, mas em não depender da
+confiança em um único custodiante: o registro é replicado e validado por
+consenso entre múltiplos participantes, tornando-se resistente à
+adulteração mesmo por administradores privilegiados do próprio sistema e
+permitindo verificação independente por auditores externos. Isso é
+determinante aqui, pois as decisões de acesso são tomadas de forma
+autônoma por modelos de IA e precisam ser auditáveis por terceiros (por
+exemplo, em fiscalizações de conformidade da LGPD~\cite{lgpd2018}),
+cenário em que o operador, sozinho, não deve poder alterar a trilha de
+decisões. Reconhece-se o custo --- maior complexidade operacional e menor
+throughput do que um banco append-only ---, que se justifica justamente
+em cenários multipartes e regulados, delimitando o escopo em que o
+blockchain é efetivamente necessário. Esse custo ainda não foi medido; a
+avaliação planejada exige uma rede com ao menos duas organizações e
+mede a latência de \emph{commit}, a vazão sob carga e a detecção de uma
+adulteração deliberada por um administrador de uma das organizações.
+Enquanto isso não for feito, o registro relacional do protótipo continua
+sob controle de um único custodiante --- exatamente o cenário que esta
+seção considera insuficiente.
+
+\section{Metodologia de Avaliação}
+\label{sec:method}
+\textbf{Dados e rotulagem.} Diante da ausência de bases públicas
+rotuladas para autenticação contextual, construiu-se um conjunto de dados
+sintéticos com 50.000 registros de login,\footnote{Conjunto de dados (CSV rotulado, modelos treinados e métricas): \url{https://github.com/jgbcientista/gestao-autonomo/tree/main/docs/artefatos-modelos}} com
+proporção de 95\% de acessos legítimos e 5\% suspeitos, fixada
+como hipótese de trabalho (não se trata de uma distribuição medida em
+produção). Cada registro contém os quatorze critérios da
+Seção~\ref{sec:ai}. \emph{O rótulo de cada registro é o ramo do gerador
+que o produziu} (legítimo ou perturbado); não houve revisão manual por
+especialistas. Todas as distribuições são constantes escolhidas pelos
+autores para representar um uso corporativo plausível, e não parâmetros
+estimados a partir de dados reais: a hora de acesso é uma gaussiana
+($\mu=13$\,h, $\sigma=3{,}2$\,h) truncada em $[0,23]$ --- tratada como
+variável linear, sem codificação circular ---, o intervalo entre logins
+segue uma exponencial, a frequência em 24\,h uma Poisson e a distância
+geodésica uma meia-normal; os escores de fingerprint do navegador e de
+similaridade de digitação são gaussianas de média alta truncadas em
+$[0,1]$, e os indicadores de dispositivo, sistema operacional, ASN e
+tipo de rede são variáveis categóricas com frequências fixadas no
+gerador. Os registros suspeitos são obtidos perturbando \emph{de dois a
+quatro} critérios, escolhidos ao acaso, de um perfil legítimo para faixas
+anômalas (horário de madrugada, fim de semana, rajada de logins,
+distância e velocidade de deslocamento impossíveis, rede ou ASN
+atípicos, sistema operacional ou dispositivo desconhecidos,
+fingerprint e digitação divergentes, automação, falhas recentes). Cerca de 5\% dos registros legítimos recebem uma perturbação
+em \emph{um} critério, sorteada \emph{das mesmas faixas} usadas para os
+ataques; é essa escolha que gera os falsos positivos. Por fim,
+adiciona-se a todos os critérios ruído gaussiano com desvio de $0{,}30$
+vezes o desvio-padrão da coluna. Como o ruído é aplicado também às
+variáveis categóricas e às não negativas, o conjunto contém valores
+fisicamente implausíveis (p.\,ex., ASN $=0{,}94$ ou velocidade de
+deslocamento negativa); registramos essa limitação do gerador em vez de
+ocultá-la, e sua correção faz parte dos trabalhos futuros. Por se tratar de dados
+sintéticos, não há coleta de
+informações pessoais identificáveis nesta fase; a evolução para dados
+reais seguirá os princípios de minimização e anonimização exigidos pela
+LGPD~\cite{lgpd2018}.
+
+\textbf{Protocolo.} O conjunto foi particionado de forma estratificada em
+70\% para treinamento e 30\% para teste. O normalizador (padronização) e
+a normalização min-max do escore da Isolation Forest são ajustados
+apenas no treino. Os hiperparâmetros (Tabela~\ref{tab:hyper}) foram
+fixados \emph{a priori}, sem busca; o único parâmetro ajustado é o limiar
+de decisão, escolhido na grade $\{0{,}20, 0{,}21, \dots, 0{,}80\}$ como o
+que maximiza o F1 no treino ($\tau=0{,}54$) e aplicado sem alteração ao
+teste. Para estimar a variabilidade, executou-se uma validação cruzada
+estratificada de 5 folds \emph{apenas sobre a partição de treino}, em que
+o normalizador, os modelos e o limiar são reajustados dentro de cada
+fold; a partição de teste não participa. O desempenho foi medido por
+precisão, recall, F1-score, taxa de falsos positivos (FPR), AUC-ROC,
+AUC da curva precisão-recall (PR-AUC, mais informativa sob desbalanceamento)
+e latência de inferência. Para a decisão em três faixas, definem-se a
+\emph{taxa de atrito} (fração de acessos legítimos que recebem MFA ou
+bloqueio) e a \emph{taxa de passagem silenciosa} (fração de ataques
+liberados sem nenhum desafio). As sementes aleatórias foram fixadas.
+
+\textbf{Análises adicionais.} Com o mesmo pipeline, avaliam-se ainda:
+(i)~cada modelo isolado, com limiar próprio escolhido no treino;
+(ii)~as 66 combinações de pesos em passos de 0,1 (análise de
+sensibilidade, não de seleção); (iii)~proporções de ataques de 1\%, 2\%,
+5\%, 10\% e 20\%; (iv)~uma variante do gerador sem ruído nas variáveis
+categóricas e de contagem e com truncamento das contínuas não negativas,
+que elimina os valores implausíveis; e (v)~um atacante que conhece os
+quatorze critérios e substitui os que controla por valores sorteados da
+distribuição legítima, em quatro níveis cumulativos: horário e ritmo de
+tentativas; rede, ASN e localização (proxy residencial próximo à vítima);
+fingerprint, sistema, dispositivo e automação (navegador
+anti-detecção); e padrão de digitação.
+Para permitir verificação independente, o código-fonte,
+os artefatos dos modelos treinados e os scripts que geram o conjunto de
+dados e reproduzem cada experimento estão abertamente
+disponíveis.\footnote{\url{https://github.com/jgbcientista/gestao-autonomo}}
+
+\textbf{Reprodutibilidade.} Um único script de entrada regenera todo o
+pipeline de forma determinística a partir da semente fixa: o conjunto
+rotulado (50.000 registros com os quatorze critérios e o rótulo de
+classe), os três modelos treinados juntamente com o normalizador de
+atributos (serializados com \texttt{joblib}), a configuração do ensemble
+(pesos dos componentes, os limites de normalização do escore da
+Isolation Forest e o limiar de decisão selecionado pelo melhor F1 de
+treinamento) e um arquivo de métricas legível por máquina contendo cada
+valor reportado na Seção~\ref{sec:results}. Reexecutar o script em um
+ambiente limpo reproduz as métricas reportadas; diferenças de versão do
+scikit-learn produzem apenas variações na terceira casa decimal (p.\,ex.,
+F1 de 0,802 a 0,805), de
+modo que um revisor possa auditar todo o pipeline de ponta a ponta ---da
+geração dos atributos brutos ao limiar de decisão final--- sem acesso a
+quaisquer dados privados ou pessoalmente identificáveis. Esse
+empacotamento é o que transforma a descrição de ``cerca de 50.000
+registros'' em um artefato que um terceiro pode regenerar, inspecionar e
+estender.
+
+\begin{table}[t]
+\caption{Hiperparâmetros Utilizados (fixados a priori)}
+\label{tab:hyper}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}p{1.9cm}p{6.0cm}@{}}
+\toprule
+\textbf{Componente} & \textbf{Configuração} \\
+\midrule
+Pré-processamento & padronização (z-score) ajustada no treino \\
+Isolation Forest & 100 árvores; contaminação 0,05; escore $-$\texttt{score\_samples} normalizado min-max pelo treino e truncado em $[0,1]$ \\
+Random Forest & 120 árvores; profundidade livre; \texttt{class\_weight=balanced} \\
+Rede neural (MLP) & camadas ocultas 64--32, ReLU, Adam, 220 iterações, sem dropout; saída logística \\
+Ensemble & $0{,}4\,S_{\mathrm{IF}}+0{,}3\,S_{\mathrm{RF}}+0{,}3\,S_{\mathrm{DL}}$ \\
+Limiar & grade 0,20--0,80 (passo 0,01), máx.\ F1 no treino $\Rightarrow\tau=0{,}54$ \\
+Dados & 50.000 registros; 5\% suspeitos; ruído $0{,}30\sigma$; semente 42 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Baselines.} A Tabela~\ref{tab:baseline} confronta a proposta com
+baselines representativos da literatura e da prática. Os valores dos
+baselines provêm da literatura citada e não foram reexecutados aqui; a
+comparação é, portanto, qualitativa quanto às capacidades de cada
+abordagem. Os três eixos de comparação não são arbitrários; decorrem
+dos requisitos que a literatura impõe à autenticação moderna. A
+\emph{sensibilidade ao contexto} (Ctx.) reflete a recomendação do NIST
+e do modelo Zero Trust de que a verificação seja condicionada aos sinais
+de cada tentativa, e não apenas à credencial
+\cite{nist80063b,rose2020}, propriedade que estudos empíricos de
+autenticação baseada em risco apontam como decisiva na
+prática~\cite{wiefling2019,freeman2016}. A \emph{adaptabilidade}
+(Adapt.) expressa se a resposta é proporcional ao risco estimado ---
+princípio central da autenticação baseada em
+risco~\cite{nist80063b,wiefling2019,wiefling2023} --- em vez de uma
+regra fixa. A \emph{auditabilidade} (Audit.) trata da prestação de
+contas de decisões automatizadas sobre dados pessoais, exigência
+explicitada por regulações como a LGPD~\cite{lgpd2018} e, de modo mais
+amplo, pela necessidade de verificação independente quando o acesso é
+delegado a modelos autônomos. Em conjunto, esses eixos cobrem as duas
+propriedades que um sistema de autenticação contextual precisa
+satisfazer simultaneamente --- decidir corretamente e ser verificável
+---, enquanto a coluna \emph{principal limitação} indica onde cada
+baseline falha em ao menos uma delas.
+
+\begin{table}[t]
+\caption{Comparação com Abordagens de Referência}
+\label{tab:baseline}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}p{1.7cm}cccp{2.0cm}@{}}
+\toprule
+\textbf{Abordagem} & \textbf{Ctx.} & \textbf{Adapt.} & \textbf{Audit.} & \textbf{Limitação principal} \\
+\midrule
+Senha + 2FA estático & --- & --- & --- & Ignora contexto; phishing/SIM swap \\
+RBA por IP~\cite{wiefling2019} & Parc. & Heur. & --- & Feature única; ajuste manual \\
+Escore estatístico~\cite{freeman2016} & \checkmark & Est. & --- & Poucos sinais; sem auditoria \\
+Keystroke isolado~\cite{killourhy2009} & \checkmark & --- & --- & Offline, fator único (EER $\approx$9,6\%) \\
+\textbf{Proposta} & \textbf{\checkmark} & \textbf{Ens.} & \textbf{Proj.} & Dados sintéticos; auditoria em projeto \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+{\footnotesize \emph{Ctx.}: usa contexto do login; \emph{Adapt.}: decisão
+adaptativa (Heur.: heurística; Est.: estatística; Ens.: ensemble);
+\emph{Audit.}: auditoria imutável acoplada à decisão (Proj.: projetada).}
+\end{table}
+
+\section{Resultados e Discussão}
+\label{sec:results}
+Sobre o conjunto de teste (30\% dos dados, não vistos durante o
+treinamento), o ensemble alcançou acurácia de 98,1\%, precisão de 83,0\%
+e recall de 77,6\% na detecção de acessos suspeitos, com F1-score de
+80,2\% e AUC-ROC de 0,99, indicando forte capacidade de ordenação entre
+acessos legítimos e suspeitos. A taxa de falsos positivos manteve-se
+baixa, em 0,8\%, fator relevante para a usabilidade. A validação cruzada
+restrita ao treino confirma a ordem de grandeza (F1 $80,3\%\pm1,3\%$;
+AUC $0,990\pm0,002$), com limiares entre 0,42 e 0,56 conforme o fold. A
+matriz de confusão no teste é TN\,=\,14.131, FP\,=\,119, FN\,=\,168,
+TP\,=\,582. A Tabela~\ref{tab:results} resume esses números.
+
+\begin{table}[t]
+\caption{Desempenho do Ensemble no Conjunto de Teste}
+\label{tab:results}
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{@{}lc@{\hspace{5mm}}lc@{}}
+\toprule
+\textbf{Métrica} & \textbf{Valor} & \textbf{Métrica} & \textbf{Valor} \\
+\midrule
+Acurácia   & 98,1\% & F1-score        & 80,2\% \\
+Precisão   & 83,0\% & AUC-ROC         & 0,99   \\
+Recall     & 77,6\% & Taxa falsos pos.\ & 0,8\% \\
+\midrule
+\multicolumn{2}{@{}l}{F1 (CV 5 folds no treino)} & \multicolumn{2}{l}{$80,3\%\pm1,3\%$} \\
+\multicolumn{2}{@{}l}{AUC (CV 5 folds no treino)} & \multicolumn{2}{l}{$0,990\pm0,002$} \\
+\multicolumn{2}{@{}l}{Latência do ensemble (\emph{offline})} & \multicolumn{2}{l}{$\approx$33\,ms/req.} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Decisão em três faixas.} A Tabela~\ref{tab:bands} aplica as faixas
+0,3/0,7 ao escore do teste. Entre os acessos legítimos, 97,3\% são
+liberados sem desafio (taxa de atrito de 2,7\%) e apenas 0,1\% são
+bloqueados. Entre os ataques, 62,5\% são bloqueados, 30,1\% recebem MFA e
+7,3\% passam silenciosamente. Como a faixa de MFA só contém um adversário
+que não detém o segundo fator (Seção~\ref{sec:arch}), a proteção efetiva
+contra quem tem credenciais e segundo fator é a fração bloqueada, e não o
+recall binário.
+
+\begin{table}[t]
+\caption{Decisão em Três Faixas no Conjunto de Teste}
+\label{tab:bands}
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+\textbf{Classe real} & \textbf{Permitir} & \textbf{MFA} & \textbf{Bloquear} \\
+ & ($S<0{,}3$) & & ($S\ge0{,}7$) \\
+\midrule
+Legítimo & 97,3\% & 2,6\% & 0,1\% \\
+Suspeito & 7,3\% & 30,1\% & 62,5\% \\
+\midrule
+\multicolumn{4}{@{}l}{Taxa de atrito: 2,7\% \quad Taxa de passagem silenciosa: 7,3\%} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Contribuição de cada modelo.} A Tabela~\ref{tab:single} compara o
+ensemble a cada modelo treinado isoladamente no mesmo pipeline. O ensemble
+ganha cerca de 3 pontos de F1 sobre o melhor modelo isolado (0,802 contra
+0,775 da Random Forest), reduz a FPR de 1,15\% para 0,84\% e eleva a
+PR-AUC de 0,86 para 0,90. Os pesos 0,4/0,3/0,3, porém, não foram
+otimizados: nas 66 combinações avaliadas, o F1 no teste varia de 0,767
+(só Isolation Forest) a 0,820, e a configuração adotada fica em 19.º
+lugar. As melhores combinações atribuem 0,6--0,8 à Isolation Forest e
+pouco ou nenhum peso à rede neural. Escolher os pesos por esse resultado
+seria ajustar ao teste; a seleção correta, em uma partição de validação,
+fica para a próxima etapa.
+
+\begin{table}[t]
+\caption{Ensemble versus Modelos Isolados (Teste)}
+\label{tab:single}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Modelo} & $\tau$ & \textbf{Prec.} & \textbf{Rec.} & \textbf{F1} & \textbf{FPR} & \textbf{PR-AUC} \\
+\midrule
+Isolation Forest & 0,45 & 0,763 & 0,772 & 0,767 & 1,26\% & 0,855 \\
+Random Forest    & 0,60 & 0,779 & 0,771 & 0,775 & 1,15\% & 0,857 \\
+Rede neural      & 0,48 & 0,757 & 0,792 & 0,774 & 1,34\% & 0,860 \\
+\textbf{Ensemble} & 0,54 & \textbf{0,830} & 0,776 & \textbf{0,802} & \textbf{0,84\%} & \textbf{0,903} \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Sensibilidade à proporção de ataques e ao gerador.} A
+Tabela~\ref{tab:prop} repete o experimento para outras proporções. A AUC
+permanece em 0,99, mas as métricas dependentes da prevalência mudam
+bastante: com 1\% de ataques, o F1 cai para 0,63 e a passagem silenciosa
+sobe para 24,0\%, porque a Isolation Forest (contaminação igual à
+proporção) e o limiar escolhido por F1 passam a favorecer a classe
+majoritária. Em produção, em que ataques tendem a ser mais raros que 5\%,
+esse é o cenário relevante. Já a correção do ruído do gerador (item~(iv)
+das análises adicionais) quase não altera os resultados (F1 0,809, AUC
+0,992, passagem silenciosa 6,9\%), o que indica que os valores
+implausíveis não inflavam as métricas.
+
+\begin{table}[t]
+\caption{Sensibilidade à Proporção de Ataques}
+\label{tab:prop}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+\textbf{Ataques} & \textbf{F1} & \textbf{AUC} & \textbf{PR-AUC} & \textbf{Atrito} & \textbf{Pass.\ silenc.} \\
+\midrule
+1\%  & 0,632 & 0,989 & 0,718 & 0,8\% & 24,0\% \\
+2\%  & 0,720 & 0,991 & 0,809 & 1,1\% & 16,7\% \\
+5\%  & 0,802 & 0,992 & 0,903 & 2,7\% & 7,3\% \\
+10\% & 0,869 & 0,992 & 0,944 & 3,1\% & 6,4\% \\
+20\% & 0,917 & 0,993 & 0,976 & 4,2\% & 3,7\% \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Evasão adversarial.} A Tabela~\ref{tab:evasion} mostra o efeito de
+um atacante que conhece os critérios. Imitar apenas o horário e o ritmo
+das tentativas --- algo trivial --- já reduz o recall de 77,6\% para
+50,7\% e eleva a passagem silenciosa de 7,3\% para 28,4\%. Com um proxy
+residencial próximo à vítima, o recall cai para 18,0\% e 64,4\% dos
+ataques passam sem desafio; com um navegador anti-detecção, praticamente
+todos passam. Esse resultado é, em parte, consequência do gerador: os
+ataques sintéticos \emph{são definidos} como desvios nesses critérios, de
+modo que removê-los apaga o sinal. Mas ele também expõe um limite real
+da abordagem: a maioria dos quatorze critérios é controlável pelo
+adversário, e só o padrão de digitação e o histórico da conta resistem a
+um atacante informado. Critérios difíceis de forjar e defesas contra
+evasão são, portanto, requisito, e não refinamento.
+
+\begin{table}[t]
+\caption{Evasão por Atacante que Conhece os Critérios (Ataques do Teste)}
+\label{tab:evasion}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.15}
+\begin{tabular}{@{}p{3.3cm}cccc@{}}
+\toprule
+\textbf{Critérios imitados (cumulativo)} & \textbf{Recall} & \textbf{Permitir} & \textbf{MFA} & \textbf{Bloquear} \\
+\midrule
+Nenhum & 77,6\% & 7,3\% & 30,1\% & 62,5\% \\
++ horário e ritmo & 50,7\% & 28,4\% & 33,1\% & 38,5\% \\
++ rede, ASN, local (proxy) & 18,0\% & 64,4\% & 25,3\% & 10,3\% \\
++ fingerprint, SO, disp., automação & 2,9\% & 91,1\% & 8,0\% & 0,9\% \\
++ digitação (todos) & 0,3\% & 98,1\% & 1,9\% & 0,0\% \\
+\bottomrule
+\end{tabular}
+
+\vspace{2pt}
+{\footnotesize Recall no limiar binário $\tau=0{,}54$; demais colunas com as faixas 0,3/0,7.}
+\end{table}
+
+A latência foi medida apenas no pipeline \emph{offline}
+(scikit-learn, uma amostra por chamada, mediana de 300 chamadas): 4,0\,ms
+para a Isolation Forest, 29,2\,ms para a Random Forest e 0,05\,ms para a
+rede neural, executadas em sequência, totalizando cerca de 33\,ms --- valor
+dependente da máquina e dominado pela Random Forest. Não foram medidos a
+latência do fluxo completo de login, o custo do registro de auditoria nem
+a vazão; esses números dependem da integração descrita na
+Seção~\ref{sec:bc} e ficam para a próxima etapa.
+
+\textbf{Discussão.} Os resultados parciais são promissores e sugerem a
+viabilidade técnica da abordagem; contudo, por decorrerem de dados
+sintéticos e de uma fase preliminar, não permitem ainda confirmar a
+hipótese central de forma conclusiva. Uma comparação rigorosa com os
+baselines e a validação com dados reais permanecem necessárias antes de
+qualquer afirmação quantitativa de superioridade. Ainda assim, em
+ambiente controlado, o ensemble separou os registros perturbados dos
+legítimos com AUC de 0,99, o que indica que os critérios escolhidos
+carregam sinal quando os ataques se manifestam nas faixas modeladas pelo
+gerador --- ressalva que a análise de evasão torna concreta. Nenhuma afirmação sobre
+resistência à adulteração é feita nesta versão, pois a camada de
+auditoria não foi avaliada.
+
+\textbf{Análise de erros e compromissos.} O limiar de decisão não é
+fixado a priori, mas selecionado como o valor que maximiza o F1-score na
+partição de treinamento, o que torna o ponto de operação explícito e
+ajustável por implantação: reduzi-lo aumenta o recall ao custo de mais
+desafios de step-up, ao passo que elevá-lo favorece uma experiência sem
+atrito ao risco de deixar escapar ataques limítrofes. No ponto
+escolhido, a matriz de confusão no conjunto de teste é dominada por
+verdadeiros negativos, e os erros residuais concentram-se na fronteira
+entre acessos legítimos levemente anômalos e acessos suspeitos de baixa
+intensidade --- exatamente a região que o modelo de ruído foi projetado
+para tornar ambígua. Isso explica tanto o F1 abaixo de 90\% quanto a
+baixa taxa de falsos positivos: o ensemble é conservador, preferindo uma
+detecção perdida ocasional a penalizar usuários legítimos, viés
+apropriado a um front-end de autenticação, em que o atrito de
+usabilidade tem custo direto de negócio. Os três modelos contribuem com
+visões complementares --- a Isolation Forest sinaliza combinações de
+atributos globalmente raras sem rótulos, enquanto a Random Forest e a
+rede neural exploram a fronteira de decisão rotulada. Evitamos deliberadamente ler esses números como
+evidência de superioridade sobre os baselines da
+Tabela~\ref{tab:baseline}: os baselines não foram reexecutados sobre os
+mesmos dados, e o gerador sintético, por mais cuidadosamente calibrado,
+não captura toda a diversidade adversarial do tráfego de produção. Essas
+observações enquadram o experimento como um estudo de viabilidade cujo
+próximo passo é a validação sobre logs reais e não repudiáveis coletados
+sob a própria arquitetura aqui proposta.
+
+\textbf{Limitações e ameaças à validade.} Quatro limitações delimitam o
+alcance das conclusões. Primeiro, a validade externa é restringida pelo
+uso de dados sintéticos: embora o processo gerador reproduza
+distribuições plausíveis de uso corporativo, ele não captura a cauda
+longa de comportamentos legítimos atípicos nem a criatividade
+adversarial observada em tráfego real, de modo que as métricas relatadas
+devem ser lidas como um limite superior otimista e não como desempenho
+esperado em produção. Segundo, a validade de construção depende da
+rotulagem heurística: por derivarem das mesmas regras que descrevem os
+padrões de fraude, os rótulos podem introduzir uma circularidade em que
+o ensemble reaprende as fronteiras codificadas no próprio gerador ---
+risco que apenas a rotulagem sobre incidentes reais, revisada por
+analistas, elimina por completo. Terceiro, a comparação com os baselines
+é deliberadamente qualitativa, pois estes não foram reexecutados sobre o
+mesmo conjunto de dados; afirmações quantitativas de superioridade
+permanecem, portanto, fora do escopo desta fase preliminar. Quarto, a
+robustez adversarial é baixa: como mostra a Tabela~\ref{tab:evasion}, a
+maior parte dos critérios pode ser imitada por um atacante informado.
+Mitigamos parcialmente essas ameaças fixando as sementes aleatórias,
+publicando os hiperparâmetros e disponibilizando abertamente o código e
+os artefatos para inspeção independente; a superação plena, contudo, exige a coleta de logs
+reais sob a arquitetura proposta --- registro que a camada de auditoria,
+uma vez implementada, deverá tornar verificável ---, fechando o ciclo
+entre a avaliação metodológica e a operação efetiva do sistema.
+
+\section{Considerações Finais e Trabalhos Futuros}
+\label{sec:conclusion}
+Este artigo apresentou um sistema autônomo de autenticação contextual que
+combina uma decisão adaptativa por IA com o projeto de uma auditoria
+em blockchain permissionada. As contribuições são a arquitetura que
+funde quatorze sinais contextuais e comportamentais por meio de um
+ensemble, o projeto da camada de auditoria acoplada à decisão, com
+justificativa explícita para o uso de blockchain, e uma avaliação
+\emph{offline} reprodutível do motor de risco. Experimentos preliminares sobre
+dados sintéticos indicaram viabilidade técnica (98,1\% de acurácia, 80,2\%
+de F1-score, AUC de 0,99, latência de inferência de $\approx$33\,ms;
+7,3\% de passagem silenciosa com as três faixas), e o ensemble superou
+cada modelo isolado; a análise de evasão, contudo, mostra que a maior
+parte dos critérios é controlável por um atacante informado. Isso
+constitui uma validação metodológica e não um substituto para a
+avaliação com dados reais. O próximo passo imediato é integrar uma rede
+Fabric real com ao menos duas organizações, medindo latência de
+\emph{commit}, vazão e detecção de adulteração, e alinhar o protótipo à
+Eq.~(\ref{eq:ensemble}) e às três faixas. Como trabalhos futuros,
+pretende-se ainda substituir
+o conjunto sintético por dados reais ou semirreais coletados em ambiente
+controlado, selecionar pesos e limiares em partição de validação,
+incorporar critérios difíceis de forjar e defesas contra evasão, avaliar
+desempenho e escalabilidade sob carga realista e aprofundar a análise de
+segurança frente ao modelo de ameaças. Planeja-se ainda investigar a
+explicabilidade das decisões do ensemble --- expondo, para cada bloqueio
+ou desafio de MFA, os critérios de maior contribuição ao escore de
+risco ---, avaliar o comportamento do sistema sob deriva de conceito
+prolongada e ataques adversariais de evasão, e conduzir um estudo de
+usabilidade que quantifique o atrito percebido pelos usuários legítimos
+frente aos desafios adaptativos.
+
+\balance
+\begin{thebibliography}{00}
+\bibitem{nist80063b} National Institute of Standards and Technology, ``Digital Identity Guidelines: Authentication and Lifecycle Management,'' NIST SP 800-63B, 2017.
+\bibitem{verizon2024} Verizon, ``2024 Data Breach Investigations Report (DBIR),'' Verizon Business, 2024.
+\bibitem{rose2020} S. Rose, O. Borchert, S. Mitchell, and S. Connelly, ``Zero Trust Architecture,'' NIST SP 800-207, 2020.
+\bibitem{wiefling2019} S. Wiefling, L. Lo Iacono, and M. D\"urmuth, ``Is This Really You? An Empirical Study on Risk-Based Authentication Applied in the Wild,'' in \emph{IFIP SEC}, 2019, pp. 134--148.
+\bibitem{wiefling2023} S. Wiefling, P. R. J\o rgensen, S. Thunem, and L. Lo Iacono, ``Pump Up Password Security! Evaluating and Enhancing Risk-Based Authentication on a Real-World Large-Scale Online Service,'' \emph{ACM Trans. Priv. Secur.}, vol. 26, no. 1, 2023.
+\bibitem{freeman2016} D. Freeman, S. Jain, M. D\"urmuth, B. Biggio, and G. Giacinto, ``Who Are You? A Statistical Approach to Measuring User Authenticity,'' in \emph{Proc. Netw. Distrib. Syst. Secur. Symp. (NDSS)}, 2016.
+\bibitem{alaca2016} F. Alaca and P. C. van Oorschot, ``Device Fingerprinting for Augmenting Web Authentication: Classification and Analysis of Methods,'' in \emph{Proc. 32nd Annu. Comput. Secur. Appl. Conf. (ACSAC)}, 2016, pp. 289--301.
+\bibitem{andriamilanto2021} N. Andriamilanto, T. Allard, G. Le Guelvouit, and A. Garel, ``A Large-scale Empirical Analysis of Browser Fingerprints Properties for Web Authentication,'' \emph{ACM Trans. Web}, vol. 16, no. 1, pp. 1--62, 2021.
+\bibitem{abuhamad2021} M. Abuhamad, A. Abusnaina, D. Nyang, and D. Mohaisen, ``Sensor-Based Continuous Authentication of Smartphones' Users Using Behavioral Biometrics: A Contemporary Survey,'' \emph{IEEE Internet Things J.}, vol. 8, no. 1, pp. 65--84, 2021.
+\bibitem{blockaudit} A. Ahmad, M. Saad, and A. Mohaisen, ``Secure and Transparent Audit Logs with BlockAudit,'' \emph{J. Netw. Comput. Appl.}, vol. 145, art.\ 102406, 2019.
+\bibitem{acien2022} A. Acien, A. Morales, R. Vera-Rodriguez, J. Fierrez, and J. V. Monaco, ``TypeNet: Deep Learning Keystroke Biometrics,'' \emph{IEEE Trans. Biom. Behav. Identity Sci.}, vol. 4, no. 1, pp. 57--70, 2022.
+\bibitem{stragapede2024} G. Stragapede, P. Delgado-Santos, R. Tolosana, R. Vera-Rodriguez, R. Guest, and A. Morales, ``TypeFormer: Transformers for Mobile Keystroke Biometrics,'' \emph{Neural Comput. Appl.}, vol. 36, pp. 18531--18545, 2024.
+\bibitem{frank2013} M. Frank, R. Biedert, E. Ma, I. Martinovic, and D. Song, ``Touchalytics: On the Applicability of Touchscreen Input as a Behavioral Biometric for Continuous Authentication,'' \emph{IEEE Trans. Inf. Forensics Security}, vol. 8, no. 1, pp. 136--148, 2013.
+\bibitem{liu2008} F. T. Liu, K. M. Ting, and Z.-H. Zhou, ``Isolation Forest,'' in \emph{IEEE Int. Conf. Data Mining (ICDM)}, 2008, pp. 413--422.
+\bibitem{killourhy2009} K. S. Killourhy and R. A. Maxion, ``Comparing Anomaly-Detection Algorithms for Keystroke Dynamics,'' in \emph{IEEE/IFIP DSN}, 2009, pp. 125--134.
+\bibitem{goodfellow2016} I. Goodfellow, Y. Bengio, and A. Courville, \emph{Deep Learning}. Cambridge, MA: MIT Press, 2016.
+\bibitem{gama2014} J. Gama, I. \v{Z}liobait\.e, A. Bifet, M. Pechenizkiy, and A. Bouchachia, ``A Survey on Concept Drift Adaptation,'' \emph{ACM Comput. Surv.}, vol. 46, no. 4, pp. 1--37, 2014.
+\bibitem{fabric2024} Hyperledger Foundation, ``Hyperledger Fabric Documentation, v2.5,'' Linux Foundation, 2024.
+\bibitem{nistir8202} National Institute of Standards and Technology, ``Blockchain Technology Overview,'' NISTIR 8202, 2018.
+\bibitem{nist80053r5} National Institute of Standards and Technology, ``Security and Privacy Controls for Information Systems and Organizations,'' NIST SP 800-53 Rev.\ 5, 2020.
+\bibitem{lgpd2018} Brasil, ``Lei n.\ 13.709/2018 -- Lei Geral de Proteção de Dados Pessoais (LGPD),'' 2018.
+\end{thebibliography}
+
+\end{document}
